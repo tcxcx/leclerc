@@ -4,16 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import type { FieldReport, Prioridad } from "@/lib/reports/schema";
 import { deleteReport, getReport, updateEstado } from "@/lib/reports/store-client";
-
-const MESES = [
-  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-];
-
-function fmtFecha(ms: number): string {
-  const d = new Date(ms);
-  return `${d.getDate()} de ${MESES[d.getMonth()]}, ${d.getFullYear()}`;
-}
+import { buildReportContent } from "@/lib/reports/export/content";
+import { downloadReport, type ReportFormat } from "@/lib/reports/export/download";
 
 function fmtDur(ms: number | null): string | null {
   if (!ms) return null;
@@ -29,13 +21,6 @@ const PRIORIDAD_STYLE: Record<Prioridad, string> = {
   BAJA: "bg-secondary-container text-on-secondary-container",
 };
 
-function sentences(text: string): string[] {
-  return text
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
 export default function ReportPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
@@ -46,6 +31,20 @@ export default function ReportPage() {
   const [showTranscript, setShowTranscript] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [downloading, setDownloading] = useState<ReportFormat | null>(null);
+
+  const descargar = async (format: ReportFormat) => {
+    if (!report || downloading) return;
+    setDownloading(format);
+    try {
+      console.log(`[informe] descargar ${format}`);
+      await downloadReport(report, format);
+    } catch (e) {
+      console.error(`[informe] descarga ${format} falló:`, e);
+    } finally {
+      setDownloading(null);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -124,12 +123,7 @@ export default function ReportPage() {
   }
 
   const dur = fmtDur(report.metadatos.durationMs);
-  const ubicacion = [report.metadatos.sector, report.metadatos.unidad]
-    .filter(Boolean)
-    .join(", ");
-  const titular =
-    report.metadatos.beneficiario?.nombre ||
-    (report.metadatos.tipo === "grupal" ? "Actividad Grupal" : "Beneficiario");
+  const content = buildReportContent(report);
 
   return (
     <div className="pb-32">
@@ -150,42 +144,103 @@ export default function ReportPage() {
       </header>
 
       <main className="mt-16 px-container-margin pt-6 max-w-3xl mx-auto">
-        {/* Summary card */}
-        <section className="anim-enter bg-surface-container-low border border-primary/20 p-5 rounded-xl mb-6">
-          <div className="flex justify-between items-start mb-4">
-            <h3 className="font-label-md text-label-md text-primary flex items-center gap-2">
-              Resumén de registro
-            </h3>
+        {/* Header */}
+        <section className="anim-enter mb-5">
+          <p className="text-caption text-on-surface-variant uppercase tracking-wide">
+            Informe de Campo
+          </p>
+          <div className="flex justify-between items-start gap-3 mt-1">
+            <h1 className="font-headline-md text-headline-md font-bold text-on-surface">
+              {content.titular}
+            </h1>
             <span
-              className={`px-2 py-0.5 rounded text-[10px] font-bold ${PRIORIDAD_STYLE[report.prioridad]}`}
+              className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-bold ${PRIORIDAD_STYLE[report.prioridad]}`}
             >
               {report.prioridad}
             </span>
           </div>
-          <ul className="stagger space-y-3">
-            {sentences(report.resumen).map((s, i) => (
-              <li key={`r${i}`} className="flex gap-3">
-                <span className="material-symbols-outlined text-primary text-sm mt-1">
-                  check_circle
-                </span>
-                <p className="text-body-md">{s}</p>
-              </li>
-            ))}
-            {report.accionesPendientes.map((a, i) => (
-              <li key={`a${i}`} className="flex gap-3">
-                <p className="text-body-md">
-                  <span className="bg-tertiary-container text-on-tertiary-container px-2 py-0.5 rounded text-[10px] font-bold mr-1">
-                    PENDIENTE
-                  </span>
-                  {a}
-                </p>
-              </li>
-            ))}
-          </ul>
+          <p className="text-body-md text-on-surface-variant mt-1">
+            {content.fecha}
+            {content.lugar ? ` · ${content.lugar}` : ""}
+            {dur ? ` · ${dur}` : ""}
+          </p>
         </section>
 
+        {/* Executive summary — first */}
+        <section className="anim-enter bg-surface-container-low border border-primary/20 p-5 rounded-xl mb-5">
+          <h3 className="font-label-md text-label-md text-primary mb-2 uppercase tracking-wide">
+            Resumen Ejecutivo
+          </h3>
+          <p className="text-body-md">{content.resumenEjecutivo}</p>
+        </section>
+
+        {/* Downloads */}
+        <section className="anim-enter mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            onClick={() => descargar("docx")}
+            disabled={!!downloading}
+            className="h-12 bg-primary text-on-primary rounded-lg font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.97] transition-transform disabled:opacity-60"
+          >
+            <span className="material-symbols-outlined">
+              {downloading === "docx" ? "progress_activity" : "description"}
+            </span>
+            <span className={downloading === "docx" ? "animate-pulse" : ""}>
+              Descargar Word (.docx)
+            </span>
+          </button>
+          <button
+            onClick={() => descargar("pdf")}
+            disabled={!!downloading}
+            className="h-12 bg-surface-container-low text-primary border border-outline-variant rounded-lg font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.97] transition-transform disabled:opacity-60"
+          >
+            <span className="material-symbols-outlined">
+              {downloading === "pdf" ? "progress_activity" : "picture_as_pdf"}
+            </span>
+            <span className={downloading === "pdf" ? "animate-pulse" : ""}>Descargar PDF</span>
+          </button>
+        </section>
+
+        {/* Structured sections */}
+        <div className="space-y-5">
+          {content.sections.map((s, i) => (
+            <section
+              key={i}
+              className="anim-enter bg-surface-container-low/50 border border-outline-variant/30 p-5 rounded-xl"
+            >
+              <h3 className="font-label-md text-label-md text-primary mb-3 uppercase tracking-wide">
+                {s.title}
+              </h3>
+              {s.kind === "fields" && (
+                <dl className="space-y-1.5">
+                  {s.fields.map((f, j) => (
+                    <div key={j} className="flex gap-3 text-body-md">
+                      <dt className="w-40 shrink-0 text-on-surface-variant font-medium">
+                        {f.label}
+                      </dt>
+                      <dd className="flex-1 text-on-surface">{f.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+              {s.kind === "bullets" && (
+                <ul className="space-y-1.5">
+                  {s.items.map((it, j) => (
+                    <li key={j} className="flex gap-2 text-body-md">
+                      <span className="text-primary">•</span>
+                      <span className="flex-1">{it}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {s.kind === "text" && (
+                <p className="text-body-md text-on-surface whitespace-pre-wrap">{s.body}</p>
+              )}
+            </section>
+          ))}
+        </div>
+
         {/* Transcript toggle */}
-        <div className="mb-6">
+        <div className="mt-6">
           <button
             onClick={() => setShowTranscript((v) => !v)}
             className="flex items-center gap-2 text-primary font-label-md text-label-md hover:bg-primary/10 px-3 py-2 rounded-lg transition-colors"
@@ -198,25 +253,6 @@ export default function ReportPage() {
               {report.transcripcion}
             </p>
           )}
-        </div>
-
-        {/* Metadata */}
-        <div className="anim-enter bg-surface-container-low/50 border border-outline-variant/30 p-5 rounded-xl space-y-2">
-          <div>
-            <p className="text-caption text-on-surface-variant leading-tight mb-1">
-              {report.metadatos.tipo === "grupal" ? "Registro" : "Beneficiario"}
-            </p>
-            <p className="font-headline-md text-headline-md font-bold text-on-surface">
-              {titular}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 text-on-surface-variant text-body-md">
-            <span>{fmtFecha(report.createdAt)}</span>
-            {ubicacion && <span className="opacity-40">—</span>}
-            {ubicacion && <span>{ubicacion}</span>}
-            {dur && <span className="opacity-40">—</span>}
-            {dur && <span>{dur}</span>}
-          </div>
         </div>
       </main>
 
