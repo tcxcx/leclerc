@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFlow } from "../flow-context";
-import { useRecorder } from "@/lib/use-recorder";
+import { useRecorder, type RecordingResult } from "@/lib/use-recorder";
 import { getStoredLevel, LEVEL_MODEL } from "@/lib/llm-level";
 
 const WAVE_DELAYS = ["0.1s", "0.3s", "0.2s", "0.5s", "0.4s", "0.6s", "0.2s"];
+const MAX_MS = 60_000;
+const COUNTDOWN_FROM_MS = 10_000; // show the "quedan Ns" counter for the last 10s
 
 function fmt(ms: number): string {
   const total = Math.floor(ms / 1000);
@@ -18,30 +20,8 @@ function fmt(ms: number): string {
 export default function RecordingPage() {
   const router = useRouter();
   const { tipo, beneficiario } = useFlow();
-  const { recording, elapsedMs, error, start, stop } = useRecorder(60_000);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-
-  const showBeneficiary = tipo !== "grupal" && beneficiario?.nombre;
-
-  const onMicClick = async () => {
-    if (uploading) return;
-    if (!recording) {
-      console.log("[grabar] mic tapped → start recording", { tipo, beneficiario });
-      await start();
-      return;
-    }
-    console.log("[grabar] mic tapped → stop recording");
-    const result = await stop();
-    console.log("[grabar] stop() result:", result
-      ? { sizeBytes: result.blob.size, mimeType: result.mimeType, durationMs: result.durationMs }
-      : null);
-    if (!result) {
-      setUploadError("No se grabó audio. Inténtalo de nuevo.");
-      return;
-    }
-    await upload(result.blob, result.durationMs, result.mimeType);
-  };
 
   const upload = async (blob: Blob, durationMs: number, mimeType: string) => {
     setUploading(true);
@@ -84,6 +64,40 @@ export default function RecordingPage() {
       setUploadError("Fallo al procesar el informe. Inténtalo de nuevo.");
       setUploading(false);
     }
+  };
+
+  // Single path for both manual stop and the 60s auto-stop, so reaching the
+  // limit also sends the report (it used to stop without uploading).
+  const handleResult = async (result: RecordingResult | null) => {
+    console.log(
+      "[grabar] recording result:",
+      result
+        ? { sizeBytes: result.blob.size, mimeType: result.mimeType, durationMs: result.durationMs }
+        : null,
+    );
+    if (!result) {
+      setUploadError("No se grabó audio. Inténtalo de nuevo.");
+      return;
+    }
+    await upload(result.blob, result.durationMs, result.mimeType);
+  };
+
+  const { recording, elapsedMs, error, start, stop } = useRecorder(MAX_MS, handleResult);
+
+  const showBeneficiary = tipo !== "grupal" && beneficiario?.nombre;
+  const remainingMs = Math.max(0, MAX_MS - elapsedMs);
+  const remainingSec = Math.ceil(remainingMs / 1000);
+  const showCountdown = recording && remainingMs <= COUNTDOWN_FROM_MS;
+
+  const onMicClick = async () => {
+    if (uploading) return;
+    if (!recording) {
+      console.log("[grabar] mic tapped → start recording", { tipo, beneficiario });
+      await start();
+      return;
+    }
+    console.log("[grabar] mic tapped → stop recording");
+    await handleResult(await stop());
   };
 
   const guidance = uploading
@@ -171,13 +185,20 @@ export default function RecordingPage() {
             ))}
           </div>
 
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-2 h-2 rounded-full bg-error ${recording ? "animate-pulse" : "opacity-30"}`}
-            />
-            <span className="font-display-lg text-display-lg text-on-surface tracking-wider">
-              {fmt(elapsedMs)}
-            </span>
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-2 h-2 rounded-full bg-error ${recording ? "animate-pulse" : "opacity-30"}`}
+              />
+              <span className="font-display-lg text-display-lg text-on-surface tracking-wider">
+                {fmt(elapsedMs)}
+              </span>
+            </div>
+            {showCountdown && (
+              <span className="anim-fade font-caption text-caption text-error">
+                Se enviará en {remainingSec} s
+              </span>
+            )}
           </div>
 
           {(error || uploadError) && (

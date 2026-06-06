@@ -21,10 +21,19 @@ const LOG = "[recorder]";
  *
  * Plain functions (no useCallback) — the React Compiler memoizes them.
  */
-export function useRecorder(maxMs = 60_000) {
+export function useRecorder(
+  maxMs = 60_000,
+  onMaxDuration?: (result: RecordingResult | null) => void,
+) {
   const [recording, setRecording] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [error, setError] = useState<string | null>(null);
+
+  // Keep the latest auto-stop callback without re-creating the recorder.
+  const onMaxRef = useRef(onMaxDuration);
+  useEffect(() => {
+    onMaxRef.current = onMaxDuration;
+  }, [onMaxDuration]);
 
   const ctxRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -89,9 +98,10 @@ export function useRecorder(maxMs = 60_000) {
       console.log(`${LOG} recording started`);
 
       tickRef.current = setInterval(() => setElapsedMs(Date.now() - startedAtRef.current), 200);
-      autoStopRef.current = setTimeout(() => {
-        console.log(`${LOG} max duration ${maxMs}ms reached — auto-stopping`);
-        void stop();
+      autoStopRef.current = setTimeout(async () => {
+        console.log(`${LOG} max duration ${maxMs}ms reached — auto-stopping + sending`);
+        const result = await stop();
+        onMaxRef.current?.(result);
       }, maxMs);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "No se pudo acceder al micrófono";
