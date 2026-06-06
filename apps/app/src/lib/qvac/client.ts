@@ -17,6 +17,11 @@ const LOCAL_URL =
 const LOCAL_KEY = process.env.NEXT_PUBLIC_QVAC_LOCAL_KEY;
 const PROXY_BASE = "/api/qvac";
 const PROBE_TIMEOUT_MS = 1500;
+// The local server is only usable if it actually serves this model. This
+// rejects an unrelated server squatting on :11434 (e.g. Ollama, or a qvac
+// serve started without the config) so we correctly fall back to Railway.
+const REQUIRED_LOCAL_MODEL =
+  process.env.NEXT_PUBLIC_QVAC_ASR_MODEL ?? "whisper-base";
 
 export interface QvacTarget {
   base: string;
@@ -36,7 +41,11 @@ async function probeLocal(): Promise<boolean> {
       headers: LOCAL_KEY ? { Authorization: `Bearer ${LOCAL_KEY}` } : undefined,
     });
     clearTimeout(t);
-    return res.ok;
+    if (!res.ok) return false;
+    // Only trust local if it actually serves the model we need (loaded).
+    const data = (await res.json()) as { data?: Array<{ id?: string }> };
+    const ids = (data.data ?? []).map((m) => m.id);
+    return ids.includes(REQUIRED_LOCAL_MODEL);
   } catch {
     return false;
   }

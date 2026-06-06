@@ -51,3 +51,6 @@ next-env.d.ts
 
 # codex CLI config (contains API keys — keep local)
 .codex/
+
+# local env
+.env*.local

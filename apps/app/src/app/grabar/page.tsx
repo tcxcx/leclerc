@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useFlow } from "../flow-context";
 import { useRecorder, type RecordingResult } from "@/lib/use-recorder";
 import { getStoredLevel, LEVEL_MODEL } from "@/lib/llm-level";
-import { transcribe, chatJSON } from "@/lib/qvac/client";
+import { transcribe, chatJSON, resolveTarget } from "@/lib/qvac/client";
 import {
   SYSTEM_PROMPT,
   EXTRACTION_JSON_SCHEMA,
@@ -39,7 +39,11 @@ export default function RecordingPage() {
     setUploading(true);
     setUploadError(null);
     const ext = mimeType.includes("wav") ? "wav" : "webm";
-    const llm = LEVEL_MODEL[getStoredLevel()];
+    // On the operator's local device use the selected model (qwen, fast there);
+    // on the Railway fallback (shared CPU box) use the lighter/faster llama-1b.
+    const target = await resolveTarget();
+    const llm =
+      target.where === "remote" ? "llama-1b" : LEVEL_MODEL[getStoredLevel()];
     const capturedAt = Date.now();
     const t0 = performance.now();
     try {

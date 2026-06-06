@@ -7,6 +7,21 @@ FROM node:22-bookworm-slim
 
 WORKDIR /app
 
+# QVAC's native worker (bare runtime + Vulkan-backed llama.cpp/whisper.cpp
+# addons) needs a full Vulkan runtime + a couple of shared libs the -slim image
+# omits, or the worker fails to start and model preload times out. Per the QVAC
+# Linux requirements: Vulkan loader + a Vulkan driver/ICD.
+#   libatomic1           -> libatomic.so.1
+#   libgomp1             -> OpenMP
+#   libvulkan1           -> libvulkan.so.1 (Vulkan loader)
+#   mesa-vulkan-drivers  -> a software Vulkan ICD (lavapipe) so a Vulkan device
+#                           exists on this CPU-only/headless container
+#   vulkan-tools         -> vulkaninfo, for debugging
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+     libatomic1 libgomp1 libvulkan1 mesa-vulkan-drivers vulkan-tools \
+  && rm -rf /var/lib/apt/lists/*
+
 # Install the QVAC CLI globally so `qvac` is on PATH.
 RUN npm i -g @qvac/cli
 
