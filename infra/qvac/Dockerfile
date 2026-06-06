@@ -19,7 +19,7 @@ WORKDIR /app
 #   vulkan-tools         -> vulkaninfo, for debugging
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-     libatomic1 libgomp1 libvulkan1 mesa-vulkan-drivers vulkan-tools \
+     libatomic1 libgomp1 libvulkan1 mesa-vulkan-drivers vulkan-tools ffmpeg \
   && rm -rf /var/lib/apt/lists/*
 
 # Install the QVAC CLI globally so `qvac` is on PATH.
