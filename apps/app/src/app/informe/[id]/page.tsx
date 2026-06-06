@@ -93,6 +93,13 @@ export default function ReportPage() {
     }
   };
 
+  // Re-record: the LLM summary may be off, so let the operator capture again.
+  // Beneficiary/tipo persist in flow context, so /grabar resumes the same flow.
+  const reintentar = () => {
+    console.log("[informe] reintentar grabación → /grabar");
+    router.push("/grabar");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -133,7 +140,7 @@ export default function ReportPage() {
         <div className="absolute bottom-[-10%] left-[-10%] w-[300px] h-[300px] bg-secondary-container/20 blur-[80px] rounded-full" />
       </div>
 
-      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-container-margin h-touch-target-min bg-surface border-b border-outline-variant">
+      <header className="anim-fade fixed top-0 w-full z-50 flex justify-between items-center px-container-margin h-touch-target-min bg-surface border-b border-outline-variant">
         <button
           onClick={() => router.back()}
           aria-label="Volver"
@@ -145,7 +152,7 @@ export default function ReportPage() {
 
       <main className="mt-16 px-container-margin pt-6 max-w-3xl mx-auto">
         {/* Summary card */}
-        <section className="bg-surface-container-low border border-primary/20 p-5 rounded-xl mb-6">
+        <section className="anim-enter bg-surface-container-low border border-primary/20 p-5 rounded-xl mb-6">
           <div className="flex justify-between items-start mb-4">
             <h3 className="font-label-md text-label-md text-primary flex items-center gap-2">
               Resumén de registro
@@ -156,7 +163,7 @@ export default function ReportPage() {
               {report.prioridad}
             </span>
           </div>
-          <ul className="space-y-3">
+          <ul className="stagger space-y-3">
             {sentences(report.resumen).map((s, i) => (
               <li key={`r${i}`} className="flex gap-3">
                 <span className="material-symbols-outlined text-primary text-sm mt-1">
@@ -195,7 +202,7 @@ export default function ReportPage() {
         </div>
 
         {/* Metadata */}
-        <div className="bg-surface-container-low/50 border border-outline-variant/30 p-5 rounded-xl space-y-2">
+        <div className="anim-enter bg-surface-container-low/50 border border-outline-variant/30 p-5 rounded-xl space-y-2">
           <div>
             <p className="text-caption text-on-surface-variant leading-tight mb-1">
               {report.metadatos.tipo === "grupal" ? "Registro" : "Beneficiario"}
@@ -216,11 +223,20 @@ export default function ReportPage() {
 
       {/* Confirm */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-outline-variant p-container-margin z-50">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-3xl mx-auto flex gap-3">
+          <button
+            onClick={reintentar}
+            disabled={saving}
+            title="Volver a grabar si el resumen no es preciso"
+            className="h-[56px] px-4 shrink-0 bg-surface-container-low text-primary border border-outline-variant rounded-xl font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.97] transition-transform duration-150 ease-out disabled:opacity-50"
+          >
+            <span className="material-symbols-outlined">refresh</span>
+            Reintentar
+          </button>
           <button
             onClick={confirmar}
             disabled={saving || saved}
-            className="w-full h-[56px] bg-primary text-white rounded-xl font-headline-sm text-headline-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm disabled:opacity-90"
+            className="flex-1 h-[56px] bg-primary text-white rounded-xl font-headline-sm text-headline-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-transform duration-150 ease-out shadow-sm disabled:opacity-90"
           >
             {saving ? (
               <>

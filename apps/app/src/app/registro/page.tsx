@@ -21,7 +21,7 @@ export default function BeneficiaryPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-container-margin h-touch-target-min bg-surface border-b border-outline-variant">
+      <header className="anim-fade fixed top-0 w-full z-50 flex justify-between items-center px-container-margin h-touch-target-min bg-surface border-b border-outline-variant">
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.back()}
@@ -34,13 +34,13 @@ export default function BeneficiaryPage() {
       </header>
 
       <main className="flex-grow pt-20 px-container-margin pb-32 max-w-xl mx-auto w-full">
-        <section className="mb-stack-lg">
+        <section className="anim-enter mb-stack-lg">
           <h1 className="font-headline-md text-headline-md text-on-surface mb-2">
             Datos del beneficiario
           </h1>
         </section>
 
-        <form className="space-y-stack-lg" id="beneficiary-form" onSubmit={onSubmit}>
+        <form className="stagger space-y-stack-lg" id="beneficiary-form" onSubmit={onSubmit}>
           <div className="group">
             <label
               className="block font-label-md text-label-md text-on-surface-variant mb-2 transition-colors group-focus-within:text-primary"
@@ -98,7 +98,7 @@ export default function BeneficiaryPage() {
             form="beneficiary-form"
             type="submit"
             disabled={!valid}
-            className="w-full h-14 bg-primary text-on-primary font-label-md text-label-md rounded-lg shadow-sm hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full h-14 bg-primary text-on-primary font-label-md text-label-md rounded-lg shadow-sm hover:opacity-90 active:scale-[0.97] transition-[transform,opacity] duration-150 ease-out flex items-center justify-center gap-2 disabled:opacity-50"
           >
             Continuar a Grabación
             <span className="material-symbols-outlined">mic</span>

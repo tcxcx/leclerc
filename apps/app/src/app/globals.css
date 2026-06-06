@@ -157,3 +157,46 @@ body {
   0%, 100% { height: 12px; }
   50% { height: 48px; }
 }
+
+/* ── Motion system (Emil Kowalski) ───────────────────────────────────────
+   GPU-only (transform/opacity), strong ease-out, sub-300ms, never scale(0). */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@keyframes enter-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes enter-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes enter-pop {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Content entrance (use on non-fixed elements — transform breaks fixed kids). */
+.anim-enter { animation: enter-up 280ms var(--ease-out) both; }
+/* Opacity-only entrance — safe on fixed headers/footers. */
+.anim-fade { animation: enter-fade 240ms var(--ease-out) both; }
+.anim-pop { animation: enter-pop 240ms var(--ease-out) both; }
+
+/* Stagger direct children (decorative, 50ms steps). */
+.stagger > * { animation: enter-up 300ms var(--ease-out) both; }
+.stagger > *:nth-child(1) { animation-delay: 40ms; }
+.stagger > *:nth-child(2) { animation-delay: 90ms; }
+.stagger > *:nth-child(3) { animation-delay: 140ms; }
+.stagger > *:nth-child(4) { animation-delay: 190ms; }
+.stagger > *:nth-child(5) { animation-delay: 240ms; }
+.stagger > *:nth-child(6) { animation-delay: 290ms; }
+
+/* Reduced motion: keep fades, drop movement (a11y). */
+@media (prefers-reduced-motion: reduce) {
+  .anim-enter, .anim-pop, .stagger > * {
+    animation: enter-fade 200ms ease both !important;
+  }
+  .recording-pulse, .wave-bar { animation: none !important; }
+}

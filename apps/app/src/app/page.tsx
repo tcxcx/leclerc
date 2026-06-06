@@ -17,22 +17,22 @@ export default function RecordTypePage() {
 
   return (
     <>
-      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-container-margin h-touch-target-min bg-surface border-b border-outline-variant">
+      <header className="anim-fade fixed top-0 w-full z-50 flex justify-between items-center px-container-margin h-touch-target-min bg-surface border-b border-outline-variant">
         <div className="flex items-center gap-2" />
         {IS_DEV && <LlmConfig />}
       </header>
 
       <main className="min-h-screen pt-24 pb-12 px-container-margin max-w-lg mx-auto flex flex-col items-center">
-        <section className="w-full mb-stack-lg text-center">
+        <section className="anim-enter w-full mb-stack-lg text-center">
           <h1 className="font-display-lg text-display-lg text-on-surface mb-stack-sm">
             ¿Qué vas a registrar hoy?
           </h1>
         </section>
 
-        <div className="w-full grid grid-cols-1 gap-gutter">
+        <div className="stagger w-full grid grid-cols-1 gap-gutter">
           <button
             onClick={() => choose("individual")}
-            className="group relative overflow-hidden bg-surface-container-lowest border border-outline-variant rounded-xl p-stack-lg flex flex-col items-start text-left hover:border-primary transition-all duration-300 min-h-[180px] active:scale-[0.98]"
+            className="group relative overflow-hidden bg-surface-container-lowest border border-outline-variant rounded-xl p-stack-lg flex flex-col items-start text-left hover:border-primary transition-[border-color,box-shadow,transform] duration-200 ease-out min-h-[180px] active:scale-[0.97]"
           >
             <div className="w-14 h-14 rounded-full bg-primary-container/10 flex items-center justify-center mb-stack-md group-hover:bg-primary-container transition-colors">
               <span className="material-symbols-outlined text-primary group-hover:text-on-primary text-[32px]">
@@ -56,7 +56,7 @@ export default function RecordTypePage() {
 
           <button
             onClick={() => choose("grupal")}
-            className="group relative overflow-hidden bg-surface-container-lowest border border-outline-variant rounded-xl p-stack-lg flex flex-col items-start text-left hover:border-secondary transition-all duration-300 min-h-[180px] active:scale-[0.98]"
+            className="group relative overflow-hidden bg-surface-container-lowest border border-outline-variant rounded-xl p-stack-lg flex flex-col items-start text-left hover:border-secondary transition-[border-color,box-shadow,transform] duration-200 ease-out min-h-[180px] active:scale-[0.97]"
           >
             <div className="w-14 h-14 rounded-full bg-secondary-container/20 flex items-center justify-center mb-stack-md group-hover:bg-secondary transition-colors">
               <span className="material-symbols-outlined text-secondary group-hover:text-on-secondary text-[32px]">

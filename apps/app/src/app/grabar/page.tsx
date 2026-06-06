@@ -92,7 +92,7 @@ export default function RecordingPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-container-margin h-touch-target-min bg-surface border-b border-outline-variant">
+      <header className="anim-fade fixed top-0 w-full z-50 flex justify-between items-center px-container-margin h-touch-target-min bg-surface border-b border-outline-variant">
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.back()}
@@ -121,7 +121,7 @@ export default function RecordingPage() {
           </div>
         )}
 
-        <div className="w-full max-w-md bg-surface-container-low border border-outline-variant rounded-xl p-8 flex flex-col items-center gap-8 relative overflow-hidden">
+        <div className="anim-enter w-full max-w-md bg-surface-container-low border border-outline-variant rounded-xl p-8 flex flex-col items-center gap-8 relative overflow-hidden">
           <p className="font-body-lg text-body-lg text-on-surface-variant text-center px-4">
             {guidance}
           </p>
