@@ -23,11 +23,13 @@ const LLM_KEY = "llm";
 const SYSTEM_PROMPT = [
   "Eres un asistente de informes para operaciones humanitarias de campo.",
   "Un oficial de campo dicta una actividad (distribución de suministros, control de salud, etc.).",
-  "A partir de la transcripción, extrae un informe estructurado. No inventes datos que no aparezcan en la transcripción.",
-  "- resumen: puntos clave consolidados, en una o dos frases concisas.",
-  "- prioridad: ALTA si hay una necesidad médica urgente o riesgo de seguridad; MEDIA si requiere seguimiento no urgente; BAJA si es rutinario o informativo.",
-  "- entidades.nombres: personas o beneficiarios mencionados. entidades.fechas: fechas mencionadas.",
-  "- accionesPendientes: tareas de seguimiento (seguimientos médicos, renovaciones, entregas pendientes).",
+  "A partir de la transcripción, extrae un informe estructurado.",
+  "REGLA CRÍTICA: usa ÚNICAMENTE información explícita en la transcripción. NO inventes, NO infieras, NO enumeres ni completes listas. Si un dato no se menciona, deja la lista vacía.",
+  "- resumen: una o dos frases concisas que reflejen fielmente lo dicho. No agregues detalles nuevos.",
+  "- prioridad: ALTA SOLO si se menciona explícitamente una emergencia médica o un riesgo de seguridad. MEDIA si se menciona un seguimiento necesario no urgente. BAJA para entregas o actividades rutinarias. Ante la duda, usa BAJA.",
+  "- entidades.nombres: SOLO nombres propios de personas explícitamente dichos (p. ej. \"María García\"). NO incluyas cantidades ni grupos genéricos como \"12 familias\". Si no hay nombres propios, deja la lista vacía [].",
+  "- entidades.fechas: SOLO fechas explícitas (p. ej. \"15 de marzo\", \"el martes\"). NO inventes secuencias. Si no hay, deja la lista vacía [].",
+  "- accionesPendientes: SOLO tareas de seguimiento pendientes mencionadas explícitamente. Si no se menciona ninguna, deja la lista vacía [].",
 ].join("\n");
 
 function ensureAsr(): Promise<string> {
@@ -86,13 +88,25 @@ export interface GenerateInput {
 export async function generateFieldReport(
   input: GenerateInput,
 ): Promise<FieldReport | null> {
-  const asrModelId = await ensureAsr();
-  const transcripcion = (await transcribeOnce(asrModelId, input.audio)).trim();
+  const L = "[reports]";
+  console.log(`${L} generateFieldReport: audio=${input.audio.length} bytes, lang=${ASR_LANGUAGE}`);
 
-  if (!isMeaningful(transcripcion)) return null;
+  console.log(`${L} loading/using ASR model (${ASR_KEY})…`);
+  const asrModelId = await ensureAsr();
+  console.log(`${L} ASR modelId=${asrModelId} — transcribing…`);
+  const t0 = Date.now();
+  const transcripcion = (await transcribeOnce(asrModelId, input.audio)).trim();
+  console.log(`${L} transcript (${Date.now() - t0}ms): ${JSON.stringify(transcripcion)}`);
+
+  if (!isMeaningful(transcripcion)) {
+    console.warn(`${L} transcript not meaningful — returning null (422)`);
+    return null;
+  }
   warmth.state = "ready";
 
+  console.log(`${L} loading/using LLM (${LLM_KEY}) — extracting structured report…`);
   const llmModelId = await ensureLlm();
+  const t1 = Date.now();
   const extraction = await completeJSON<ReportExtraction>(
     llmModelId,
     [
@@ -102,6 +116,7 @@ export async function generateFieldReport(
     EXTRACTION_JSON_SCHEMA,
     "informe",
   );
+  console.log(`${L} LLM extraction (${Date.now() - t1}ms):`, JSON.stringify(extraction));
 
   return {
     id: crypto.randomUUID(),

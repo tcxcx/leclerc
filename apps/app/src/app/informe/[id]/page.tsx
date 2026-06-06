@@ -50,16 +50,21 @@ export default function ReportPage() {
     let active = true;
     (async () => {
       try {
+        console.log(`[informe] GET /api/reports/${id}`);
         const res = await fetch(`/api/reports/${id}`);
+        console.log(`[informe] response HTTP ${res.status}`);
         if (res.status === 404) {
           if (active) setNotFound(true);
           return;
         }
         const { report } = (await res.json()) as { report: FieldReport };
+        console.log("[informe] report loaded:", report);
         if (active) {
           setReport(report);
           setSaved(report.estado === "CONFIRMADO");
         }
+      } catch (e) {
+        console.error("[informe] fetch failed:", e);
       } finally {
         if (active) setLoading(false);
       }
@@ -73,12 +78,16 @@ export default function ReportPage() {
     if (saving || saved) return;
     setSaving(true);
     try {
+      console.log(`[informe] PATCH /api/reports/${id} estado=CONFIRMADO`);
       const res = await fetch(`/api/reports/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estado: "CONFIRMADO" }),
       });
+      console.log(`[informe] PATCH response HTTP ${res.status}`);
       if (res.ok) setSaved(true);
+    } catch (e) {
+      console.error("[informe] confirm failed:", e);
     } finally {
       setSaving(false);
     }

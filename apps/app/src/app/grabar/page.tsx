@@ -26,37 +26,58 @@ export default function RecordingPage() {
   const onMicClick = async () => {
     if (uploading) return;
     if (!recording) {
+      console.log("[grabar] mic tapped → start recording", { tipo, beneficiario });
       await start();
       return;
     }
+    console.log("[grabar] mic tapped → stop recording");
     const result = await stop();
-    if (!result) return;
+    console.log("[grabar] stop() result:", result
+      ? { sizeBytes: result.blob.size, mimeType: result.mimeType, durationMs: result.durationMs }
+      : null);
+    if (!result) {
+      setUploadError("No se grabó audio. Inténtalo de nuevo.");
+      return;
+    }
     await upload(result.blob, result.durationMs, result.mimeType);
   };
 
   const upload = async (blob: Blob, durationMs: number, mimeType: string) => {
     setUploading(true);
     setUploadError(null);
-    try {
-      const ext = mimeType.includes("wav") ? "wav" : "webm";
-      const form = new FormData();
-      form.append("audio", blob, `registro.${ext}`);
-      form.append("durationMs", String(durationMs));
-      form.append("capturedAt", String(Date.now()));
-      if (tipo) form.append("tipo", tipo);
-      if (beneficiario?.nombre) form.append("beneficiarioNombre", beneficiario.nombre);
-      if (beneficiario?.dni) form.append("beneficiarioDni", beneficiario.dni);
+    const ext = mimeType.includes("wav") ? "wav" : "webm";
+    const form = new FormData();
+    form.append("audio", blob, `registro.${ext}`);
+    form.append("durationMs", String(durationMs));
+    form.append("capturedAt", String(Date.now()));
+    if (tipo) form.append("tipo", tipo);
+    if (beneficiario?.nombre) form.append("beneficiarioNombre", beneficiario.nombre);
+    if (beneficiario?.dni) form.append("beneficiarioDni", beneficiario.dni);
+    console.log(`[grabar] POST /api/reports — ${blob.size} bytes (${ext}), duration=${durationMs}ms. First call loads models (~slow)…`);
 
+    const t0 = performance.now();
+    try {
       const res = await fetch("/api/reports", { method: "POST", body: form });
+      const ms = Math.round(performance.now() - t0);
+      console.log(`[grabar] response: HTTP ${res.status} in ${ms}ms`);
+
+      const body = await res.json().catch(() => ({}));
+      console.log("[grabar] response body:", body);
+
       if (res.status === 422) {
         setUploadError("No se detectó voz. Inténtalo de nuevo.");
         setUploading(false);
         return;
       }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const { report } = (await res.json()) as { report: { id: string } };
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${JSON.stringify(body)}`);
+
+      const report = (body as { report?: { id: string; transcripcion?: string } }).report;
+      if (!report?.id) throw new Error("Respuesta sin informe");
+      console.log(`[grabar] report ${report.id} created. transcript:`, report.transcripcion);
+      console.log(`[grabar] navigating → /informe/${report.id}`);
       router.push(`/informe/${report.id}`);
-    } catch {
+    } catch (e) {
+      console.error("[grabar] upload failed:", e);
       setUploadError("Fallo al procesar el informe. Inténtalo de nuevo.");
       setUploading(false);
     }
