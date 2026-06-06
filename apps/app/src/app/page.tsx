@@ -79,10 +79,6 @@ export default function RecordTypePage() {
           </button>
         </div>
       </main>
-
-      <div className="fixed bottom-0 left-0 w-full h-1 bg-surface-container">
-        <div className="h-full bg-primary w-1/4 rounded-r-full transition-all duration-500" />
-      </div>
     </>
   );
 }
