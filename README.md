@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Halketon
 
-## Getting Started
+A single progressive web app for on-device push-to-talk, powered by [QVAC](https://github.com/tetherto/qvac).
+Structured as a minimal [Turborepo](https://turborepo.com) monorepo on [Bun](https://bun.sh).
 
-First, run the development server:
+## Structure
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+.
+├── apps/
+│   └── app/          # The PWA — Next.js 16 (App Router), Node backend, port 3000
+└── packages/
+    └── qvacs/        # @repo/qvacs — server-only wrapper around @qvac/sdk
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **`apps/app`** — the installable PWA UI (manifest + service worker) with a
+  push-to-talk control. Audio is captured in the browser and POSTed to the
+  Node runtime route `/api/transcribe`, which runs on-device inference.
+- **`packages/qvacs`** — the only shared package. Keeps a single QVAC provider
+  and a model cache alive across requests and exposes typed
+  `getModel` / `transcribeOnce` / `completeText` helpers, plus the full SDK
+  surface re-exported.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Develop
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+bun install
+bun run dev          # all workspaces (app on http://localhost:3000)
+bun run dev --filter app
+```
 
-## Learn More
+## Build / lint
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+bun run build
+bun run lint
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `@qvac/sdk` runs a native worker, so the transcription route is pinned to the
+  Node.js runtime and the SDK is kept out of the bundle via
+  `serverExternalPackages` in `apps/app/next.config.ts`.
+- The service worker only registers in production builds.
+- Microphone capture requires a secure context (localhost or HTTPS).
 
-## Deploy on Vercel
+## Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deploy `apps/app` to Vercel as a project rooted at `apps/app`.
