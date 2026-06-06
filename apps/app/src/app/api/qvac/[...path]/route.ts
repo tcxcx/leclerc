@@ -40,14 +40,19 @@ const STRIPPED_RESPONSE_HEADERS = new Set([
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
-function buildTargetUrl(req: Request, path: string[]): string | null {
-  const base = process.env.QVAC_BASE_URL;
-  if (!base) return null;
+// Ordered upstreams: Railway first, then an optional ngrok-exposed local server
+// as the last fallback (operator's fast GPU box published via `bun run
+// qvac:ngrok`). Same QVAC_API_KEY is sent to all.
+function upstreamBases(): string[] {
+  return [process.env.QVAC_BASE_URL, process.env.QVAC_NGROK_URL]
+    .filter((b): b is string => !!b && b.trim().length > 0)
+    .map((b) => b.replace(/\/+$/, ""));
+}
 
-  const trimmedBase = base.replace(/\/+$/, "");
+function buildTargetUrl(base: string, req: Request, path: string[]): string {
   const suffix = path.map((p) => encodeURIComponent(p)).join("/");
   const query = new URL(req.url).search; // includes leading "?" or ""
-  return `${trimmedBase}/${suffix}${query}`;
+  return `${base}/${suffix}${query}`;
 }
 
 function buildForwardHeaders(req: Request): Headers {
@@ -78,35 +83,56 @@ function buildResponseHeaders(upstream: Response): Headers {
 
 async function proxy(req: Request, ctx: RouteContext): Promise<Response> {
   const { path } = await ctx.params;
-  const target = buildTargetUrl(req, path ?? []);
+  const bases = upstreamBases();
 
-  if (!target) {
+  if (bases.length === 0) {
     return NextResponse.json(
       { error: "QVAC_BASE_URL not configured" },
       { status: 503 }
     );
   }
 
-  // Read the raw body so multipart audio (and any binary payload) passes through
-  // untouched. GET/HEAD have no body.
+  // Read the raw body once so multipart audio (and any binary payload) passes
+  // through untouched; an ArrayBuffer is reusable across upstream attempts.
   let body: ArrayBuffer | undefined;
   if (req.method !== "GET" && req.method !== "HEAD") {
     const buf = await req.arrayBuffer();
     if (buf.byteLength > 0) body = buf;
   }
+  const headers = buildForwardHeaders(req);
 
-  const upstream = await fetch(target, {
-    method: req.method,
-    headers: buildForwardHeaders(req),
-    body,
-    redirect: "manual",
-  });
+  let lastError = "no upstream reachable";
+  for (let i = 0; i < bases.length; i++) {
+    const isLast = i === bases.length - 1;
+    const target = buildTargetUrl(bases[i], req, path ?? []);
+    try {
+      const upstream = await fetch(target, {
+        method: req.method,
+        headers,
+        body,
+        redirect: "manual",
+      });
+      // Fall through to the next upstream on a server error (e.g. Railway
+      // crashed/cold), but return client errors and successes as-is.
+      if (upstream.status >= 500 && !isLast) {
+        lastError = `upstream ${i} returned ${upstream.status}`;
+        continue;
+      }
+      return new Response(upstream.body, {
+        status: upstream.status,
+        statusText: upstream.statusText,
+        headers: buildResponseHeaders(upstream),
+      });
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+      if (isLast) break;
+    }
+  }
 
-  return new Response(upstream.body, {
-    status: upstream.status,
-    statusText: upstream.statusText,
-    headers: buildResponseHeaders(upstream),
-  });
+  return NextResponse.json(
+    { error: "All QVAC upstreams failed", detail: lastError },
+    { status: 502 }
+  );
 }
 
 export function GET(req: Request, ctx: RouteContext): Promise<Response> {
