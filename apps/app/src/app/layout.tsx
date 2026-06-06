@@ -1,7 +1,11 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { ServiceWorkerRegister } from "./sw-register";
 import { FlowProvider } from "./flow-context";
+
+// Dev-only inspector (react-grab). Never loads in production builds.
+const enableReactGrab = process.env.NODE_ENV === "development";
 
 export const metadata: Metadata = {
   title: "Smart NGO Voice Reports",
@@ -49,6 +53,13 @@ export default function RootLayout({
         suppressHydrationWarning
         className="min-h-full bg-surface text-on-surface font-body-md antialiased"
       >
+        {enableReactGrab && (
+          <Script
+            src="https://unpkg.com/react-grab/dist/index.global.js"
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        )}
         <FlowProvider>{children}</FlowProvider>
         <ServiceWorkerRegister />
       </body>

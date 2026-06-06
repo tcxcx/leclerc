@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "dev": "turbo dev",
+    "dev:complete": "bash scripts/dev-complete.sh",
     "build": "turbo build",
     "start": "turbo start",
     "lint": "turbo lint"

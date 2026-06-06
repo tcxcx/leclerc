@@ -4,6 +4,8 @@ import {
   completeJSON,
   loadModel,
   WHISPER_BASE_Q8_0,
+  QWEN3_4B_INST_Q4_K_M,
+  QWEN3_1_7B_INST_Q4,
   LLAMA_3_2_1B_INST_Q4_0,
 } from "@repo/qvacs";
 import {
@@ -18,19 +20,49 @@ import {
 // Default to Spanish to match the field deployment.
 const ASR_LANGUAGE = process.env.QVAC_ASR_LANG ?? "es";
 const ASR_KEY = `whisper-${ASR_LANGUAGE}`;
-const LLM_KEY = "llm";
+
+// LLM choice. Llama-3.2-1B is too weak here — it ignores the transcript and
+// parrots prompt vocabulary (boilerplate that looks "hardcoded"). Qwen3 follows
+// instructions far better and stays faithful. Default to Qwen3-1.7B (good
+// balance, ~1.2GB); override with QVAC_LLM=qwen3-4b (best quality) or
+// QVAC_LLM=llama-1b.
+const LLM_MODELS = {
+  "qwen3-4b": QWEN3_4B_INST_Q4_K_M,
+  "qwen3-1.7b": QWEN3_1_7B_INST_Q4,
+  "llama-1b": LLAMA_3_2_1B_INST_Q4_0,
+} as const;
+const LLM_CHOICE = (process.env.QVAC_LLM ?? "qwen3-1.7b") as keyof typeof LLM_MODELS;
+// All three are llama.cpp LLM descriptors with the same modelConfig shape; the
+// cast collapses the union so loadModel's engine narrowing resolves (ctx_size +
+// temperature live on the llm config).
+const LLM_SRC = (LLM_MODELS[LLM_CHOICE] ??
+  QWEN3_4B_INST_Q4_K_M) as typeof QWEN3_4B_INST_Q4_K_M;
+const LLM_KEY = `llm-${LLM_CHOICE}`;
 
 const SYSTEM_PROMPT = [
-  "Eres un asistente de informes para operaciones humanitarias de campo.",
-  "Un oficial de campo dicta una actividad (distribución de suministros, control de salud, etc.).",
-  "A partir de la transcripción, extrae un informe estructurado.",
-  "REGLA CRÍTICA: usa ÚNICAMENTE información explícita en la transcripción. NO inventes, NO infieras, NO enumeres ni completes listas. Si un dato no se menciona, deja la lista vacía.",
-  "- resumen: una o dos frases concisas que reflejen fielmente lo dicho. No agregues detalles nuevos.",
-  "- prioridad: ALTA SOLO si se menciona explícitamente una emergencia médica o un riesgo de seguridad. MEDIA si se menciona un seguimiento necesario no urgente. BAJA para entregas o actividades rutinarias. Ante la duda, usa BAJA.",
-  "- entidades.nombres: SOLO nombres propios de personas explícitamente dichos (p. ej. \"María García\"). NO incluyas cantidades ni grupos genéricos como \"12 familias\". Si no hay nombres propios, deja la lista vacía [].",
-  "- entidades.fechas: SOLO fechas explícitas (p. ej. \"15 de marzo\", \"el martes\"). NO inventes secuencias. Si no hay, deja la lista vacía [].",
-  "- accionesPendientes: SOLO tareas de seguimiento pendientes mencionadas explícitamente. Si no se menciona ninguna, deja la lista vacía [].",
+  "Convierte la transcripción de un mensaje de voz en un informe estructurado.",
+  "Resume EXCLUSIVAMENTE lo que se dice en la transcripción. No agregues temas, cifras, lugares ni contexto que no aparezcan literalmente. No uses vocabulario que no esté en el texto.",
+  "Si la transcripción es una prueba o no contiene información real, dilo así en el resumen (p. ej. \"Mensaje de prueba sin información operativa\").",
+  "Campos:",
+  "- resumen: 1-2 frases que reflejen fielmente SOLO lo dicho.",
+  "- prioridad: ALTA solo si se menciona explícitamente una emergencia médica o de seguridad; MEDIA si se menciona un seguimiento necesario; en cualquier otro caso BAJA.",
+  "- entidades.nombres: solo nombres propios de personas dichos literalmente; si no hay, deja [].",
+  "- entidades.fechas: fechas mencionadas en el texto. Si se dicen de forma relativa (\"hoy\", \"mañana\", \"el martes\", \"el mes que viene\"), conviértelas a fecha absoluta usando la \"Fecha del registro\" indicada. Si no se menciona ninguna fecha, deja [].",
+  "- accionesPendientes: solo tareas de seguimiento dichas literalmente; si no hay, deja [].",
+  "Responde en español. /no_think",
 ].join("\n");
+
+const MESES = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+
+/** Long Spanish date used to ground the LLM, e.g. "martes, 6 de junio de 2026". */
+function fechaLarga(ms: number): string {
+  const d = new Date(ms);
+  return `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
+}
 
 function ensureAsr(): Promise<string> {
   return getModel(ASR_KEY, () =>
@@ -44,7 +76,7 @@ function ensureAsr(): Promise<string> {
 function ensureLlm(): Promise<string> {
   return getModel(LLM_KEY, () =>
     loadModel({
-      modelSrc: LLAMA_3_2_1B_INST_Q4_0,
+      modelSrc: LLM_SRC,
       modelConfig: { ctx_size: 4096 },
     }),
   );
@@ -106,12 +138,16 @@ export async function generateFieldReport(
 
   console.log(`${L} loading/using LLM (${LLM_KEY}) — extracting structured report…`);
   const llmModelId = await ensureLlm();
+  // Ground the model in the capture date so relative dates resolve correctly.
+  const fechaRegistro = fechaLarga(input.metadata.capturedAt);
+  const userMsg = `Fecha del registro: ${fechaRegistro}.\n\nTranscripción:\n${transcripcion}`;
+  console.log(`${L} fecha del registro: ${fechaRegistro}`);
   const t1 = Date.now();
   const extraction = await completeJSON<ReportExtraction>(
     llmModelId,
     [
       { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: transcripcion },
+      { role: "user", content: userMsg },
     ],
     EXTRACTION_JSON_SCHEMA,
     "informe",
