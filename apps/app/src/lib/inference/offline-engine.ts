@@ -62,10 +62,29 @@ let llmPipe:
   | null = null;
 let loadPromise: Promise<void> | null = null;
 
-/** True if the offline models were already downloaded + cached in this browser. */
-export function isOfflineReady(): boolean {
+/**
+ * True if the offline models are already usable in this browser — either the
+ * ready-flag is set, OR the weights are still cached (detected in the
+ * transformers.js Cache Storage even if the flag was lost). When detected we
+ * re-set the flag so the next check is instant. This lets the flow continue
+ * straight to recording instead of re-showing the download gate.
+ */
+export async function isOfflineReady(): Promise<boolean> {
   if (typeof window === "undefined") return false;
-  return window.localStorage.getItem(READY_KEY) === "1";
+  if (window.localStorage.getItem(READY_KEY) === "1") return true;
+  try {
+    if (typeof caches === "undefined") return false;
+    const cache = await caches.open("transformers-cache");
+    const reqs = await cache.keys();
+    const cached = (id: string) => reqs.some((r) => r.url.includes(id));
+    if (cached(OFFLINE_ASR_MODEL) && cached(OFFLINE_LLM_MODEL)) {
+      markReady();
+      return true;
+    }
+  } catch {
+    /* Cache API unavailable -> treat as not-ready */
+  }
+  return false;
 }
 
 function markReady() {

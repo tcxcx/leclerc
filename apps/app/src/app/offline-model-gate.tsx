@@ -34,9 +34,9 @@ export function OfflineModelGate({ children }: { children: React.ReactNode }) {
       // Prefer a local qvac serve (best quality, uses qvacs). It manages its own
       // model cache, so no in-browser download is needed.
       const localUp = (await localTarget()) !== null;
+      const ready = localUp || (await isOfflineReady());
       if (!active) return;
-      if (localUp || isOfflineReady()) setPhase("passthrough");
-      else setPhase("need-download");
+      setPhase(ready ? "passthrough" : "need-download");
     })();
     return () => {
       active = false;

@@ -1,93 +1,139 @@
-# Halketon
+# Halketon — Smart NGO Voice Reports
 
-A single progressive web app for on-device push-to-talk, powered by [QVAC](https://github.com/tetherto/qvac).
-Structured as a minimal [Turborepo](https://turborepo.com) monorepo on [Bun](https://bun.sh).
+An **offline-first** progressive web app for humanitarian field operators: dictate a
+finding by voice and get a structured field report — **speech-to-text and reasoning run
+on-device** via [QVAC](https://github.com/tetherto/qvac), not in the cloud.
+
+Turborepo monorepo on [Bun](https://bun.sh); the app is a [Next.js 16](https://nextjs.org)
+PWA. Inference is served by QVAC's OpenAI-compatible server (`qvac serve`).
+
+---
+
+## Why QVAC — why this approach is superior
+
+Field work for an NGO means **sensitive data** (beneficiary names, health status, minors)
+captured where there's **no reliable network**. Shipping that to a cloud LLM API is the
+wrong default. QVAC runs the entire pipeline — **Whisper (speech-to-text) + an LLM
+(structured extraction)** — locally on the operator's device.
+
+| | Cloud LLM API (OpenAI, etc.) | **Halketon + QVAC (on-device)** |
+| --- | --- | --- |
+| **Data privacy** | Beneficiary PII/health leaves the device to a third party | **Never leaves the device** |
+| **Connectivity** | Requires the internet; useless in the field | **Works fully offline** |
+| **Cost** | Per-token billing, scales with usage | **$0 per inference** — your hardware |
+| **Latency** | Network round-trip + provider queue | **Sub-2s** on the operator's GPU (Metal) |
+| **Rate limits** | Throttled by the provider | None — local |
+| **Compliance** | Data-processing agreements, residency risk | Data residency by construction |
+
+Private, free to run, and works where the network doesn't — exactly what humanitarian
+field reporting needs.
+
+## Architecture — device-first, with graceful fallback
+
+Inference resolution is **capability-based** and prioritizes the operator's own hardware,
+falling through only when needed so it **never fails**:
+
+```
+Browser (PWA)  — records WAV @16kHz, 60s cap
+   │
+   ├─ 1. Local device   qvac serve on localhost (Metal/Vulkan GPU)  ← fast · private · offline
+   ├─ 2. Device tunnel   the operator's box via ngrok (qvac:ngrok)   ← borrow the GPU over the net
+   ├─ 3. Railway server  qvac serve in a container (CPU)             ← always-on safety net
+   └─ 4. In-browser      transformers.js (online | offline toggle)   ← last resort, no server
+   │
+   ▼  Whisper → LLM (grammar-constrained JSON) → FieldReport
+   ▼  IndexedDB on-device (offline-first)  ·  export to Word / PDF
+```
+
+- The browser calls an **OpenAI-compatible** API (`/v1/audio/transcriptions`,
+  `/v1/chat/completions`). It probes `localhost:11434` and uses it **only if it actually
+  serves a Whisper + an LLM** (so an unrelated server like Ollama is skipped). In offline
+  mode it **detects an already-downloaded in-browser model and continues straight to the
+  flow** — the download gate appears only when the weights aren't present yet.
+- Vercel hosts only the **static PWA + a thin proxy** (`/api/qvac`) that forwards to the
+  remote QVAC server with the key kept server-side, trying upstreams in order
+  (`QVAC_BASE_URL` then `QVAC_NGROK_URL`). **`@qvac/sdk` is never bundled** — its native
+  `bare` runtime can't run in serverless functions, which is exactly why inference lives
+  on a real device/container.
+- Reports persist in **IndexedDB**, so capture and review work with no backend at all.
+
+## The flow (mobile, Spanish)
+
+1. **Tipo de registro** — individual beneficiary vs group activity
+2. **Datos del beneficiario** — DNI + name
+3. **Grabación** — push-to-talk (60s cap, live countdown); audio stays on-device
+4. **Revisión** — AI report: resumen, prioridad (ALTA/MEDIA/BAJA), entities, pending
+   actions, full transcript, metadata — confirm, retry, or export to **.docx / .pdf**
+
+## Data model (JSON)
+
+`audio → Whisper → LLM` produces two layers.
+
+### 1. LLM extraction (grammar-constrained)
+
+The model gets the transcript and returns **only** these fields, enforced by JSON Schema
+(`responseFormat: json_schema`) in
+[`apps/app/src/lib/reports/schema.ts`](apps/app/src/lib/reports/schema.ts). The prompt
+forces it to summarize **only what was said** (no hallucination):
+
+| Field | Type | Captures |
+|---|---|---|
+| `resumen` | `string` | 1–2 sentence executive summary |
+| `prioridad` | `"ALTA" \| "MEDIA" \| "BAJA"` | Visual triage; `ALTA` only on explicit medical/safety emergency |
+| `entidades.nombres` / `.fechas` | `string[]` | Proper names / dates said literally (`[]` if none) |
+| `accionesPendientes` | `string[]` | Follow-up tasks |
+| `datos` | object | Structured body (demographics, metrics, socioeconomic, intervention, follow-up, narrative) — empty fields left blank |
+
+### 2. Persisted report (`FieldReport`)
+
+Stored **in the browser's IndexedDB** (offline-first). Wraps the extraction and adds the
+verbatim transcript, auto-captured metadata, and record state (`PENDIENTE` → `CONFIRMADO`).
+
+## Run it
+
+```bash
+bun install
+
+# Full local stack (app + on-device QVAC server) — recommended:
+bun run dev:qvac          # app on :7001, qvac serve on :11434 (Metal GPU)
+
+# Or separately:
+bun run qvac              # just the local QVAC server
+bun run dev               # just the app (uses the deployed QVAC server)
+```
+
+The first run downloads the models (~GB) once, then everything works offline.
+
+### Expose your device to a deployment
+
+```bash
+QVAC_API_KEY=<key> bun run qvac:ngrok   # publishes localhost via ngrok; prints how to set QVAC_NGROK_URL
+```
+
+### Always-on fallback (Railway)
+
+`infra/qvac/` has a `Dockerfile` (full Vulkan + ffmpeg runtime) and `qvac.config.json`
+(model aliases, preloaded) for running `qvac serve openai` on Railway. On Vercel set
+`QVAC_BASE_URL` + `QVAC_API_KEY` (and optionally `QVAC_NGROK_URL`).
 
 ## Structure
 
 ```
 .
-├── apps/
-│   └── app/          # The PWA — Next.js 16 (App Router), Node backend, port 7001
-└── packages/
-    └── qvacs/        # @repo/qvacs — server-only wrapper around @qvac/sdk
+├── apps/app/                 # Next.js 16 PWA (UI + /api/qvac proxy)
+│   └── src/lib/qvac/         # browser QVAC client (target resolution)
+│   └── src/lib/inference/    # online/offline mode + transformers.js engine
+│   └── src/lib/reports/      # prompt/schema, assembly, IndexedDB store, export
+├── packages/qvacs/           # @repo/qvacs — server-only @qvac/sdk wrapper
+└── infra/qvac/               # Railway Dockerfile + qvac.config + local launchers
 ```
 
-- **`apps/app`** — the installable PWA UI (manifest + service worker) with a
-  push-to-talk control. Audio is captured in the browser and POSTed to the
-  Node runtime route `/api/transcribe`, which runs on-device inference.
-- **`packages/qvacs`** — the only shared package. Keeps a single QVAC provider
-  and a model cache alive across requests and exposes typed
-  `getModel` / `transcribeOnce` / `completeText` helpers, plus the full SDK
-  surface re-exported.
+## Models
 
-## Modelo de datos (JSON)
+| Stage | Model |
+|---|---|
+| ASR | `WHISPER_BASE_Q8_0` (multilingual, `es`) · offline: `Xenova/whisper-base` |
+| LLM | `LLAMA_3_2_1B_INST_Q4_0` / `QWEN3_1_7B_INST_Q4` · offline: `onnx-community/Qwen2.5-0.5B-Instruct` |
 
-El pipeline `audio → Whisper → LLM` produce datos en **dos capas**.
-
-### 1. Extracción del LLM (grammar-constrained)
-
-El modelo recibe la transcripción y devuelve **solo** estos campos, forzados por
-JSON Schema (`responseFormat: json_schema`) — definido en
-[`apps/app/src/lib/reports/schema.ts`](apps/app/src/lib/reports/schema.ts)
-(`EXTRACTION_JSON_SCHEMA`). El prompt obliga a resumir **únicamente** lo dicho,
-sin alucinar:
-
-| Campo                | Tipo                  | Qué captura |
-|----------------------|-----------------------|-------------|
-| `resumen`            | `string`              | 1–2 frases con los puntos clave (suministros entregados, estado de salud…). |
-| `prioridad`          | `"ALTA" \| "MEDIA" \| "BAJA"` | Triaje visual. `ALTA` solo ante emergencia médica/seguridad explícita; `MEDIA` si hay seguimiento; si no, `BAJA`. |
-| `entidades.nombres`  | `string[]`            | Nombres propios de personas dichos literalmente (`[]` si no hay). |
-| `entidades.fechas`   | `string[]`            | Fechas dichas literalmente (`[]` si no hay). |
-| `accionesPendientes` | `string[]`            | Tareas de seguimiento (seguimientos médicos, renovaciones…). |
-
-### 2. Informe persistido (`FieldReport`)
-
-Es lo que se guarda en `apps/app/.data/reports.json` y devuelven las rutas
-`/api/reports`. Envuelve la extracción anterior y le añade transcripción,
-metadatos auto-capturados y estado del registro:
-
-| Campo                    | Tipo                  | Origen / qué captura |
-|--------------------------|-----------------------|----------------------|
-| `id`                     | `string` (uuid)       | Generado en el servidor. |
-| `transcripcion`          | `string`              | Texto verbatim de Whisper — fuente de verdad, disponible bajo demanda. |
-| `resumen`                | `string`              | ↑ de la extracción del LLM. |
-| `prioridad`              | enum                  | ↑ de la extracción del LLM. |
-| `entidades`              | `{ nombres[], fechas[] }` | ↑ de la extracción del LLM. |
-| `accionesPendientes`     | `string[]`            | ↑ de la extracción del LLM. |
-| `metadatos.tipo`         | `"individual" \| "grupal" \| null` | Tipo de registro elegido al inicio del flujo. |
-| `metadatos.beneficiario` | `{ nombre, dni } \| null` | Identificación del beneficiario (flujo individual); `null` en actividad grupal. |
-| `metadatos.sector`       | `string \| null`      | Ubicación — sector. |
-| `metadatos.unidad`       | `string \| null`      | Ubicación — unidad. |
-| `metadatos.capturedAt`   | `number` (epoch ms)   | Cuándo se capturó el audio en el dispositivo. |
-| `metadatos.durationMs`   | `number \| null`      | Duración de la grabación (derivada del header WAV, tope 60 s). |
-| `estado`                 | `"PENDIENTE" \| "CONFIRMADO"` | Nace `PENDIENTE`; pasa a `CONFIRMADO` al validar el informe. |
-| `createdAt`              | `number` (epoch ms)   | Cuándo se creó el registro en el servidor. |
-
-## Develop
-
-```bash
-bun install
-bun run dev           # all workspaces (app on http://localhost:7001)
-bun run dev:complete  # frees port 7001, boots dev, warms QVAC models
-bun run dev --filter app
-```
-
-## Build / lint
-
-```bash
-bun run build
-bun run lint
-```
-
-## Notes
-
-- `@qvac/sdk` runs a native worker, so the transcription route is pinned to the
-  Node.js runtime and the SDK is kept out of the bundle via
-  `serverExternalPackages` in `apps/app/next.config.ts`.
-- The service worker only registers in production builds.
-- Microphone capture requires a secure context (localhost or HTTPS).
-
-## Deploy
-
-Deploy `apps/app` to Vercel as a project rooted at `apps/app`.
+Built with the [QVAC SDK](https://docs.qvac.tether.io) — on-device AI for private,
+offline, zero-cost inference.
