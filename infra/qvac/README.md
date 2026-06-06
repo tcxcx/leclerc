@@ -41,12 +41,40 @@ Server runs at http://localhost:11434. The PWA auto-detects this local server
    set the Dockerfile path to `infra/qvac/Dockerfile`).
 2. Set environment variable `QVAC_API_KEY` to a strong secret (the proxy sends
    it as `Authorization: Bearer <key>`).
-3. Attach a **persistent volume** for the model cache so the ~GB model files are
-   not re-downloaded on every deploy/restart.
-4. Set the service **memory high** (several GB) — models are loaded into memory.
+3. Attach a **persistent volume mounted at `/data`**. The image already sets
+   `REGISTRY_STORAGE=/data/qvac`, so the ~GB model files land on the volume and
+   are NOT re-downloaded on every deploy/restart. Without the volume, qvac
+   defaults to a random `/tmp` dir and re-downloads everything each restart.
+4. Set the service **memory high** (several GB) — models load into RAM and stay
+   resident (qvac does not unload on idle).
 5. Copy the service's public URL (e.g. `https://xxx.up.railway.app`).
 
 Railway injects `$PORT`; the container binds to it automatically.
+
+## Keeping the server warm
+
+`qvac serve` never unloads models on idle: once loaded (the config uses
+`preload: true`) they stay hot in RAM for the life of the process. So "warm"
+means **don't lose the process or its cache**:
+
+- **Persistent cache** — `REGISTRY_STORAGE=/data/qvac` + the Railway volume
+  (above) avoid re-downloading the ~GBs on restart. This is the #1 win.
+- **Preload at boot** — already on (`preload: true` in `qvac.config.json`), so a
+  fresh container loads models at startup, not on first request.
+- **Enough memory** — undersized RAM → OOM-kill → cold restart. Give it headroom.
+- **Keep-alive ping** — on plans that idle the container, hit it on a schedule so
+  it never sleeps. Use Railway Cron, an external uptime monitor (UptimeRobot,
+  cron-job.org), or `infra/qvac/keepalive.sh`:
+
+  ```sh
+  QVAC_BASE_URL=https://xxx.up.railway.app QVAC_API_KEY=… \
+    infra/qvac/keepalive.sh        # pings GET /v1/models every 5 min
+  ```
+
+> Reality check: warm only removes the cold-start (download + load) penalty. On
+> Railway the LLM is CPU-only (~slow per report regardless of warmth). The fast
+> path is a local `qvac serve` on a GPU machine (Metal on Mac), which the PWA
+> auto-detects; Railway is the never-fails fallback.
 
 ## Vercel environment variables
 

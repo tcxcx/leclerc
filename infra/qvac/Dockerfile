@@ -28,10 +28,16 @@ RUN npm i -g @qvac/cli
 # Model registry: maps friendly aliases -> QVAC model constants.
 COPY infra/qvac/qvac.config.json /app/qvac.config.json
 
+# Persistent model cache. By default qvac's registry-client stores downloaded
+# models in a RANDOM /tmp dir per run, so every restart re-downloads the ~GBs.
+# Pinning REGISTRY_STORAGE to a stable path keeps the cache warm across restarts
+# — mount a Railway PERSISTENT VOLUME at /data so it actually survives deploys.
+ENV REGISTRY_STORAGE=/data/qvac
+RUN mkdir -p /data/qvac
+
 # NOTE: Models are large (~GB each) and download on FIRST run, not at build
-# time. On Railway, attach a PERSISTENT VOLUME for the model cache so they are
-# not re-downloaded on every deploy/restart, and give the service enough
-# MEMORY (several GB) to load them.
+# time. On Railway: attach the volume at /data AND give the service enough
+# MEMORY (several GB) so the models stay resident in RAM (no idle unload).
 
 # Railway injects $PORT at runtime; default to 11434 locally.
 EXPOSE 11434
