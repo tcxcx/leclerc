@@ -121,8 +121,15 @@ export function ensureModels(onProgress?: ProgressCb): Promise<void> {
       onProgress?.({ status: "downloading", pct: 0 });
       const transformers = (await import("@huggingface/transformers")) as {
         pipeline: (task: string, model: string, opts: Record<string, unknown>) => Promise<unknown>;
+        env: { allowLocalModels: boolean; useBrowserCache: boolean };
       };
-      const { pipeline } = transformers;
+      const { pipeline, env } = transformers;
+      // CRITICAL: with allowLocalModels=true (the default), transformers.js
+      // fetches `/models/<id>/...` from THIS Next origin first — which returns
+      // the 404 HTML page, so the model load fails/stalls. Force the HF CDN and
+      // cache the weights in the browser (Cache Storage) for true offline reuse.
+      env.allowLocalModels = false;
+      env.useBrowserCache = true;
 
       // Whisper (speech-to-text) + small instruct LLM (structured extraction).
       asrPipe = (await pipeline("automatic-speech-recognition", OFFLINE_ASR_MODEL, {

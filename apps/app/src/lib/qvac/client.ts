@@ -162,6 +162,9 @@ export async function chatJSON<T = unknown>(
       model: opts.model,
       messages,
       stream: false,
+      // The structured report is short; cap generation so CPU-bound upstreams
+      // (Railway) can't run long. Bounds worst-case latency.
+      max_tokens: 512,
       response_format: {
         type: "json_schema",
         json_schema: { name: opts.schemaName ?? "result", schema, strict: true },
