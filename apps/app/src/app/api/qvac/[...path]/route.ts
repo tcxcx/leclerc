@@ -67,6 +67,9 @@ function buildForwardHeaders(req: Request): Headers {
   if (apiKey) {
     headers.set("authorization", `Bearer ${apiKey}`);
   }
+  // Bypass the ngrok-free interstitial when the QVAC_NGROK_URL upstream is an
+  // ngrok tunnel (harmless for the Railway upstream).
+  headers.set("ngrok-skip-browser-warning", "true");
 
   return headers;
 }
