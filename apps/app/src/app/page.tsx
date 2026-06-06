@@ -2,6 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useFlow } from "./flow-context";
+import { LlmConfig } from "@/components/llm-config";
+
+const IS_DEV = process.env.NODE_ENV === "development";
 
 export default function RecordTypePage() {
   const router = useRouter();
@@ -16,6 +19,7 @@ export default function RecordTypePage() {
     <>
       <header className="fixed top-0 w-full z-50 flex justify-between items-center px-container-margin h-touch-target-min bg-surface border-b border-outline-variant">
         <div className="flex items-center gap-2" />
+        {IS_DEV && <LlmConfig />}
       </header>
 
       <main className="min-h-screen pt-24 pb-12 px-container-margin max-w-lg mx-auto flex flex-col items-center">

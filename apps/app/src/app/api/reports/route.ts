@@ -73,8 +73,13 @@ export async function POST(request: Request) {
     durationMs,
   };
 
+  // Per-request LLM choice is a DEV-only control. In production we always use
+  // the lighter model regardless of what the client requests.
+  const llm =
+    process.env.NODE_ENV === "production" ? "qwen3-1.7b" : str(form.get("llm")) ?? undefined;
+
   try {
-    const report = await generateFieldReport({ audio: buffer, metadata });
+    const report = await generateFieldReport({ audio: buffer, metadata, llm });
     if (!report) {
       return NextResponse.json(
         { error: "No se detectó voz en el audio." },

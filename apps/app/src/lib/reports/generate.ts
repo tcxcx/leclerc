@@ -31,13 +31,21 @@ const LLM_MODELS = {
   "qwen3-1.7b": QWEN3_1_7B_INST_Q4,
   "llama-1b": LLAMA_3_2_1B_INST_Q4_0,
 } as const;
-const LLM_CHOICE = (process.env.QVAC_LLM ?? "qwen3-1.7b") as keyof typeof LLM_MODELS;
-// All three are llama.cpp LLM descriptors with the same modelConfig shape; the
-// cast collapses the union so loadModel's engine narrowing resolves (ctx_size +
-// temperature live on the llm config).
-const LLM_SRC = (LLM_MODELS[LLM_CHOICE] ??
-  QWEN3_4B_INST_Q4_K_M) as typeof QWEN3_4B_INST_Q4_K_M;
-const LLM_KEY = `llm-${LLM_CHOICE}`;
+export type LlmKey = keyof typeof LLM_MODELS;
+const DEFAULT_LLM = (process.env.QVAC_LLM ?? "qwen3-1.7b") as LlmKey;
+
+// Resolve a per-request LLM choice (falls back to the env/default). All three
+// are llama.cpp descriptors with the same modelConfig shape; the cast collapses
+// the union so loadModel's engine narrowing resolves (ctx_size on the llm config).
+function resolveLlm(choice?: string): {
+  key: LlmKey;
+  cacheKey: string;
+  src: typeof QWEN3_4B_INST_Q4_K_M;
+} {
+  const key = (choice && choice in LLM_MODELS ? choice : DEFAULT_LLM) as LlmKey;
+  const src = (LLM_MODELS[key] ?? QWEN3_1_7B_INST_Q4) as typeof QWEN3_4B_INST_Q4_K_M;
+  return { key, cacheKey: `llm-${key}`, src };
+}
 
 const SYSTEM_PROMPT = [
   "Convierte la transcripción de un mensaje de voz en un informe estructurado.",
@@ -73,10 +81,11 @@ function ensureAsr(): Promise<string> {
   );
 }
 
-function ensureLlm(): Promise<string> {
-  return getModel(LLM_KEY, () =>
+function ensureLlm(choice?: string): Promise<string> {
+  const { cacheKey, src } = resolveLlm(choice);
+  return getModel(cacheKey, () =>
     loadModel({
-      modelSrc: LLM_SRC,
+      modelSrc: src,
       modelConfig: { ctx_size: 4096 },
     }),
   );
@@ -110,6 +119,8 @@ export async function warmModels(): Promise<void> {
 export interface GenerateInput {
   audio: Buffer;
   metadata: ReportMetadata;
+  /** Per-request LLM choice (dev). Falls back to the env/default. */
+  llm?: string;
 }
 
 /**
@@ -136,8 +147,8 @@ export async function generateFieldReport(
   }
   warmth.state = "ready";
 
-  console.log(`${L} loading/using LLM (${LLM_KEY}) — extracting structured report…`);
-  const llmModelId = await ensureLlm();
+  console.log(`${L} loading/using LLM (${resolveLlm(input.llm).key}) — extracting structured report…`);
+  const llmModelId = await ensureLlm(input.llm);
   // Ground the model in the capture date so relative dates resolve correctly.
   const fechaRegistro = fechaLarga(input.metadata.capturedAt);
   const userMsg = `Fecha del registro: ${fechaRegistro}.\n\nTranscripción:\n${transcripcion}`;

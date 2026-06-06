@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFlow } from "../flow-context";
 import { useRecorder } from "@/lib/use-recorder";
+import { getStoredLevel, LEVEL_MODEL } from "@/lib/llm-level";
 
 const WAVE_DELAYS = ["0.1s", "0.3s", "0.2s", "0.5s", "0.4s", "0.6s", "0.2s"];
 
@@ -53,7 +54,9 @@ export default function RecordingPage() {
     if (tipo) form.append("tipo", tipo);
     if (beneficiario?.nombre) form.append("beneficiarioNombre", beneficiario.nombre);
     if (beneficiario?.dni) form.append("beneficiarioDni", beneficiario.dni);
-    console.log(`[grabar] POST /api/reports — ${blob.size} bytes (${ext}), duration=${durationMs}ms. First call loads models (~slow)…`);
+    const llm = LEVEL_MODEL[getStoredLevel()];
+    form.append("llm", llm);
+    console.log(`[grabar] POST /api/reports — ${blob.size} bytes (${ext}), duration=${durationMs}ms, llm=${llm}. First call loads models (~slow)…`);
 
     const t0 = performance.now();
     try {
@@ -159,11 +162,11 @@ export default function RecordingPage() {
               <div
                 key={i}
                 className="w-1.5 bg-primary rounded-full"
-                style={{
-                  height: recording ? undefined : "12px",
-                  animation: recording ? `wave 1.2s infinite ease-in-out` : undefined,
-                  animationDelay: delay,
-                }}
+                style={
+                  recording
+                    ? { animation: `wave 1.2s ease-in-out ${delay} infinite` }
+                    : { height: "12px" }
+                }
               />
             ))}
           </div>
