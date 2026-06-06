@@ -8,12 +8,10 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.join(__dirname, "..", ".."),
   },
-  // @repo/qvacs ships TypeScript source, so Next must transpile it.
-  transpilePackages: ["@repo/qvacs"],
-  // @qvac/sdk spawns a Bare/Node worker and pulls in native addons + bare-*
-  // modules. It must never be bundled — keep it external so the route handler
-  // loads it straight from node_modules and the worker files stay intact.
-  serverExternalPackages: ["@qvac/sdk"],
+  // NOTE: the app no longer imports @qvac/sdk. Inference runs on an external
+  // `qvac serve openai` (local device or Railway), reached over HTTP. This is
+  // what lets the app deploy to Vercel — the native bare runtime can't run in
+  // serverless functions.
 };
 
 export default nextConfig;

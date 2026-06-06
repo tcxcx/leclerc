@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import type { FieldReport, Prioridad } from "@/lib/reports/schema";
+import { deleteReport, getReport, updateEstado } from "@/lib/reports/store-client";
 
 const MESES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -50,21 +51,19 @@ export default function ReportPage() {
     let active = true;
     (async () => {
       try {
-        console.log(`[informe] GET /api/reports/${id}`);
-        const res = await fetch(`/api/reports/${id}`);
-        console.log(`[informe] response HTTP ${res.status}`);
-        if (res.status === 404) {
+        console.log(`[informe] load report ${id} from IndexedDB`);
+        const found = await getReport(id);
+        if (!found) {
           if (active) setNotFound(true);
           return;
         }
-        const { report } = (await res.json()) as { report: FieldReport };
-        console.log("[informe] report loaded:", report);
+        console.log("[informe] report loaded:", found);
         if (active) {
-          setReport(report);
-          setSaved(report.estado === "CONFIRMADO");
+          setReport(found);
+          setSaved(found.estado === "CONFIRMADO");
         }
       } catch (e) {
-        console.error("[informe] fetch failed:", e);
+        console.error("[informe] load failed:", e);
       } finally {
         if (active) setLoading(false);
       }
@@ -78,14 +77,9 @@ export default function ReportPage() {
     if (saving || saved) return;
     setSaving(true);
     try {
-      console.log(`[informe] PATCH /api/reports/${id} estado=CONFIRMADO`);
-      const res = await fetch(`/api/reports/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ estado: "CONFIRMADO" }),
-      });
-      console.log(`[informe] PATCH response HTTP ${res.status}`);
-      if (res.ok) setSaved(true);
+      console.log(`[informe] confirmar ${id} → estado CONFIRMADO`);
+      const updated = await updateEstado(id, "CONFIRMADO");
+      if (updated) setSaved(true);
     } catch (e) {
       console.error("[informe] confirm failed:", e);
     } finally {
@@ -99,7 +93,7 @@ export default function ReportPage() {
   const reintentar = async () => {
     if (!saved) {
       console.log(`[informe] reintentar → discarding draft ${id}`);
-      await fetch(`/api/reports/${id}`, { method: "DELETE" }).catch(() => {});
+      await deleteReport(id).catch(() => {});
     }
     console.log("[informe] reintentar grabación → /grabar");
     router.push("/grabar");

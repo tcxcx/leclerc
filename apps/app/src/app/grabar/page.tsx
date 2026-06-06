@@ -5,10 +5,22 @@ import { useRouter } from "next/navigation";
 import { useFlow } from "../flow-context";
 import { useRecorder, type RecordingResult } from "@/lib/use-recorder";
 import { getStoredLevel, LEVEL_MODEL } from "@/lib/llm-level";
+import { transcribe, chatJSON } from "@/lib/qvac/client";
+import {
+  SYSTEM_PROMPT,
+  EXTRACTION_JSON_SCHEMA,
+  ASR_LANGUAGE,
+  buildUserMessage,
+  buildReport,
+  isMeaningful,
+} from "@/lib/reports/assemble";
+import { putReport } from "@/lib/reports/store-client";
+import type { ReportExtraction, ReportMetadata } from "@/lib/reports/schema";
 
 const WAVE_DELAYS = ["0.1s", "0.3s", "0.2s", "0.5s", "0.4s", "0.6s", "0.2s"];
 const MAX_MS = 60_000;
 const COUNTDOWN_FROM_MS = 10_000; // show the "quedan Ns" counter for the last 10s
+const ASR_MODEL = process.env.NEXT_PUBLIC_QVAC_ASR_MODEL ?? "whisper-base";
 
 function fmt(ms: number): string {
   const total = Math.floor(ms / 1000);
@@ -27,41 +39,59 @@ export default function RecordingPage() {
     setUploading(true);
     setUploadError(null);
     const ext = mimeType.includes("wav") ? "wav" : "webm";
-    const form = new FormData();
-    form.append("audio", blob, `registro.${ext}`);
-    form.append("durationMs", String(durationMs));
-    form.append("capturedAt", String(Date.now()));
-    if (tipo) form.append("tipo", tipo);
-    if (beneficiario?.nombre) form.append("beneficiarioNombre", beneficiario.nombre);
-    if (beneficiario?.dni) form.append("beneficiarioDni", beneficiario.dni);
     const llm = LEVEL_MODEL[getStoredLevel()];
-    form.append("llm", llm);
-    console.log(`[grabar] POST /api/reports — ${blob.size} bytes (${ext}), duration=${durationMs}ms, llm=${llm}. First call loads models (~slow)…`);
-
+    const capturedAt = Date.now();
     const t0 = performance.now();
     try {
-      const res = await fetch("/api/reports", { method: "POST", body: form });
-      const ms = Math.round(performance.now() - t0);
-      console.log(`[grabar] response: HTTP ${res.status} in ${ms}ms`);
-
-      const body = await res.json().catch(() => ({}));
-      console.log("[grabar] response body:", body);
-
-      if (res.status === 422) {
+      // 1) Speech → text (local qvac serve, else Railway via /api/qvac proxy).
+      console.log(`[grabar] transcribe — ${blob.size} bytes (${ext}), model=${ASR_MODEL}…`);
+      const transcript = await transcribe(blob, {
+        model: ASR_MODEL,
+        language: ASR_LANGUAGE,
+        filename: `registro.${ext}`,
+      });
+      console.log("[grabar] transcript:", JSON.stringify(transcript));
+      if (!isMeaningful(transcript)) {
         setUploadError("No se detectó voz. Inténtalo de nuevo.");
         setUploading(false);
         return;
       }
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${JSON.stringify(body)}`);
 
-      const report = (body as { report?: { id: string; transcripcion?: string } }).report;
-      if (!report?.id) throw new Error("Respuesta sin informe");
-      console.log(`[grabar] report ${report.id} created. transcript:`, report.transcripcion);
-      console.log(`[grabar] navigating → /informe/${report.id}`);
+      // 2) Text → structured report (LLM, grammar-constrained JSON).
+      console.log(`[grabar] extracción — llm=${llm}…`);
+      const extraction = await chatJSON<ReportExtraction>(
+        [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: buildUserMessage(transcript, capturedAt) },
+        ],
+        EXTRACTION_JSON_SCHEMA,
+        { model: llm, schemaName: "informe" },
+      );
+      console.log("[grabar] extracción:", extraction);
+
+      // 3) Assemble + persist locally (IndexedDB, offline-first).
+      const metadata: ReportMetadata = {
+        tipo: tipo ?? null,
+        beneficiario:
+          beneficiario?.nombre || beneficiario?.dni
+            ? { nombre: beneficiario?.nombre ?? "", dni: beneficiario?.dni ?? "" }
+            : null,
+        sector: null,
+        unidad: null,
+        capturedAt,
+        durationMs,
+      };
+      const report = buildReport(transcript, extraction, metadata);
+      await putReport(report);
+      console.log(
+        `[grabar] guardado ${report.id} en ${Math.round(performance.now() - t0)}ms → /informe/${report.id}`,
+      );
       router.push(`/informe/${report.id}`);
     } catch (e) {
-      console.error("[grabar] upload failed:", e);
-      setUploadError("Fallo al procesar el informe. Inténtalo de nuevo.");
+      console.error("[grabar] inference failed:", e);
+      setUploadError(
+        "Fallo al procesar el informe. Verifica que el servidor QVAC esté activo.",
+      );
       setUploading(false);
     }
   };
