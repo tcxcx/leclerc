@@ -228,7 +228,7 @@ export default function ReportPage() {
             onClick={reintentar}
             disabled={saving}
             title="Volver a grabar si el resumen no es preciso"
-            className="h-[56px] px-4 shrink-0 bg-surface-container-low text-primary border border-outline-variant rounded-xl font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.97] transition-transform duration-150 ease-out disabled:opacity-50"
+            className="flex-1 h-[56px] bg-surface-container-low text-primary border border-outline-variant rounded-xl font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.97] transition-transform duration-150 ease-out disabled:opacity-50"
           >
             <span className="material-symbols-outlined">refresh</span>
             Reintentar
