@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useFlow } from "../flow-context";
 import { useRecorder, type RecordingResult } from "@/lib/use-recorder";
 import { getStoredLevel, LEVEL_MODEL } from "@/lib/llm-level";
-import { transcribe, chatJSON, resolveTarget } from "@/lib/qvac/client";
+import { useInferenceMode } from "@/lib/inference/mode";
+import { inferTranscribe, inferExtract } from "@/lib/inference";
 import {
   SYSTEM_PROMPT,
   EXTRACTION_JSON_SCHEMA,
@@ -15,7 +16,8 @@ import {
   isMeaningful,
 } from "@/lib/reports/assemble";
 import { putReport } from "@/lib/reports/store-client";
-import type { ReportExtraction, ReportMetadata } from "@/lib/reports/schema";
+import { OfflineModelGate } from "../offline-model-gate";
+import type { ReportMetadata } from "@/lib/reports/schema";
 
 const WAVE_DELAYS = ["0.1s", "0.3s", "0.2s", "0.5s", "0.4s", "0.6s", "0.2s"];
 const MAX_MS = 60_000;
@@ -32,6 +34,7 @@ function fmt(ms: number): string {
 export default function RecordingPage() {
   const router = useRouter();
   const { tipo, beneficiario } = useFlow();
+  const { mode } = useInferenceMode();
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -39,17 +42,17 @@ export default function RecordingPage() {
     setUploading(true);
     setUploadError(null);
     const ext = mimeType.includes("wav") ? "wav" : "webm";
-    // On the operator's local device use the selected model (qwen, fast there);
-    // on the Railway fallback (shared CPU box) use the lighter/faster llama-1b.
-    const target = await resolveTarget();
-    const llm =
-      target.where === "remote" ? "llama-1b" : LEVEL_MODEL[getStoredLevel()];
+    // Online → Railway (shared CPU box) uses the lighter/faster llama-1b;
+    // offline uses the operator's selected level locally (the in-browser
+    // fallback ignores this id and runs its own model).
+    const llm = mode === "online" ? "llama-1b" : LEVEL_MODEL[getStoredLevel()];
     const capturedAt = Date.now();
     const t0 = performance.now();
     try {
-      // 1) Speech → text (local qvac serve, else Railway via /api/qvac proxy).
-      console.log(`[grabar] transcribe — ${blob.size} bytes (${ext}), model=${ASR_MODEL}…`);
-      const transcript = await transcribe(blob, {
+      // 1) Speech → text. Routed by mode: online → Railway; offline → local
+      //    qvac serve if present, else in-browser transformers.js.
+      console.log(`[grabar] transcribe (${mode}) — ${blob.size} bytes (${ext}), model=${ASR_MODEL}…`);
+      const transcript = await inferTranscribe(mode, blob, {
         model: ASR_MODEL,
         language: ASR_LANGUAGE,
         filename: `registro.${ext}`,
@@ -62,8 +65,9 @@ export default function RecordingPage() {
       }
 
       // 2) Text → structured report (LLM, grammar-constrained JSON).
-      console.log(`[grabar] extracción — llm=${llm}…`);
-      const extraction = await chatJSON<ReportExtraction>(
+      console.log(`[grabar] extracción (${mode}) — llm=${llm}…`);
+      const extraction = await inferExtract(
+        mode,
         [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: buildUserMessage(transcript, capturedAt) },
@@ -152,6 +156,7 @@ export default function RecordingPage() {
         </div>
       </header>
 
+      <OfflineModelGate>
       <main className="flex-grow flex flex-col items-center justify-center px-container-margin pt-20 pb-24">
         {showBeneficiary && (
           <div className="w-full max-w-md rounded-xl p-4 mb-stack-lg flex items-center gap-3 bg-surface-container-low">
@@ -240,6 +245,7 @@ export default function RecordingPage() {
           )}
         </div>
       </main>
+      </OfflineModelGate>
     </div>
   );
 }

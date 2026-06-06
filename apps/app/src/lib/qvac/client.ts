@@ -31,8 +31,15 @@ export interface QvacTarget {
 }
 
 let resolved: Promise<QvacTarget> | null = null;
+let localProbe: { at: number; ok: boolean } | null = null;
 
-async function probeLocal(): Promise<boolean> {
+/**
+ * Probe whether a local `qvac serve` is reachable. Short-lived cache so the
+ * offline-mode router (and the model gate) can call it repeatedly cheaply.
+ */
+export async function probeLocal(ttlMs = 4000): Promise<boolean> {
+  if (localProbe && Date.now() - localProbe.at < ttlMs) return localProbe.ok;
+  let ok = false;
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), PROBE_TIMEOUT_MS);
@@ -41,14 +48,27 @@ async function probeLocal(): Promise<boolean> {
       headers: LOCAL_KEY ? { Authorization: `Bearer ${LOCAL_KEY}` } : undefined,
     });
     clearTimeout(t);
-    if (!res.ok) return false;
-    // Only trust local if it actually serves the model we need (loaded).
-    const data = (await res.json()) as { data?: Array<{ id?: string }> };
-    const ids = (data.data ?? []).map((m) => m.id);
-    return ids.includes(REQUIRED_LOCAL_MODEL);
+    if (res.ok) {
+      // Only trust local if it actually serves the model we need (loaded) —
+      // rejects an unrelated server squatting on :11434 (e.g. Ollama).
+      const data = (await res.json()) as { data?: Array<{ id?: string }> };
+      ok = (data.data ?? []).map((m) => m.id).includes(REQUIRED_LOCAL_MODEL);
+    }
   } catch {
-    return false;
+    ok = false;
   }
+  localProbe = { at: Date.now(), ok };
+  return ok;
+}
+
+/** The local `qvac serve` target (operator device). */
+export function localTarget(): QvacTarget {
+  return { base: LOCAL_URL, key: LOCAL_KEY, where: "local" };
+}
+
+/** The remote Railway target via the same-origin `/api/qvac` proxy. */
+export function remoteTarget(): QvacTarget {
+  return { base: PROXY_BASE, where: "remote" };
 }
 
 /** Resolve the inference target once per session (local device, else proxy). */
@@ -57,10 +77,10 @@ export function resolveTarget(force = false): Promise<QvacTarget> {
   resolved = (async () => {
     if (await probeLocal()) {
       console.log("[qvac] using LOCAL device:", LOCAL_URL);
-      return { base: LOCAL_URL, key: LOCAL_KEY, where: "local" as const };
+      return localTarget();
     }
     console.log("[qvac] local unavailable → using Railway via", PROXY_BASE);
-    return { base: PROXY_BASE, where: "remote" as const };
+    return remoteTarget();
   })();
   return resolved;
 }
@@ -80,8 +100,9 @@ export interface ChatMessage {
 export async function transcribe(
   blob: Blob,
   opts: { model: string; language?: string; filename?: string },
+  target?: QvacTarget,
 ): Promise<string> {
-  const t = await resolveTarget();
+  const t = target ?? (await resolveTarget());
   const form = new FormData();
   form.append("file", blob, opts.filename ?? "registro.wav");
   form.append("model", opts.model);
@@ -108,8 +129,9 @@ export async function chatJSON<T = unknown>(
   messages: ChatMessage[],
   schema: Record<string, unknown>,
   opts: { model: string; schemaName?: string },
+  target?: QvacTarget,
 ): Promise<T> {
-  const t = await resolveTarget();
+  const t = target ?? (await resolveTarget());
   const res = await fetch(`${t.base}/v1/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders(t) },
