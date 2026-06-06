@@ -25,8 +25,14 @@ export interface ReportExtraction {
   accionesPendientes: string[];
 }
 
+export type TipoRegistro = "individual" | "grupal";
+
 /** Auto-captured context for the report (provided by the device/frontend). */
 export interface ReportMetadata {
+  /** What was registered: an individual beneficiary or a group activity. */
+  tipo: TipoRegistro | null;
+  /** Identified beneficiary (individual flow); null for group activities. */
+  beneficiario: { nombre: string; dni: string } | null;
   sector: string | null;
   unidad: string | null;
   /** When the audio was captured on-device (epoch ms). */

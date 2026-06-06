@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { generateFieldReport } from "@/lib/reports/generate";
 import { createReport, listReports } from "@/lib/reports/store";
 import { clampWavToMs, wavDurationMs, MAX_AUDIO_MS } from "@/lib/reports/audio";
-import type { ReportMetadata } from "@/lib/reports/schema";
+import type { ReportMetadata, TipoRegistro } from "@/lib/reports/schema";
 
 // QVAC's worker uses native addons — Node.js runtime only, never Edge. First
 // call downloads/loads the models, so allow a long execution window.
@@ -54,7 +54,17 @@ export async function POST(request: Request) {
     MAX_AUDIO_MS,
   );
 
+  const tipoRaw = str(form.get("tipo"));
+  const tipo: TipoRegistro | null =
+    tipoRaw === "individual" || tipoRaw === "grupal" ? tipoRaw : null;
+
+  const nombre = str(form.get("beneficiarioNombre"));
+  const dni = str(form.get("beneficiarioDni"));
+  const beneficiario = nombre || dni ? { nombre: nombre ?? "", dni: dni ?? "" } : null;
+
   const metadata: ReportMetadata = {
+    tipo,
+    beneficiario,
     sector: str(form.get("sector")),
     unidad: str(form.get("unidad")),
     capturedAt: capturedAtRaw && Number.isFinite(Number(capturedAtRaw))
