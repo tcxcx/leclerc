@@ -20,7 +20,6 @@ import type { ReportExtraction, ReportMetadata } from "@/lib/reports/schema";
 const WAVE_DELAYS = ["0.1s", "0.3s", "0.2s", "0.5s", "0.4s", "0.6s", "0.2s"];
 const MAX_MS = 60_000;
 const COUNTDOWN_FROM_MS = 10_000; // show the "quedan Ns" counter for the last 10s
-const ASR_MODEL = process.env.NEXT_PUBLIC_QVAC_ASR_MODEL ?? "whisper-base";
 
 function fmt(ms: number): string {
   const total = Math.floor(ms / 1000);
@@ -39,18 +38,21 @@ export default function RecordingPage() {
     setUploading(true);
     setUploadError(null);
     const ext = mimeType.includes("wav") ? "wav" : "webm";
-    // On the operator's local device use the selected model (qwen, fast there);
-    // on the Railway fallback (shared CPU box) use the lighter/faster llama-1b.
+    // Use the model ids the resolved target actually serves. On the operator's
+    // local device honor the selected level (qwen, fast on Metal) when present;
+    // on the Railway fallback use whatever that target advertises (lighter LLM).
     const target = await resolveTarget();
+    const want = LEVEL_MODEL[getStoredLevel()];
+    const asr = target.asrModel;
     const llm =
-      target.where === "remote" ? "llama-1b" : LEVEL_MODEL[getStoredLevel()];
+      target.where === "local" && target.available.includes(want) ? want : target.llmModel;
     const capturedAt = Date.now();
     const t0 = performance.now();
     try {
       // 1) Speech → text (local qvac serve, else Railway via /api/qvac proxy).
-      console.log(`[grabar] transcribe — ${blob.size} bytes (${ext}), model=${ASR_MODEL}…`);
+      console.log(`[grabar] transcribe (${target.where}) — ${blob.size} bytes (${ext}), model=${asr}…`);
       const transcript = await transcribe(blob, {
-        model: ASR_MODEL,
+        model: asr,
         language: ASR_LANGUAGE,
         filename: `registro.${ext}`,
       });

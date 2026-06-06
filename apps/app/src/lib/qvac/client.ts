@@ -17,22 +17,31 @@ const LOCAL_URL =
 const LOCAL_KEY = process.env.NEXT_PUBLIC_QVAC_LOCAL_KEY;
 const PROXY_BASE = "/api/qvac";
 const PROBE_TIMEOUT_MS = 1500;
-// The local server is only usable if it actually serves this model. This
-// rejects an unrelated server squatting on :11434 (e.g. Ollama, or a qvac
-// serve started without the config) so we correctly fall back to Railway.
-const REQUIRED_LOCAL_MODEL =
-  process.env.NEXT_PUBLIC_QVAC_ASR_MODEL ?? "whisper-base";
+
+// Fallback model ids for the Railway proxy (we control that server, so its
+// config aliases are known). On the Railway shared CPU box use the lighter LLM.
+const REMOTE_ASR_MODEL = process.env.NEXT_PUBLIC_QVAC_ASR_MODEL ?? "whisper-base";
+const REMOTE_LLM_MODEL = process.env.NEXT_PUBLIC_QVAC_REMOTE_LLM ?? "llama-1b";
+
+const isWhisper = (id: string) => /whisper/i.test(id);
 
 export interface QvacTarget {
   base: string;
   key?: string;
   /** "local" (operator device) or "remote" (Railway via Vercel proxy). */
   where: "local" | "remote";
+  /** Transcription model id to request on this target. */
+  asrModel: string;
+  /** Default LLM model id to request on this target. */
+  llmModel: string;
+  /** Model ids the target actually serves (local only; used to honor the level). */
+  available: string[];
 }
 
 let resolved: Promise<QvacTarget> | null = null;
 
-async function probeLocal(): Promise<boolean> {
+/** List the model ids a local `qvac serve` exposes, or null if unreachable. */
+async function localModels(): Promise<string[] | null> {
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), PROBE_TIMEOUT_MS);
@@ -41,26 +50,46 @@ async function probeLocal(): Promise<boolean> {
       headers: LOCAL_KEY ? { Authorization: `Bearer ${LOCAL_KEY}` } : undefined,
     });
     clearTimeout(t);
-    if (!res.ok) return false;
-    // Only trust local if it actually serves the model we need (loaded).
+    if (!res.ok) return null;
     const data = (await res.json()) as { data?: Array<{ id?: string }> };
-    const ids = (data.data ?? []).map((m) => m.id);
-    return ids.includes(REQUIRED_LOCAL_MODEL);
+    return (data.data ?? []).map((m) => m.id).filter((id): id is string => !!id);
   } catch {
-    return false;
+    return null;
   }
 }
 
-/** Resolve the inference target once per session (local device, else proxy). */
+/**
+ * Resolve the inference target once per session.
+ *
+ * Detection is capability-based, not alias-based: a real local QVAC serve
+ * exposes a Whisper (transcription) model AND an LLM, which is exactly what we
+ * need — and which an unrelated server squatting on :11434 (e.g. Ollama, no
+ * Whisper) does not. So we use the local fast path whenever it can actually do
+ * the job, using the model ids the server REPORTS (works regardless of how the
+ * operator named/started it), and otherwise fall back to the Railway proxy.
+ */
 export function resolveTarget(force = false): Promise<QvacTarget> {
   if (resolved && !force) return resolved;
   resolved = (async () => {
-    if (await probeLocal()) {
-      console.log("[qvac] using LOCAL device:", LOCAL_URL);
-      return { base: LOCAL_URL, key: LOCAL_KEY, where: "local" as const };
+    const ids = await localModels();
+    if (ids) {
+      const asr = ids.find(isWhisper);
+      const llm = ids.find((id) => !isWhisper(id));
+      if (asr && llm) {
+        console.log("[qvac] using LOCAL device:", LOCAL_URL, { asr, llm });
+        return { base: LOCAL_URL, key: LOCAL_KEY, where: "local", asrModel: asr, llmModel: llm, available: ids };
+      }
+      console.log("[qvac] local server lacks Whisper+LLM → using Railway");
+    } else {
+      console.log("[qvac] local unavailable → using Railway via", PROXY_BASE);
     }
-    console.log("[qvac] local unavailable → using Railway via", PROXY_BASE);
-    return { base: PROXY_BASE, where: "remote" as const };
+    return {
+      base: PROXY_BASE,
+      where: "remote",
+      asrModel: REMOTE_ASR_MODEL,
+      llmModel: REMOTE_LLM_MODEL,
+      available: [],
+    };
   })();
   return resolved;
 }
