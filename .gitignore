@@ -48,3 +48,6 @@ next-env.d.ts
 
 .claude
 .gstack/
+
+# codex CLI config (contains API keys — keep local)
+.codex/
