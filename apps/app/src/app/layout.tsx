@@ -3,6 +3,8 @@ import Script from "next/script";
 import "./globals.css";
 import { ServiceWorkerRegister } from "./sw-register";
 import { FlowProvider } from "./flow-context";
+import { InferenceModeProvider } from "@/lib/inference/mode";
+import { ModeToggle } from "./mode-toggle";
 
 // Dev-only inspector (react-grab). Never loads in production builds.
 const enableReactGrab = process.env.NODE_ENV === "development";
@@ -60,7 +62,10 @@ export default function RootLayout({
             strategy="afterInteractive"
           />
         )}
-        <FlowProvider>{children}</FlowProvider>
+        <InferenceModeProvider>
+          <ModeToggle />
+          <FlowProvider>{children}</FlowProvider>
+        </InferenceModeProvider>
         <ServiceWorkerRegister />
       </body>
     </html>

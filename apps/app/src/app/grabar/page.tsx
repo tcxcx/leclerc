@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFlow } from "../flow-context";
 import { useRecorder, type RecordingResult } from "@/lib/use-recorder";
-import { getStoredLevel, LEVEL_MODEL } from "@/lib/llm-level";
-import { transcribe, chatJSON, resolveTarget } from "@/lib/qvac/client";
+import { useInferenceMode } from "@/lib/inference/mode";
+import { inferTranscribe, inferExtract } from "@/lib/inference";
 import {
   SYSTEM_PROMPT,
   EXTRACTION_JSON_SCHEMA,
@@ -15,7 +15,8 @@ import {
   isMeaningful,
 } from "@/lib/reports/assemble";
 import { putReport } from "@/lib/reports/store-client";
-import type { ReportExtraction, ReportMetadata } from "@/lib/reports/schema";
+import { OfflineModelGate } from "../offline-model-gate";
+import type { ReportMetadata } from "@/lib/reports/schema";
 
 const WAVE_DELAYS = ["0.1s", "0.3s", "0.2s", "0.5s", "0.4s", "0.6s", "0.2s"];
 const MAX_MS = 60_000;
@@ -31,6 +32,7 @@ function fmt(ms: number): string {
 export default function RecordingPage() {
   const router = useRouter();
   const { tipo, beneficiario } = useFlow();
+  const { mode } = useInferenceMode();
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -38,21 +40,15 @@ export default function RecordingPage() {
     setUploading(true);
     setUploadError(null);
     const ext = mimeType.includes("wav") ? "wav" : "webm";
-    // Use the model ids the resolved target actually serves. On the operator's
-    // local device honor the selected level (qwen, fast on Metal) when present;
-    // on the Railway fallback use whatever that target advertises (lighter LLM).
-    const target = await resolveTarget();
-    const want = LEVEL_MODEL[getStoredLevel()];
-    const asr = target.asrModel;
-    const llm =
-      target.where === "local" && target.available.includes(want) ? want : target.llmModel;
+    // Routed by mode: online → proxy upstream (ngrok/Railway); offline → local
+    // qvac serve if it can do the job, else in-browser transformers.js. The
+    // inference layer derives the actual model ids (and honors the level).
     const capturedAt = Date.now();
     const t0 = performance.now();
     try {
-      // 1) Speech → text (local qvac serve, else Railway via /api/qvac proxy).
-      console.log(`[grabar] transcribe (${target.where}) — ${blob.size} bytes (${ext}), model=${asr}…`);
-      const transcript = await transcribe(blob, {
-        model: asr,
+      // 1) Speech → text.
+      console.log(`[grabar] transcribe (${mode}) — ${blob.size} bytes (${ext})…`);
+      const transcript = await inferTranscribe(mode, blob, {
         language: ASR_LANGUAGE,
         filename: `registro.${ext}`,
       });
@@ -64,14 +60,14 @@ export default function RecordingPage() {
       }
 
       // 2) Text → structured report (LLM, grammar-constrained JSON).
-      console.log(`[grabar] extracción — llm=${llm}…`);
-      const extraction = await chatJSON<ReportExtraction>(
+      console.log(`[grabar] extracción (${mode})…`);
+      const extraction = await inferExtract(
+        mode,
         [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: buildUserMessage(transcript, capturedAt) },
         ],
         EXTRACTION_JSON_SCHEMA,
-        { model: llm, schemaName: "informe" },
       );
       console.log("[grabar] extracción:", extraction);
 
@@ -154,6 +150,7 @@ export default function RecordingPage() {
         </div>
       </header>
 
+      <OfflineModelGate>
       <main className="flex-grow flex flex-col items-center justify-center px-container-margin pt-20 pb-24">
         {showBeneficiary && (
           <div className="w-full max-w-md rounded-xl p-4 mb-stack-lg flex items-center gap-3 bg-surface-container-low">
@@ -242,6 +239,7 @@ export default function RecordingPage() {
           )}
         </div>
       </main>
+      </OfflineModelGate>
     </div>
   );
 }
