@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "turbo dev",
     "dev:complete": "bash scripts/dev-complete.sh",
+    "qvac": "bash infra/qvac/start-local.sh",
     "build": "turbo build",
     "start": "turbo start",
     "lint": "turbo lint"
