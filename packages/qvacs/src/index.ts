@@ -79,3 +79,34 @@ export function completeText(
 ): Promise<string> {
   return completion(params).text;
 }
+
+export interface CompleteMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
+
+/**
+ * Run a completion constrained to a JSON Schema and resolve to the parsed
+ * object. The model output is grammar-constrained (`responseFormat:
+ * json_schema`), so even a small local model returns schema-valid JSON — the
+ * reliable path for structured extraction. Throws if the output fails to parse.
+ */
+export async function completeJSON<T = unknown>(
+  modelId: string,
+  history: CompleteMessage[],
+  schema: Record<string, unknown>,
+  schemaName = "result",
+): Promise<T> {
+  const run = completion({
+    modelId,
+    history,
+    stream: true,
+    responseFormat: {
+      type: "json_schema",
+      json_schema: { name: schemaName, schema },
+    },
+  });
+  const final = await run.final;
+  const text = (final.contentText ?? "").trim();
+  return JSON.parse(text) as T;
+}

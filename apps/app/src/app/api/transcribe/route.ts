@@ -5,6 +5,7 @@ import {
   loadModel,
   WHISPER_EN_BASE_Q8_0,
 } from "@repo/qvacs";
+import { clampWavToMs, MAX_AUDIO_MS } from "@/lib/reports/audio";
 
 // The QVAC worker uses native addons — it must run in the Node.js runtime,
 // never the Edge runtime. Keep this route on a single long-lived instance so
@@ -29,7 +30,11 @@ export async function POST(request: Request) {
       loadModel({ modelSrc: WHISPER_EN_BASE_Q8_0 }),
     );
 
-    const audioChunk = Buffer.from(await audio.arrayBuffer());
+    // Cap to the first minute so transcription stays fast.
+    const audioChunk = clampWavToMs(
+      Buffer.from(await audio.arrayBuffer()),
+      MAX_AUDIO_MS,
+    );
     const text = await transcribeOnce(modelId, audioChunk);
 
     return NextResponse.json({ text });

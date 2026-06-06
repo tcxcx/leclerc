@@ -20,6 +20,9 @@ out/
 # turborepo
 .turbo/
 
+# local on-device report store
+.data/
+
 # production
 build/
 
