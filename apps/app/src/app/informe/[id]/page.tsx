@@ -95,7 +95,12 @@ export default function ReportPage() {
 
   // Re-record: the LLM summary may be off, so let the operator capture again.
   // Beneficiary/tipo persist in flow context, so /grabar resumes the same flow.
-  const reintentar = () => {
+  // Discard this draft first (unless already confirmed) so it doesn't linger.
+  const reintentar = async () => {
+    if (!saved) {
+      console.log(`[informe] reintentar → discarding draft ${id}`);
+      await fetch(`/api/reports/${id}`, { method: "DELETE" }).catch(() => {});
+    }
     console.log("[informe] reintentar grabación → /grabar");
     router.push("/grabar");
   };

@@ -78,3 +78,12 @@ export async function updateEstado(
   await persist(map);
   return updated;
 }
+
+/** Returns true if a report existed and was removed. */
+export async function deleteReport(id: string): Promise<boolean> {
+  const map = await load();
+  if (!map.has(id)) return false;
+  map.delete(id);
+  await persist(map);
+  return true;
+}

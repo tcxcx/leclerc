@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getReport, updateEstado } from "@/lib/reports/store";
+import { deleteReport, getReport, updateEstado } from "@/lib/reports/store";
 import type { Estado } from "@/lib/reports/schema";
 
 export const runtime = "nodejs";
@@ -43,4 +43,14 @@ export async function PATCH(req: Request, { params }: Ctx) {
     return NextResponse.json({ error: "Informe no encontrado." }, { status: 404 });
   }
   return NextResponse.json({ report: updated });
+}
+
+/** DELETE a report (used to discard a rejected draft on "Reintentar"). */
+export async function DELETE(_req: Request, { params }: Ctx) {
+  const { id } = await params;
+  const removed = await deleteReport(id);
+  if (!removed) {
+    return NextResponse.json({ error: "Informe no encontrado." }, { status: 404 });
+  }
+  return NextResponse.json({ ok: true });
 }
