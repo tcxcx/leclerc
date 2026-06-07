@@ -21,6 +21,7 @@
 | 10 | [build-plan.md](./10-build-plan.md) | 11-day phased milestones, acceptance criteria, dependency order, risk spikes |
 | 11 | [codex-guide.md](./11-codex-guide.md) | Conventions, definition of done, compliance artifacts, how to work |
 | 12 | [reference-apps.md](./12-reference-apps.md) | Vendored Tether PearPass apps (`references/`) — Bare-worklet/P2P/encryption benchmark, concern→file map |
+| 13 | [cleo-plan.md](./13-cleo-plan.md) | **Product pivot (current direction):** Cleo-style voice-first home (continuous VAD), finance-led + spy-underneath, sassy voice / dark look |
 
 ## Non-negotiables (read before writing any code)
 
