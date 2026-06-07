@@ -1,12 +1,13 @@
 "use client";
 
-import { isUnlocked, seal, open, type Sealed } from "../intel/crypto";
+import { fromVaultEnvelope, toVaultEnvelope, type VaultEnvelope } from "@/lib/vault/envelope-client";
 
 /**
  * Offline-first, encrypted-at-rest local transaction store (IndexedDB on the
  * operative's device). Mirrors lib/intel/store-client.ts: when the vault is
  * unlocked the transaction body is sealed (AES-GCM); `id` and `ts` stay in
- * clear for indexing. Locked / unconfigured falls back to a plain body (dev).
+ * clear for indexing. Locked writes are refused; legacy plaintext rows can
+ * still be read so old demo data does not strand the UI.
  *
  * No bank API for v1 (docs/leclerc/13-cleo-plan.md §"Finance data"). Insights
  * are computed locally and narrated by the LLM with attitude.
@@ -39,12 +40,9 @@ export interface SavingsGoal {
   currency: string;
 }
 
-interface Envelope<T = unknown> {
+interface Envelope<T = unknown> extends VaultEnvelope<T> {
   id: string;
   ts: number;
-  sealed?: Sealed;
-  /** Fallback when the vault is not configured (dev only). */
-  plain?: T;
 }
 
 function openDB(): Promise<IDBDatabase> {
@@ -92,16 +90,11 @@ function goalTx<T>(mode: IDBTransactionMode, fn: (store: IDBObjectStore) => IDBR
 }
 
 async function toEnvelope<T>(id: string, ts: number, value: T): Promise<Envelope<T>> {
-  if (isUnlocked()) {
-    return { id, ts, sealed: await seal(value) };
-  }
-  return { id, ts, plain: value };
+  return toVaultEnvelope({ id, ts }, value);
 }
 
 async function fromEnvelope<T>(e: Envelope<T> | undefined): Promise<T | null> {
-  if (!e) return null;
-  if (e.sealed) return open<T>(e.sealed);
-  return e.plain ?? null;
+  return fromVaultEnvelope<T>(e);
 }
 
 function newId(): string {

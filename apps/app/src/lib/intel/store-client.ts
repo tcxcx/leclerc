@@ -1,7 +1,7 @@
 "use client";
 
 import type { Status, IntelRecord } from "./schema";
-import { isUnlocked, seal, open, type Sealed } from "./crypto";
+import { fromVaultEnvelope, toVaultEnvelope, type VaultEnvelope } from "@/lib/vault/envelope-client";
 
 /**
  * Offline-first, encrypted-at-rest dossier store (IndexedDB on the operative's
@@ -12,12 +12,9 @@ const DB_NAME = "leclerc-dossier";
 const STORE = "records";
 const VERSION = 1;
 
-interface Envelope {
+interface Envelope extends VaultEnvelope<IntelRecord> {
   id: string;
   createdAt: number;
-  sealed?: Sealed;
-  /** Fallback when the vault is not configured (dev only). */
-  plain?: IntelRecord;
 }
 
 function openDB(): Promise<IDBDatabase> {
@@ -52,16 +49,11 @@ function tx<T>(
 }
 
 async function toEnvelope(r: IntelRecord): Promise<Envelope> {
-  if (isUnlocked()) {
-    return { id: r.id, createdAt: r.createdAt, sealed: await seal(r) };
-  }
-  return { id: r.id, createdAt: r.createdAt, plain: r };
+  return toVaultEnvelope({ id: r.id, createdAt: r.createdAt }, r);
 }
 
 async function fromEnvelope(e: Envelope | undefined): Promise<IntelRecord | null> {
-  if (!e) return null;
-  if (e.sealed) return open<IntelRecord>(e.sealed);
-  return e.plain ?? null;
+  return fromVaultEnvelope<IntelRecord>(e);
 }
 
 export async function putRecord(record: IntelRecord): Promise<void> {
