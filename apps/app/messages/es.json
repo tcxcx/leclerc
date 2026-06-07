@@ -73,6 +73,95 @@
     "narrating": "Cleo está leyendo los números",
     "askSpend": "Rostiza mi gasto semanal usando el contexto financiero local."
   },
+  "cards": {
+    "title": "Tarjeta de agente",
+    "opened": "Consola de tarjeta abierta. La asignación se porta mejor que tu presupuesto de café.",
+    "agentCard": "Asignación de misión",
+    "codename": "CUERVO-07",
+    "fundedByWallet": "Fondeada desde los rieles locales de la billetera WDK.",
+    "fund": "Fondear desde billetera"
+  },
+  "missions": {
+    "selector": "Misión",
+    "accept": "ACEPTAR",
+    "deny": "DENEGAR",
+    "state": {
+      "accepted": "Misión aceptada. Entradas de gadgets cargadas.",
+      "denied": "Misión denegada. Cleo dejará de preguntar con educación."
+    },
+    "raven": {
+      "title": "Rastro de fondos Cuervo",
+      "brief": "Sigue el dinero alrededor de Cuervo y cita solo registros del expediente."
+    },
+    "glasshouse": {
+      "title": "Ruta Casa de Vidrio",
+      "brief": "Extrae movimiento del sitio, rutas probables y exposición del buzón."
+    },
+    "medic": {
+      "title": "Triaje médico",
+      "brief": "Usa el nivel de razonamiento médico para notas de salud de campo."
+    }
+  },
+  "spy": {
+    "title": "Consola SPY",
+    "subtitle": "Triple toque en el micrófono para abrir este mazo local de gadgets.",
+    "run": "Ejecutar",
+    "runFailed": "Falló el gadget.",
+    "toolResult": "Resultado de herramienta",
+    "autoInvoked": "Ejecuté la herramienta del expediente en línea. Mira, casi profesional.",
+    "fields": {
+      "audioNote": "Nota de audio o referencia de transcripción",
+      "transcript": "Transcripción de campo",
+      "prompt": "Prompt",
+      "query": "Consulta del expediente",
+      "focus": "Enfoque del informe",
+      "level": "Nivel de razonamiento",
+      "seed": "Semilla de billetera (solo demo)",
+      "peer": "Clave pública de estación"
+    },
+    "gadgets": {
+      "transcribe": {
+        "label": "Transcribir",
+        "description": "Whisper ASR mediante el bucle de voz."
+      },
+      "extract": {
+        "label": "Extraer",
+        "description": "Extracción estructurada de inteligencia."
+      },
+      "chat": {
+        "label": "Chat",
+        "description": "Respuesta LLM de agente de campo."
+      },
+      "ragAsk": {
+        "label": "RAG Pregunta",
+        "description": "Respuesta fundamentada sobre el expediente."
+      },
+      "ragSearch": {
+        "label": "RAG Busca",
+        "description": "Hallazgos semánticos del expediente."
+      },
+      "brief": {
+        "label": "Informe Intel",
+        "description": "Mesa multiagente de análisis."
+      },
+      "geo": {
+        "label": "Geo Extrae",
+        "description": "Búsqueda orientada a ubicaciones."
+      },
+      "reasoning": {
+        "label": "Razonamiento",
+        "description": "Modo alto, medio o MedPsy."
+      },
+      "wallet": {
+        "label": "Billetera",
+        "description": "Saldos y chequeos de billetera."
+      },
+      "station": {
+        "label": "Estación",
+        "description": "Iniciar proveedor DHT o ping."
+      }
+    }
+  },
   "capture": {
     "title": "Capturar inteligencia",
     "record": "Grabar",

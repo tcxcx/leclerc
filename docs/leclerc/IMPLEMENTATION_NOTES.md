@@ -211,3 +211,42 @@ LECLERC_MEDPSY_SRC=...
 QVAC_HYPERSWARM_SEED=...
 SPARK_NETWORK=TESTNET
 ```
+
+## STATUS 2026-06-07 W1-W3 follow-up pass
+
+Branch: `feat/leclerc-scaffold`
+
+Artifact: `artifacts/pwa/w1-w3-glass-spy-console-2026-06-07.md`
+
+### Milestone / workstream delta
+
+| Area | Status | Smoke-proven | Wired-only / blocker |
+|---|---|---|---|
+| W1 Glass home shell | DONE | `/es` SSR smoke shows glass top bar, credit-card first action, center glass mic, and send/receive glass balls. | Visual screenshot was not captured because Playwright is not installed and the Browser plugin did not expose a direct browser-control namespace. |
+| W2 SPY console | PARTIAL | Triple-tap mic opens a data-driven 10-gadget console; typecheck/build prove it stays client-safe and calls existing API helpers only. | Live ASR remains through the voice button/service; full gadget smoke requires station models and seeded dossier. |
+| W3 Missions | PARTIAL | Three data-driven missions render with accept/deny, mission selector, gadget unlocks, and per-gadget prefills. | Mission-scoped RAG persistence and AI tool auto-routing are only lightly wired; inline auto-invoke currently detects dossier/RAG-looking questions and renders a tool result. |
+| Design refs | BLOCKED | `DESIGN.md` implemented for this pass. | All three Anthropic design URLs from `15-midnight-goals.md` returned HTTP 404 with 10-byte bodies on 2026-06-07. |
+| Rain / defi reuse | PARTIAL | Follow-up reference paths identified in sibling repos. | Rain card code and defi asset/chain configs were not fully ported in this pass. |
+
+### Commands run in this pass
+
+```bash
+bun --filter app typecheck
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+grep -rE "huggingface|openai|anthropic|@google/gen|langchain|chromadb|pinecone" apps packages services || true
+bun --filter app dev
+curl -I http://localhost:7001/es
+curl -s http://localhost:7001/es | head -40
+rm -rf apps/app/.next
+```
+
+Results: typecheck, lint, and production build exited 0. The forbidden-library grep
+returned no matches. The dev SSR smoke returned HTTP 200 for `/es`.
+
+### Remaining TODO(codex) from this pass
+
+- Replace the wired SPY `brief` empty-record call with mission-scoped dossier records.
+- Port the Rain card flow from `../desk-v1` into typed local card config and WDK funding handlers.
+- Port token/chain/explorer config from `../defi-web-app` into a local typed asset catalog.
+- Add an installed browser/screenshot smoke path so glass/SPY interactions are visually captured after frontend changes.

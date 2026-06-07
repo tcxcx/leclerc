@@ -7,8 +7,10 @@ import { useI18n, useCurrentLocale } from "@/locales/client";
 import { ChatBubble } from "@/components/chat-bubble";
 import { Chips } from "@/components/chips";
 import { ActionBar, type BarAction } from "@/components/action-bar";
+import { GlassIcon } from "@/components/glass-icon";
+import { SpyConsole } from "@/components/spy-console";
 import { useVoice } from "@/lib/voice/use-voice";
-import { chat, ragSearch } from "@/lib/api-client";
+import { chat, ragAsk, ragSearch } from "@/lib/api-client";
 import { greeting, starterChips } from "@/lib/agents/persona";
 import {
   seedDemo,
@@ -19,22 +21,26 @@ import {
   type Transaction,
 } from "@/lib/finance/store-client";
 import {
-  summarize,
-  sassySummary,
   financeContext,
   formatAmount,
   type SpendSummary,
 } from "@/lib/finance/insights";
 
-type Msg = { role: "user" | "assistant"; content: string; pending?: boolean };
+type Msg = {
+  role: "user" | "assistant";
+  content: string;
+  pending?: boolean;
+  tool?: { name: string; result: string };
+};
 type FinancePanel =
+  | { kind: "card" }
   | { kind: "spend"; summary: SpendSummary; txs: Transaction[] }
   | { kind: "stash"; goals: SavingsGoal[] }
   | { kind: "request" };
 
 const LABELS = {
-  es: { spend: "Gasto", ask: "Preguntar", stash: "Guardar", request: "Cobrar" },
-  en: { spend: "Spend", ask: "Ask", stash: "Stash", request: "Request" },
+  es: { card: "Tarjeta", ask: "Preguntar", send: "Enviar", stash: "Guardar", receive: "Recibir" },
+  en: { card: "Card", ask: "Ask", send: "Send", stash: "Stash", receive: "Receive" },
 } as const;
 
 const VOICE_ICON = {
@@ -58,6 +64,8 @@ export default function ConsolePage() {
   const [goalTarget, setGoalTarget] = useState("");
   const [requestInvoice, setRequestInvoice] = useState("");
   const [intelOpen, setIntelOpen] = useState(false);
+  const [spyOpen, setSpyOpen] = useState(false);
+  const tapRef = useRef({ count: 0, ts: 0 });
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Live RAG chips: after a turn, surface related dossier hits as tappable chips.
@@ -100,6 +108,12 @@ export default function ConsolePage() {
     setMessages([...next, { role: "assistant", content: "", pending: true }]);
     setBusy(true);
     try {
+      const tool = await maybeAutoInvoke(clean, locale);
+      if (tool) {
+        setMessages([...next, { role: "assistant", content: t("spy.autoInvoked"), tool }]);
+        refreshChips(clean);
+        return;
+      }
       const txs = await listTransactions().catch(() => []);
       const ctx = txs.length ? financeContext(txs) : undefined;
       const { text: answer } = await chat(
@@ -116,18 +130,17 @@ export default function ConsolePage() {
   }
 
   async function onAction(a: BarAction) {
-    if (a === "spend") {
-      const txs = await listTransactions().catch(() => []);
-      const summary = summarize(txs);
-      const line = sassySummary(summary, locale);
-      setFinancePanel({ kind: "spend", summary, txs: txs.slice(0, 6) });
-      setMessages((m) => [...m, { role: "assistant", content: line }]);
-      chat([{ role: "user", content: t("finance.askSpend") }], {
-        locale,
-        financeContext: financeContext(txs),
-      })
-        .then(({ text }) => setMessages((m) => [...m, { role: "assistant", content: text }]))
-        .catch(() => {});
+    if (a === "card") {
+      setFinancePanel({ kind: "card" });
+      setMessages((m) => [...m, { role: "assistant", content: t("cards.opened") }]);
+      return;
+    }
+    if (a === "send") {
+      setFinancePanel({ kind: "request" });
+      return;
+    }
+    if (a === "receive") {
+      router.push(`/${locale}/billetera`);
       return;
     }
     if (a === "stash") {
@@ -135,7 +148,6 @@ export default function ConsolePage() {
       setFinancePanel({ kind: "stash", goals });
       return;
     }
-    if (a === "request") setFinancePanel({ kind: "request" });
   }
 
   async function createGoal() {
@@ -161,6 +173,16 @@ export default function ConsolePage() {
   }
 
   function onAsk() {
+    const now = Date.now();
+    tapRef.current = {
+      count: now - tapRef.current.ts < 650 ? tapRef.current.count + 1 : 1,
+      ts: now,
+    };
+    if (tapRef.current.count >= 3) {
+      tapRef.current.count = 0;
+      setSpyOpen((open) => !open);
+      return;
+    }
     if (voice.state === "idle") voice.start();
     else voice.stop();
   }
@@ -184,9 +206,9 @@ export default function ConsolePage() {
             type="button"
             onClick={() => setIntelOpen((open) => !open)}
             aria-label={t("console.intelLayer")}
-            className="material-symbols-outlined rounded-full border border-outline-variant bg-surface-container-low p-2 text-[22px] text-primary"
+            className="rounded-full"
           >
-            shield_person
+            <GlassIcon icon="shield_person" label={t("console.intelLayer")} active={intelOpen} size="md" />
           </button>
         </div>
 
@@ -201,10 +223,15 @@ export default function ConsolePage() {
           </div>
         )}
 
+        {spyOpen && <SpyConsole locale={locale} onClose={() => setSpyOpen(false)} />}
+
         {messages.map((m, i) => (
-          <ChatBubble key={i} role={m.role} pending={m.pending}>
-            {m.content}
-          </ChatBubble>
+          <div key={i}>
+            <ChatBubble role={m.role} pending={m.pending}>
+              {m.content}
+            </ChatBubble>
+            {m.tool && <ToolCall name={m.tool.name} result={m.tool.result} />}
+          </div>
         ))}
 
         {voice.transcript && voice.state !== "idle" && (
@@ -238,7 +265,9 @@ export default function ConsolePage() {
                 ? t("finance.spendTitle")
                 : financePanel.kind === "stash"
                   ? t("finance.stashTitle")
-                  : t("finance.requestTitle")}
+                  : financePanel.kind === "card"
+                    ? t("cards.title")
+                    : t("finance.requestTitle")}
             </h2>
             <button
               type="button"
@@ -249,6 +278,29 @@ export default function ConsolePage() {
               close
             </button>
           </div>
+
+          {financePanel.kind === "card" && (
+            <div className="space-y-3">
+              <div className="rounded-lg border border-outline-variant bg-surface p-3">
+                <div className="mb-4 flex items-start justify-between">
+                  <div>
+                    <div className="text-caption text-on-surface-variant">{t("cards.agentCard")}</div>
+                    <div className="font-headline-sm">{t("cards.codename")}</div>
+                  </div>
+                  <GlassIcon icon="credit_card" active size="lg" />
+                </div>
+                <div className="font-mono text-ignyte">USDC 240.00</div>
+                <div className="mt-1 text-caption text-on-surface-variant">{t("cards.fundedByWallet")}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/billetera`)}
+                className="w-full rounded-lg bg-ignyte px-3 py-2 text-on-ignyte font-label-md"
+              >
+                {t("cards.fund")}
+              </button>
+            </div>
+          )}
 
           {financePanel.kind === "spend" && (
             <div className="space-y-2">
@@ -396,10 +448,39 @@ function IntelLink({ href, icon, label }: { href: string; icon: string; label: s
       href={href}
       className="flex min-h-12 items-center gap-2 rounded-lg bg-surface-container px-3 py-2 text-label-md text-on-surface"
     >
-      <span className="material-symbols-outlined text-[18px] text-primary" aria-hidden>
-        {icon}
-      </span>
+      <GlassIcon icon={icon} label={label} size="sm" />
       <span className="min-w-0 truncate">{label}</span>
     </Link>
   );
+}
+
+function ToolCall({ name, result }: { name: string; result: string }) {
+  return (
+    <div className="my-2 ml-1 rounded-lg border border-outline-variant bg-surface-container-low p-3">
+      <div className="mb-1 flex items-center gap-2 text-label-md text-ignyte">
+        <GlassIcon icon="terminal" active size="sm" />
+        <span>{name}</span>
+      </div>
+      <pre className="max-h-48 overflow-auto whitespace-pre-wrap text-caption text-on-surface-variant">
+        {result}
+      </pre>
+    </div>
+  );
+}
+
+async function maybeAutoInvoke(query: string, locale: "es" | "en") {
+  const lowered = query.toLowerCase();
+  const asksDossier =
+    lowered.includes("raven") ||
+    lowered.includes("cuervo") ||
+    lowered.includes("fund") ||
+    lowered.includes("financia") ||
+    lowered.includes("expediente") ||
+    lowered.includes("dossier");
+  if (!asksDossier) return null;
+  const output = await ragAsk(query).catch(async () => ragSearch(query, 4));
+  return {
+    name: locale === "es" ? "Herramienta: RAG del expediente" : "Tool: dossier RAG",
+    result: JSON.stringify(output, null, 2),
+  };
 }

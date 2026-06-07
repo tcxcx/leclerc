@@ -1,6 +1,7 @@
 "use client";
 
 import type { JSX } from "react";
+import { GlassIcon } from "./glass-icon";
 
 export type VoiceState =
   | "idle"
@@ -19,9 +20,9 @@ const ARIA: Record<VoiceState, string> = {
 
 /** Color ring/fill per state — accent shifts to signal who's "talking". */
 const SHELL: Record<VoiceState, string> = {
-  idle: "bg-primary text-on-primary",
-  connecting: "bg-primary text-on-primary",
-  listening: "bg-error text-on-error",
+  idle: "text-on-surface",
+  connecting: "text-on-surface",
+  listening: "text-on-surface",
   thinking: "bg-surface-container-high text-on-surface-variant",
   speaking: "bg-secondary text-on-secondary",
 };
@@ -52,28 +53,25 @@ export function VoiceButton(props: {
         <span
           aria-hidden
           className={`absolute inset-0 rounded-full recording-pulse ${
-            state === "listening" ? "bg-error/40" : "bg-primary/40"
+            state === "listening" ? "bg-ignyte/30" : "bg-primary/40"
           } ${state === "connecting" ? "[animation-duration:1.4s]" : ""}`}
         />
       ) : null}
 
       {/* The button face */}
       <span
-        className={`anim-fade relative flex h-full w-full items-center justify-center rounded-full shadow-lg shadow-black/40 ${SHELL[state]}`}
+        className={`anim-fade relative flex h-full w-full items-center justify-center rounded-full ${SHELL[state]}`}
       >
         {state === "listening" ? (
-          <Bars className="text-on-error" />
+          <span className="glass-icon glass-active flex h-full w-full items-center justify-center rounded-full">
+            <Bars className="text-ignyte" />
+          </span>
         ) : state === "speaking" ? (
           <Bars className="text-on-secondary" />
         ) : state === "thinking" ? (
           <Dots />
         ) : (
-          <span
-            className="material-symbols-outlined fill text-[30px]"
-            aria-hidden
-          >
-            mic
-          </span>
+          <GlassIcon icon="mic" label={ARIA[state]} active={state === "connecting"} size="xl" />
         )}
       </span>
     </button>

@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n, useCurrentLocale } from "@/locales/client";
+import { GlassIcon } from "./glass-icon";
 
 const ITEMS = [
-  { href: "", icon: "dashboard", key: "console" },
+  { href: "", icon: "credit_card", key: "console" },
   { href: "capturar", icon: "mic", key: "capture" },
   { href: "expediente", icon: "folder_shared", key: "dossier" },
   { href: "analisis", icon: "analytics", key: "analysis" },
@@ -36,14 +37,8 @@ export function BottomNav() {
                   active ? "text-primary" : "text-on-surface-variant"
                 }`}
               >
-                <span
-                  className={`material-symbols-outlined text-[24px] ${active ? "fill" : ""}`}
-                  aria-hidden
-                >
-                  {it.icon}
-                </span>
-                <span className="text-[11px] font-medium">                  {t(`nav.${it.key}`)}
-                </span>
+                <GlassIcon icon={it.icon} active={active} size="sm" />
+                <span className="text-[11px] font-medium">{t(`nav.${it.key}`)}</span>
               </Link>
             </li>
           );

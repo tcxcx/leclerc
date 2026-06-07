@@ -73,6 +73,95 @@
     "narrating": "Cleo is reading the numbers",
     "askSpend": "Roast my weekly spend using the local finance context."
   },
+  "cards": {
+    "title": "Agent card",
+    "opened": "Card console open. The allowance is behaving better than your coffee budget.",
+    "agentCard": "Mission allowance",
+    "codename": "RAVEN-07",
+    "fundedByWallet": "Funded from the local WDK wallet rails.",
+    "fund": "Fund from wallet"
+  },
+  "missions": {
+    "selector": "Mission",
+    "accept": "ACCEPT",
+    "deny": "DENY",
+    "state": {
+      "accepted": "Mission accepted. Gadget inputs loaded.",
+      "denied": "Mission denied. Cleo will stop asking politely."
+    },
+    "raven": {
+      "title": "Raven funding trace",
+      "brief": "Follow the money around Raven and cite only dossier records."
+    },
+    "glasshouse": {
+      "title": "Glasshouse route",
+      "brief": "Extract site movement, likely routes, and dead-drop exposure."
+    },
+    "medic": {
+      "title": "Medic triage",
+      "brief": "Use the medical reasoning level for field-health notes."
+    }
+  },
+  "spy": {
+    "title": "SPY console",
+    "subtitle": "Triple-tap the mic to open this local gadget deck.",
+    "run": "Run",
+    "runFailed": "Gadget failed.",
+    "toolResult": "Tool result",
+    "autoInvoked": "I ran the dossier tool inline. Look at us, almost professional.",
+    "fields": {
+      "audioNote": "Audio note or transcript reference",
+      "transcript": "Field transcript",
+      "prompt": "Prompt",
+      "query": "Dossier query",
+      "focus": "Brief focus",
+      "level": "Reasoning level",
+      "seed": "Wallet seed (demo only)",
+      "peer": "Station peer public key"
+    },
+    "gadgets": {
+      "transcribe": {
+        "label": "Transcribe",
+        "description": "Whisper ASR through the voice loop."
+      },
+      "extract": {
+        "label": "Extract",
+        "description": "Structured intel extraction."
+      },
+      "chat": {
+        "label": "Chat",
+        "description": "Field-agent LLM reply."
+      },
+      "ragAsk": {
+        "label": "RAG Ask",
+        "description": "Grounded answer over the dossier."
+      },
+      "ragSearch": {
+        "label": "RAG Search",
+        "description": "Semantic dossier hits."
+      },
+      "brief": {
+        "label": "Intel Brief",
+        "description": "Multi-agent analyst desk."
+      },
+      "geo": {
+        "label": "Geo Extract",
+        "description": "Location-oriented dossier search."
+      },
+      "reasoning": {
+        "label": "Reasoning",
+        "description": "Alto, medio, or MedPsy mode."
+      },
+      "wallet": {
+        "label": "Wallet",
+        "description": "Balances and wallet checks."
+      },
+      "station": {
+        "label": "Station",
+        "description": "DHT provider start or ping."
+      }
+    }
+  },
   "capture": {
     "title": "Capture intelligence",
     "record": "Record",
