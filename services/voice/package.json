@@ -1,0 +1,14 @@
+{
+  "name": "voice",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run server.mjs",
+    "smoke": "bun run smoke.mjs"
+  },
+  "dependencies": {
+    "@qvac/sdk": "^0.12.2",
+    "ws": "^8.18.0"
+  }
+}

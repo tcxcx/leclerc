@@ -5,7 +5,8 @@
   "packageManager": "bun@1.3.10",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "services/*"
   ],
   "scripts": {
     "dev": "turbo dev",
@@ -13,6 +14,8 @@
     "qvac": "bash infra/qvac/start-local.sh",
     "qvac:ngrok": "bash scripts/qvac-ngrok.sh",
     "dev:qvac": "bash scripts/dev-qvac.sh",
+    "voice": "bun --filter voice start",
+    "voice:smoke": "bun --filter voice smoke",
     "build": "turbo build",
     "start": "turbo start",
     "lint": "turbo lint"
