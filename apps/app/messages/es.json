@@ -165,7 +165,13 @@
     "showQr": "Mostrar QR de emparejamiento",
     "scan": "Escanear par",
     "dropTopic": "Tópico de buzón (misión)",
+    "dropSecret": "Secreto del buzón",
     "join": "Unirse al buzón",
+    "sendTest": "Enviar prueba sellada",
+    "poll": "Revisar buzón",
+    "dropReady": "Buzón listo",
+    "dropSent": "Carga sellada enviada",
+    "dropInbox": "Entradas recibidas",
     "peerOnline": "Par en línea",
     "peerOffline": "Par fuera de línea",
     "delegate": "Delegar a la estación"

@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
-import { startStation, stopStation, stationKey, peerAlive } from "@/lib/p2p/delegate";
+import { QWEN3_1_7B_INST_Q4 } from "@repo/qvacs";
+import {
+  delegateCompletion,
+  startStation,
+  stopStation,
+  stationKey,
+  peerAlive,
+} from "@/lib/p2p/delegate";
 
 export const runtime = "nodejs";
 
@@ -9,6 +16,7 @@ export const runtime = "nodejs";
  * POST { action: "stop" }
  * GET                                       → { publicKey }
  * POST { action: "ping", peer }            → { alive }
+ * POST { action: "delegateTest", peer? }   → delegated completion smoke
  */
 export async function GET() {
   return NextResponse.json({ publicKey: stationKey() });
@@ -25,6 +33,13 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true });
       case "ping":
         return NextResponse.json({ alive: await peerAlive(body.peer ?? "") });
+      case "delegateTest": {
+        const provider = body.peer?.trim() || (await startStation()).publicKey;
+        const text = await delegateCompletion(provider, QWEN3_1_7B_INST_Q4, [
+          { role: "user", content: "Responde exactamente: enlace operativo listo" },
+        ]);
+        return NextResponse.json({ providerPublicKey: provider, text });
+      }
       default:
         return NextResponse.json({ error: "unknown action" }, { status: 400 });
     }

@@ -1,0 +1,6 @@
+{
+  "publicKeyRedacted": "d171201a…b09504a4",
+  "keyLength": 64,
+  "stableSeed": false,
+  "seedEnvRequiredForStableIdentity": "QVAC_HYPERSWARM_SEED"
+}

@@ -165,7 +165,13 @@
     "showQr": "Show pairing QR",
     "scan": "Scan peer",
     "dropTopic": "Dead-drop topic (mission)",
+    "dropSecret": "Dead-drop secret",
     "join": "Join dead-drop",
+    "sendTest": "Send sealed test",
+    "poll": "Check dead-drop",
+    "dropReady": "Dead-drop ready",
+    "dropSent": "Sealed payload sent",
+    "dropInbox": "Received entries",
     "peerOnline": "Peer online",
     "peerOffline": "Peer offline",
     "delegate": "Delegate to station"

@@ -105,8 +105,25 @@ export const wallet = {
 };
 
 export const station = {
-  start: () => post<{ publicKey: string }>("/api/station", { action: "start" }),
+  start: () => post<{ publicKey: string; stableSeed: boolean }>("/api/station", { action: "start" }),
   ping: (peer: string) => post<{ alive: boolean }>("/api/station", { action: "ping", peer }),
+};
+
+export const drop = {
+  join: (passphrase: string, label = "browser") =>
+    post<{ dropId: string; topicHash: string; peers: number }>("/api/drop", {
+      action: "join",
+      passphrase,
+      label,
+    }),
+  send: (dropId: string, secret: string, value: unknown, kind: "brief" | "record" = "brief") =>
+    post<{ peers: number }>("/api/drop", { action: "send", dropId, secret, kind, value }),
+  read: (dropId: string, secret: string) =>
+    post<{ payloads: Array<{ kind: "brief" | "record"; value: unknown; ts: number }>; rawCount: number }>(
+      "/api/drop",
+      { action: "read", dropId, secret },
+    ),
+  close: (dropId: string) => post<{ ok: true }>("/api/drop", { action: "close", dropId }),
 };
 
 export type { IntelRecord, IntelBrief };

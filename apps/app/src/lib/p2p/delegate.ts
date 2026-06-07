@@ -22,12 +22,12 @@ import {
 let providerPublicKey: string | null = null;
 
 /** Start (idempotent) the station provider; returns its stable public key. */
-export async function startStation(): Promise<{ publicKey: string }> {
+export async function startStation(): Promise<{ publicKey: string; stableSeed: boolean }> {
   // QVAC_HYPERSWARM_SEED controls a stable identity across restarts.
   const res = await startQVACProvider();
   providerPublicKey = (res as { publicKey?: string }).publicKey ?? null;
   if (!providerPublicKey) throw new Error("startQVACProvider returned no publicKey");
-  return { publicKey: providerPublicKey };
+  return { publicKey: providerPublicKey, stableSeed: Boolean(process.env.QVAC_HYPERSWARM_SEED) };
 }
 
 export async function stopStation(): Promise<void> {

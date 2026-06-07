@@ -1,0 +1,25 @@
+{
+  "pass": true,
+  "topicHash": "de4dc9193877",
+  "peers": {
+    "a": 1,
+    "b": 1
+  },
+  "right": {
+    "payloads": [
+      {
+        "kind": "brief",
+        "ts": 1780806746907,
+        "value": {
+          "title": "M6 encrypted drop",
+          "finding": "sealed payload test"
+        }
+      }
+    ],
+    "rawCount": 1
+  },
+  "wrong": {
+    "rawCount": 1,
+    "payloads": 0
+  }
+}

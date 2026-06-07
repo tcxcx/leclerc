@@ -25,8 +25,9 @@ export interface DropPayload {
 }
 
 export interface DropChannel {
-  send(payload: DropPayload): void;
+  send(payload: DropPayload): Promise<void>;
   onMessage(cb: (payload: DropPayload) => void): void;
+  peerCount(): number;
   close(): Promise<void>;
 }
 
@@ -69,36 +70,128 @@ export function openPayload<T = unknown>(payload: DropPayload, secret: string): 
 /** Join a dead-drop topic and exchange encrypted payloads. */
 export async function openDrop(topic: Buffer): Promise<DropChannel> {
   const swarm = new Hyperswarm();
-  const sockets = new Set<{ write: (b: Buffer) => void }>();
+  const sockets = new Set<NodeJS.ReadWriteStream & { write: (b: Buffer) => void }>();
   const handlers: ((p: DropPayload) => void)[] = [];
+  const pending = new WeakMap<NodeJS.ReadWriteStream, string>();
 
   swarm.on("connection", (socket: NodeJS.ReadWriteStream & { write: (b: Buffer) => void }) => {
     sockets.add(socket);
     socket.on("data", (buf: Buffer) => {
-      try {
-        const p = JSON.parse(buf.toString("utf8")) as DropPayload;
-        handlers.forEach((h) => h(p));
-      } catch {
-        /* ignore malformed frames */
+      const next = `${pending.get(socket) ?? ""}${buf.toString("utf8")}`;
+      const frames = next.split("\n");
+      pending.set(socket, frames.pop() ?? "");
+      for (const frame of frames) {
+        if (!frame.trim()) continue;
+        try {
+          const p = JSON.parse(frame) as DropPayload;
+          handlers.forEach((h) => h(p));
+        } catch {
+          /* ignore malformed frames */
+        }
       }
     });
-    socket.on("close", () => sockets.delete(socket));
-    socket.on("error", () => sockets.delete(socket));
+    socket.on("close", () => {
+      sockets.delete(socket);
+      pending.delete(socket);
+    });
+    socket.on("error", () => {
+      sockets.delete(socket);
+      pending.delete(socket);
+    });
   });
 
   const discovery = swarm.join(topic, { server: true, client: true });
-  await discovery.flushed();
+  await Promise.race([
+    discovery.flushed(),
+    new Promise((resolve) => setTimeout(resolve, 2_000)),
+  ]);
 
   return {
-    send(payload) {
-      const buf = Buffer.from(JSON.stringify(payload), "utf8");
+    async send(payload) {
+      const buf = Buffer.from(`${JSON.stringify(payload)}\n`, "utf8");
       for (const s of sockets) s.write(buf);
     },
     onMessage(cb) {
       handlers.push(cb);
     },
+    peerCount() {
+      return sockets.size;
+    },
     async close() {
       await swarm.destroy();
     },
   };
+}
+
+interface ManagedDrop {
+  channel: DropChannel;
+  messages: DropPayload[];
+  topicHash: string;
+}
+
+const drops = new Map<string, Promise<ManagedDrop>>();
+
+function dropKey(passphrase: string, label: string): string {
+  return `${label}:${topicFromPassphrase(passphrase).toString("hex")}`;
+}
+
+/** Join or reuse a long-lived drop channel for this process. */
+export async function joinDrop(
+  passphrase: string,
+  label = "default",
+): Promise<{ dropId: string; topicHash: string; peers: number }> {
+  if (!passphrase.trim()) throw new Error("drop passphrase required");
+  const key = dropKey(passphrase, label);
+  let pending = drops.get(key);
+  if (!pending) {
+    pending = (async () => {
+      const topic = topicFromPassphrase(passphrase);
+      const channel = await openDrop(topic);
+      const managed: ManagedDrop = {
+        channel,
+        messages: [],
+        topicHash: topic.toString("hex"),
+      };
+      channel.onMessage((payload) => managed.messages.push(payload));
+      return managed;
+    })();
+    drops.set(key, pending);
+  }
+  const managed = await pending;
+  return { dropId: key, topicHash: managed.topicHash.slice(0, 12), peers: managed.channel.peerCount() };
+}
+
+export async function sendDrop(
+  dropId: string,
+  kind: DropPayload["kind"],
+  value: unknown,
+  secret: string,
+): Promise<{ peers: number }> {
+  const managed = await drops.get(dropId);
+  if (!managed) throw new Error("drop not joined");
+  await managed.channel.send(sealPayload(kind, value, secret));
+  return { peers: managed.channel.peerCount() };
+}
+
+export async function readDrop<T = unknown>(
+  dropId: string,
+  secret: string,
+): Promise<{ payloads: Array<{ kind: DropPayload["kind"]; value: T; ts: number }>; rawCount: number }> {
+  const managed = await drops.get(dropId);
+  if (!managed) throw new Error("drop not joined");
+  const payloads = managed.messages
+    .map((payload) => ({
+      kind: payload.kind,
+      ts: payload.ts,
+      value: openPayload<T>(payload, secret),
+    }))
+    .filter((payload): payload is { kind: DropPayload["kind"]; value: T; ts: number } => payload.value !== null);
+  return { payloads, rawCount: managed.messages.length };
+}
+
+export async function closeDrop(dropId: string): Promise<void> {
+  const pending = drops.get(dropId);
+  if (!pending) return;
+  drops.delete(dropId);
+  await (await pending).channel.close();
 }

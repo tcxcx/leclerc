@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useI18n } from "@/locales/client";
-import { station } from "@/lib/api-client";
+import { drop, station } from "@/lib/api-client";
 
 /**
  * P2P link/pairing. Shows the station's stable peer key for delegation, and a
@@ -15,6 +15,10 @@ export default function LinkPage() {
   const [peer, setPeer] = useState("");
   const [alive, setAlive] = useState<boolean | null>(null);
   const [topic, setTopic] = useState("");
+  const [secret, setSecret] = useState("");
+  const [dropId, setDropId] = useState("");
+  const [dropStatus, setDropStatus] = useState("");
+  const [inbox, setInbox] = useState<Array<{ kind: string; value: unknown; ts: number }>>([]);
   const [busy, setBusy] = useState(false);
 
   async function startStation() {
@@ -30,6 +34,33 @@ export default function LinkPage() {
   async function ping() {
     if (!peer.trim()) return;
     setAlive((await station.ping(peer.trim()).catch(() => ({ alive: false }))).alive);
+  }
+  async function joinDrop() {
+    if (!topic.trim()) return;
+    setBusy(true);
+    try {
+      const joined = await drop.join(topic.trim());
+      setDropId(joined.dropId);
+      setDropStatus(`${t("link.dropReady")} · ${joined.topicHash} · peers ${joined.peers}`);
+    } catch (e) {
+      setDropStatus(e instanceof Error ? e.message : "drop failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function sendTest() {
+    if (!dropId) return;
+    const res = await drop.send(dropId, secret.trim() || topic.trim(), {
+      title: "LeClerc dead-drop test",
+      sentAt: Date.now(),
+    });
+    setDropStatus(`${t("link.dropSent")} · peers ${res.peers}`);
+  }
+  async function pollDrop() {
+    if (!dropId) return;
+    const res = await drop.read(dropId, secret.trim() || topic.trim());
+    setInbox(res.payloads.map((p) => ({ kind: p.kind, value: p.value, ts: p.ts })));
+    setDropStatus(`${t("link.dropInbox")} · ${res.payloads.length}/${res.rawCount}`);
   }
 
   return (
@@ -77,9 +108,39 @@ export default function LinkPage() {
           placeholder="mission passphrase"
           className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-body-md"
         />
-        <button className="w-full rounded-xl bg-primary-container py-2.5 text-on-primary-container font-label-md">
+        <input
+          value={secret}
+          onChange={(e) => setSecret(e.target.value)}
+          placeholder={t("link.dropSecret")}
+          className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-body-md"
+        />
+        <button
+          onClick={joinDrop}
+          disabled={busy || !topic.trim()}
+          className="w-full rounded-xl bg-primary-container py-2.5 text-on-primary-container font-label-md disabled:opacity-50"
+        >
           {t("link.join")}
         </button>
+        {dropId && (
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={sendTest} className="rounded-xl border border-outline-variant py-2.5 text-label-md">
+              {t("link.sendTest")}
+            </button>
+            <button onClick={pollDrop} className="rounded-xl border border-outline-variant py-2.5 text-label-md">
+              {t("link.poll")}
+            </button>
+          </div>
+        )}
+        {dropStatus && <p className="text-label-md text-on-surface-variant">{dropStatus}</p>}
+        {inbox.length > 0 && (
+          <ul className="space-y-1">
+            {inbox.map((item, index) => (
+              <li key={`${item.ts}-${index}`} className="rounded-lg bg-surface p-2 text-caption">
+                {item.kind} · {new Date(item.ts).toLocaleTimeString()}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );

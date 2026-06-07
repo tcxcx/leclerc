@@ -1,0 +1,9 @@
+{
+  "ok": false,
+  "status": 500,
+  "durationMs": 9143,
+  "result": {
+    "error": "Failed to load model: Failed to connect to delegated provider: RPC connection failed: PEER_CONNECTION_FAILED: Could not connect to peer"
+  },
+  "error": "Failed to load model: Failed to connect to delegated provider: RPC connection failed: PEER_CONNECTION_FAILED: Could not connect to peer"
+}
