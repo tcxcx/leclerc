@@ -135,6 +135,38 @@
       "observerTokyo": "Observador Tokio"
     }
   },
+  "landing": {
+    "eyebrow": "Sala de operaciones local primero",
+    "hero": "Cree una sala privada, ejecute la PWA sin backend censurable y prepare la misma superficie LeClerc para despliegue nativo en Expo.",
+    "actions": {
+      "room": {
+        "label": "Crear sala",
+        "description": "Entrar a consola"
+      },
+      "pwa": {
+        "label": "Instalar PWA",
+        "description": "Abrir manifest"
+      },
+      "expo": {
+        "label": "App Expo",
+        "description": "Build pendiente"
+      }
+    },
+    "surfaces": {
+      "p2p": {
+        "title": "P2P resistente a censura",
+        "body": "Empareje estaciones, entregue cargas selladas y delegue trabajo pesado sin broker central."
+      },
+      "wallet": {
+        "title": "Operaciones con billetera",
+        "body": "Fondee tarjetas de misión y asignaciones de agente sobre Arc Testnet con flujos WDK."
+      },
+      "ai": {
+        "title": "Comando de IA local",
+        "body": "Captura, RAG, mesa de análisis y herramientas de billetera vía QVAC quedan en la estación controlada por el operador."
+      }
+    }
+  },
   "spy": {
     "title": "Consola SPY",
     "subtitle": "Triple toque en el micrófono para abrir este mazo local de gadgets.",

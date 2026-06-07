@@ -2,6 +2,7 @@ export * from "./agents";
 export * from "./asset-catalog";
 export * from "./finance";
 export * from "./intel";
+export * from "./landing";
 export * from "./mission-funding";
 export * from "./ops-network";
 export * from "./p2p";

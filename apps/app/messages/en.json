@@ -135,6 +135,38 @@
       "observerTokyo": "Tokyo observer"
     }
   },
+  "landing": {
+    "eyebrow": "Local-first operations room",
+    "hero": "Create a private operation room, run the PWA without a censorable backend, and prepare the same LeClerc surface for native Expo deployment.",
+    "actions": {
+      "room": {
+        "label": "Create room",
+        "description": "Enter the console"
+      },
+      "pwa": {
+        "label": "Install PWA",
+        "description": "Open manifest"
+      },
+      "expo": {
+        "label": "Expo app",
+        "description": "Build pending"
+      }
+    },
+    "surfaces": {
+      "p2p": {
+        "title": "Censorship-resistant P2P",
+        "body": "Pair stations, dead-drop sealed payloads, and delegate heavy work without a central broker."
+      },
+      "wallet": {
+        "title": "Wallet-native operations",
+        "body": "Fund mission cards and agent allowances over Arc Testnet using WDK-backed wallet flows."
+      },
+      "ai": {
+        "title": "Local AI command",
+        "body": "QVAC-backed capture, RAG, analyst desk, and wallet tools stay on the operator-controlled station."
+      }
+    }
+  },
   "spy": {
     "title": "SPY console",
     "subtitle": "Triple-tap the mic to open this local gadget deck.",
