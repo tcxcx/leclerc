@@ -19,12 +19,8 @@ primary_region = "ord"   # pick a region with GPU availability (ord/iad/sjc/ams)
 [env]
   PORT = "11434"
 
-# GPU machine. l40s is the cost/throughput sweet spot for 1-4B models; a10 is
-# cheaper and still ample. Single-GPU is plenty here.
-[[vm]]
-  size = "l40s"          # or "a10"
-  memory = "16gb"
-  cpus = 8
+# GPU is attached at deploy via `--vm-gpu-kind a10 --vm-gpus 1`. The a10 preset
+# provisions 8 CPU / 32GB — ample for whisper-base + a 1-4B Q4 LLM. Single GPU.
 
 [mounts]
   source = "qvac_data"
@@ -33,7 +29,7 @@ primary_region = "ord"   # pick a region with GPU availability (ord/iad/sjc/ams)
 [http_service]
   internal_port = 11434
   force_https = true
-  auto_stop_machines = "suspend"   # scale-to-zero between demos (cheap when idle)
+  auto_stop_machines = "stop"   # scale-to-zero between demos (GPU has no suspend)
   auto_start_machines = true
   min_machines_running = 0
 
