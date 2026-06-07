@@ -7,6 +7,7 @@ import { useI18n, useCurrentLocale } from "@/locales/client";
 import { ChatBubble } from "@/components/chat-bubble";
 import { Chips } from "@/components/chips";
 import { ActionBar, type BarAction } from "@/components/action-bar";
+import { AgentCardsPanel } from "@/components/agent-cards-panel";
 import { GlassIcon } from "@/components/glass-icon";
 import { SpyConsole } from "@/components/spy-console";
 import { useVoice } from "@/lib/voice/use-voice";
@@ -280,26 +281,7 @@ export default function ConsolePage() {
           </div>
 
           {financePanel.kind === "card" && (
-            <div className="space-y-3">
-              <div className="rounded-lg border border-outline-variant bg-surface p-3">
-                <div className="mb-4 flex items-start justify-between">
-                  <div>
-                    <div className="text-caption text-on-surface-variant">{t("cards.agentCard")}</div>
-                    <div className="font-headline-sm">{t("cards.codename")}</div>
-                  </div>
-                  <GlassIcon icon="credit_card" active size="lg" />
-                </div>
-                <div className="font-mono text-ignyte">USDC 240.00</div>
-                <div className="mt-1 text-caption text-on-surface-variant">{t("cards.fundedByWallet")}</div>
-              </div>
-              <button
-                type="button"
-                onClick={() => router.push(`/${locale}/billetera`)}
-                className="w-full rounded-lg bg-ignyte px-3 py-2 text-on-ignyte font-label-md"
-              >
-                {t("cards.fund")}
-              </button>
-            </div>
+            <AgentCardsPanel />
           )}
 
           {financePanel.kind === "spend" && (

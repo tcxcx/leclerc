@@ -6,6 +6,7 @@ import type { IntelBrief, BriefRequest } from "@/lib/agents/orchestrator";
 import type {
   LeclercAssetId,
   LeclercChainId,
+  RainAgentCardConfig,
   WalletAssetBalance,
   WalletReceiveDetails,
   WalletTransaction,
@@ -117,6 +118,29 @@ export const wallet = {
     assetId?: LeclercAssetId,
     chainId?: LeclercChainId,
   ) => post<{ hash: string }>("/api/wallet", { action: "payEvm", seed, to, amount, assetId, chainId }),
+};
+
+export const rainCards = {
+  list: () =>
+    post<{
+      cards: RainAgentCardConfig[];
+      funding: Array<{
+        cardId: string;
+        assetId: LeclercAssetId;
+        chainId: LeclercChainId;
+        configured: boolean;
+        env: string;
+      }>;
+    }>("/api/rain-cards", { action: "list" }),
+  fund: (seed: string, cardId: string, amount: string) =>
+    post<{
+      ok: true;
+      hash: string;
+      cardId: string;
+      assetId: LeclercAssetId;
+      chainId: LeclercChainId;
+      amount: string;
+    }>("/api/rain-cards", { action: "fund", seed, cardId, amount }),
 };
 
 export const station = {

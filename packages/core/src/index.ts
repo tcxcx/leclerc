@@ -4,6 +4,7 @@ export * from "./finance";
 export * from "./intel";
 export * from "./p2p";
 export * from "./rag";
+export * from "./rain-cards";
 export * from "./rpc";
 export * from "./surfaces";
 export * from "./voice";

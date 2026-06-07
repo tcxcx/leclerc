@@ -11,6 +11,7 @@
     "./intel": "./src/intel.ts",
     "./p2p": "./src/p2p.ts",
     "./rag": "./src/rag.ts",
+    "./rain-cards": "./src/rain-cards.ts",
     "./rpc": "./src/rpc.ts",
     "./surfaces": "./src/surfaces.ts",
     "./voice": "./src/voice.ts",

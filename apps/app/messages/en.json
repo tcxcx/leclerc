@@ -79,7 +79,18 @@
     "agentCard": "Mission allowance",
     "codename": "RAVEN-07",
     "fundedByWallet": "Funded from the local WDK wallet rails.",
-    "fund": "Fund from wallet"
+    "fund": "Fund from wallet",
+    "last4": "Last 4",
+    "expiry": "Expiry",
+    "limit": "Limit",
+    "seedPlaceholder": "Wallet recovery phrase for this session",
+    "amountPlaceholder": "USDC amount",
+    "depositMissing": "Set the Rain funding contract env before live funding:",
+    "submitFunding": "Submit card funding",
+    "funding": "Submitting Rain card funding...",
+    "funded": "Funding submitted:",
+    "fundFailed": "Card funding failed.",
+    "loadFailed": "Card catalog unavailable."
   },
   "missions": {
     "selector": "Mission",

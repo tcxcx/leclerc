@@ -79,7 +79,18 @@
     "agentCard": "Asignación de misión",
     "codename": "CUERVO-07",
     "fundedByWallet": "Fondeada desde los rieles locales de la billetera WDK.",
-    "fund": "Fondear desde billetera"
+    "fund": "Fondear desde billetera",
+    "last4": "Últimos 4",
+    "expiry": "Vence",
+    "limit": "Límite",
+    "seedPlaceholder": "Frase de recuperación de la billetera para esta sesión",
+    "amountPlaceholder": "Monto USDC",
+    "depositMissing": "Configure el contrato de fondeo Rain antes del fondeo real:",
+    "submitFunding": "Enviar fondeo de tarjeta",
+    "funding": "Enviando fondeo de tarjeta Rain...",
+    "funded": "Fondeo enviado:",
+    "fundFailed": "Falló el fondeo de tarjeta.",
+    "loadFailed": "Catálogo de tarjetas no disponible."
   },
   "missions": {
     "selector": "Misión",
