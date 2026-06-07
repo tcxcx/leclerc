@@ -1,0 +1,19 @@
+{
+  "name": "@leclerc/worklet",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./entry": "./src/worklet-entry.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@leclerc/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

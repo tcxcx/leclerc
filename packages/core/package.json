@@ -1,0 +1,24 @@
+{
+  "name": "@leclerc/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./agents": "./src/agents.ts",
+    "./finance": "./src/finance.ts",
+    "./intel": "./src/intel.ts",
+    "./p2p": "./src/p2p.ts",
+    "./rag": "./src/rag.ts",
+    "./rpc": "./src/rpc.ts",
+    "./surfaces": "./src/surfaces.ts",
+    "./voice": "./src/voice.ts",
+    "./wallet": "./src/wallet.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

@@ -41,12 +41,29 @@
         "typescript": "^5",
       },
     },
+    "packages/core": {
+      "name": "@leclerc/core",
+      "version": "0.1.0",
+      "devDependencies": {
+        "typescript": "^5",
+      },
+    },
     "packages/qvacs": {
       "name": "@repo/qvacs",
       "version": "0.1.0",
       "dependencies": {
         "@qvac/sdk": "^0.12.2",
         "server-only": "^0.0.1",
+      },
+      "devDependencies": {
+        "typescript": "^5",
+      },
+    },
+    "packages/worklet": {
+      "name": "@leclerc/worklet",
+      "version": "0.1.0",
+      "dependencies": {
+        "@leclerc/core": "workspace:*",
       },
       "devDependencies": {
         "typescript": "^5",
@@ -381,6 +398,10 @@
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
     "@js-sdsl/ordered-map": ["@js-sdsl/ordered-map@4.4.2", "", {}, "sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw=="],
+
+    "@leclerc/core": ["@leclerc/core@workspace:packages/core"],
+
+    "@leclerc/worklet": ["@leclerc/worklet@workspace:packages/worklet"],
 
     "@lightsparkdev/core": ["@lightsparkdev/core@1.5.2", "", { "dependencies": { "@noble/curves": "^1.9.7", "dayjs": "^1.11.7", "graphql": "^16.6.0", "graphql-ws": "^5.11.3", "ws": "^8.12.1", "zen-observable-ts": "^1.1.0" } }, "sha512-7EiV/Ld+IqAQJYvSLN2gS6E/UrcCCQ/H4voUz+nAPUDSk8U1P06afTKALh1FeizAXIzqxt1jFQWmQlXPSXmxIA=="],
 
