@@ -54,12 +54,12 @@ export function getModel(
 ): Promise<string> {
   let pending = models.get(key);
   if (!pending) {
-    pending = getProvider()
-      .then(load)
-      .catch((err) => {
-        models.delete(key);
-        throw err;
-      });
+    // Local in-process inference loads models directly — startQVACProvider() is
+    // only for P2P serving (see lib/p2p/delegate.ts), per the @qvac/sdk examples.
+    pending = load().catch((err) => {
+      models.delete(key);
+      throw err;
+    });
     models.set(key, pending);
   }
   return pending;
@@ -113,16 +113,19 @@ export async function completeJSON<T = unknown>(
 
 /* ────────────────────────────────────────────────────────────────────────
  * LeClerc extensions — embeddings, RAG, OCR, translate, tool-calling.
- * All thin pass-throughs to @qvac/sdk. Signatures verified against the
- * public API reference (docs.qvac.tether.io, v0.11.x); the EXACT param/return
- * shapes for embed/rag/ocr/translate/tool-calls must be confirmed against the
- * installed @qvac/sdk .d.ts — marked TODO(codex) where the SDK type is the
- * source of truth. See docs/leclerc/02-qvac-integration.md.
+ * Wired against the installed @qvac/sdk@0.12.2 .d.ts + bundled examples
+ * (dist/examples/**). See docs/leclerc/02-qvac-integration.md.
+ *
+ * Model loading (verified, examples/quickstart.js + rag/pipeline.js):
+ *   loadModel({ modelSrc: <REGISTRY_CONSTANT>, modelType: "llm"|"embeddings", ... })
+ * RAG segregated flow (examples/rag/rag-hyperdb/pipeline.js) — keeps stable ids:
+ *   embed({modelId,text}) → ragSaveEmbeddings({workspace,documents:[{id,content,embedding,embeddingModelId}]})
+ *   ragSearch({workspace,modelId,query,topK}) → [{id,content,score}]
  * ──────────────────────────────────────────────────────────────────────── */
 
 import {
   embed,
-  ragIngest,
+  ragSaveEmbeddings,
   ragSearch,
   ocr,
   translate,
@@ -131,10 +134,16 @@ import {
 /** Generate an embedding for one or many texts with a loaded embedding model. */
 export async function embedText(
   modelId: string,
+  text: string,
+): Promise<number[]>;
+export async function embedText(
+  modelId: string,
+  text: string[],
+): Promise<number[][]>;
+export async function embedText(
+  modelId: string,
   text: string | string[],
 ): Promise<number[] | number[][]> {
-  // embed() overloads: {modelId,text:string}->{embedding:number[]}
-  //                    {modelId,text:string[]}->{embedding:number[][]}
   const res = await embed({ modelId, text } as Parameters<typeof embed>[0]);
   return (res as { embedding: number[] | number[][] }).embedding;
 }
@@ -146,24 +155,31 @@ export interface RagDoc {
 }
 
 /**
- * Ingest documents into a QVAC RAG workspace (chunk → embed → save). Uses the
- * loaded embedding model. The dossier workspace is created on first ingest.
- * TODO(codex): confirm ragIngest param shape (workspace/embeddingModelId/docs).
+ * Ingest documents into a QVAC RAG workspace via the segregated flow: embed each
+ * document's text, then ragSaveEmbeddings with the caller's explicit ids so
+ * search results map back to dossier record ids. One embedding per record
+ * (records are short); chunk first with ragChunk if you need passage-level recall.
  */
 export async function ragIngestDocs(
   workspace: string,
   embeddingModelId: string,
   docs: RagDoc[],
 ): Promise<void> {
-  // NOTE: ragIngest's `documents` is string|string[] (raw text); it chunks +
-  // embeds internally. Per-record id/metadata association is therefore lost here.
-  // TODO(codex): to keep stable record ids, embed() each doc and persist via
-  // ragSaveEmbeddings with explicit ids, OR confirm a metadata-bearing overload.
-  await ragIngest({
-    workspace,
+  if (docs.length === 0) return;
+  const { embedding } = (await embed({
     modelId: embeddingModelId,
-    documents: docs.map((d) => `id=${d.id}\n${d.text}`),
-  } as unknown as Parameters<typeof ragIngest>[0]);
+    text: docs.map((d) => d.text),
+  } as Parameters<typeof embed>[0])) as { embedding: number[][] };
+
+  await ragSaveEmbeddings({
+    workspace,
+    documents: docs.map((d, i) => ({
+      id: d.id,
+      content: d.text,
+      embedding: embedding[i],
+      embeddingModelId,
+    })),
+  } as unknown as Parameters<typeof ragSaveEmbeddings>[0]);
 }
 
 export interface RagHit {
@@ -173,7 +189,7 @@ export interface RagHit {
   meta?: Record<string, unknown>;
 }
 
-/** Semantic search across a workspace. Returns top-k excerpts with ids. */
+/** Semantic search across a workspace (top-k). Returns excerpts with record ids. */
 export async function ragQuery(
   workspace: string,
   embeddingModelId: string,
@@ -184,18 +200,16 @@ export async function ragQuery(
     workspace,
     modelId: embeddingModelId,
     query,
-    k,
+    topK: k,
   } as Parameters<typeof ragSearch>[0])) as Array<{
     id?: string;
-    text?: string;
+    content?: string;
     score?: number;
-    metadata?: Record<string, unknown>;
   }>;
   return results.map((r) => ({
     id: r.id ?? "",
-    text: r.text ?? "",
+    text: r.content ?? "",
     score: r.score,
-    meta: r.metadata,
   }));
 }
 
@@ -218,8 +232,8 @@ export async function translateText(
   text: string,
   opts: { to?: string; from?: string } = {},
 ): Promise<string> {
-  // TODO(codex): TranslateParams requires { modelType, to, stream, ... } — set
-  // the right modelType ("nmt" | "llm") and target/source fields per the .d.ts.
+  // TODO(codex): confirm TranslateParams (modelType "nmt"|"llm", to/from) once
+  // a translate model is wired — not on the P0 capture→RAG→brief path.
   const res = translate({
     modelId,
     text,
@@ -232,21 +246,27 @@ export async function translateText(
 export interface QvacToolDef {
   name: string;
   description: string;
-  /** Zod schema — @qvac/sdk completion supports Zod tool schemas natively. */
+  /** Zod schema — @qvac/sdk completion supports Zod/JSON tool schemas natively. */
   schema: unknown;
 }
 
+export interface ToolCallResult {
+  id?: string;
+  name: string;
+  arguments: Record<string, unknown>;
+}
+
 /**
- * Run a tool-calling completion. Returns the final result incl. any tool calls
- * the model wants to make. The orchestrator executes the calls and may loop.
- * TODO(codex): confirm the `tools` param shape + how toolCalls surface on the
- * CompletionFinal in the installed @qvac/sdk.
+ * Run a tool-calling completion. Returns the model's text + any tool calls it
+ * wants to make (examples/llamacpp-dynamic-tools.js: `await result.toolCalls`).
+ * NOTE: the model must be loaded with `modelConfig: { tools: true }` (see
+ * lib/qvac/server.ts loadLLM).
  */
 export async function completeWithTools(
   modelId: string,
   history: CompleteMessage[],
   tools: QvacToolDef[],
-) {
+): Promise<{ text: string; toolCalls: ToolCallResult[] }> {
   const run = completion({
     modelId,
     history,
@@ -257,5 +277,7 @@ export async function completeWithTools(
       parameters: t.schema,
     })),
   } as Parameters<typeof completion>[0]);
-  return run.final;
+  const toolCalls = ((await (run as { toolCalls?: Promise<unknown[]> }).toolCalls) ?? []) as ToolCallResult[];
+  const final = await run.final;
+  return { text: (final.contentText ?? "").trim(), toolCalls };
 }
