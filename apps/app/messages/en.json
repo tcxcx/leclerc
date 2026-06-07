@@ -113,6 +113,28 @@
       "brief": "Use the medical reasoning level for field-health notes."
     }
   },
+  "ops": {
+    "title": "Global operations",
+    "subtitle": "P2P station, mobile agents and desktop peers",
+    "roles": {
+      "station": "Station",
+      "mobile-agent": "Mobile agent",
+      "desktop-peer": "Desktop peer",
+      "observer": "Observer"
+    },
+    "status": {
+      "online": "online",
+      "standby": "standby",
+      "degraded": "degraded"
+    },
+    "nodes": {
+      "safehouseBa": "Safehouse BA",
+      "agentNyc": "Agent NYC",
+      "desktopLondon": "London desktop",
+      "agentDubai": "Dubai field",
+      "observerTokyo": "Tokyo observer"
+    }
+  },
   "spy": {
     "title": "SPY console",
     "subtitle": "Triple-tap the mic to open this local gadget deck.",

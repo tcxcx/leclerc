@@ -19,6 +19,7 @@
     "@tetherto/wdk-wallet-evm": "^1.0.0-beta.13",
     "@tetherto/wdk-wallet-spark": "^1.0.0-beta.19",
     "b4a": "^1.6.7",
+    "cobe": "^2.0.1",
     "compact-encoding": "^2.16.1",
     "docx": "^9.5.1",
     "hyperswarm": "^4.8.4",

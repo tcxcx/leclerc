@@ -113,6 +113,28 @@
       "brief": "Usa el nivel de razonamiento médico para notas de salud de campo."
     }
   },
+  "ops": {
+    "title": "Operaciones globales",
+    "subtitle": "Estación P2P, agentes móviles y pares de escritorio",
+    "roles": {
+      "station": "Estación",
+      "mobile-agent": "Agente móvil",
+      "desktop-peer": "Par de escritorio",
+      "observer": "Observador"
+    },
+    "status": {
+      "online": "en línea",
+      "standby": "en espera",
+      "degraded": "degradado"
+    },
+    "nodes": {
+      "safehouseBa": "Safehouse BA",
+      "agentNyc": "Agente NYC",
+      "desktopLondon": "Escritorio Londres",
+      "agentDubai": "Campo Dubai",
+      "observerTokyo": "Observador Tokio"
+    }
+  },
   "spy": {
     "title": "Consola SPY",
     "subtitle": "Triple toque en el micrófono para abrir este mazo local de gadgets.",

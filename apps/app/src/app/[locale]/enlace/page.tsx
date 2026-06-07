@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useI18n } from "@/locales/client";
+import { OperationsGlobe } from "@/components/operations-globe";
 import { drop, missionFunding, station } from "@/lib/api-client";
 import type { MissionFundingConfig, MissionFundingNotification } from "@leclerc/core";
 
@@ -110,6 +111,8 @@ export default function LinkPage() {
   return (
     <div className="anim-enter space-y-4">
       <h1 className="font-headline-md">{t("link.title")}</h1>
+
+      <OperationsGlobe />
 
       <section className="space-y-2 rounded-2xl border border-outline-variant bg-surface-container-low p-4">
         <h2 className="font-headline-sm">{t("link.stationKey")}</h2>

@@ -22,6 +22,7 @@
         "@tetherto/wdk-wallet-evm": "^1.0.0-beta.13",
         "@tetherto/wdk-wallet-spark": "^1.0.0-beta.19",
         "b4a": "^1.6.7",
+        "cobe": "^2.0.1",
         "compact-encoding": "^2.16.1",
         "docx": "^9.5.1",
         "hyperswarm": "^4.8.4",
@@ -1133,6 +1134,8 @@
     "cliui": ["cliui@8.0.1", "", { "dependencies": { "string-width": "^4.2.0", "strip-ansi": "^6.0.1", "wrap-ansi": "^7.0.0" } }, "sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ=="],
 
     "clone": ["clone@2.1.2", "", {}, "sha512-3Pe/CF1Nn94hyhIYpjtiLhdCoEoz0DqQ+988E9gmeEdQZlojxnOb74wctFyuwWQHzqyf9X7C7MG8juUpqBJT8w=="],
+
+    "cobe": ["cobe@2.0.1", "", {}, "sha512-aaa6vcIlaC8C1SF50LDH0Anybo/EAXnrxqe+bwvr4+YUtZydqjeBjTTD7ziCCkbRrRGSns3I3F6cZsf3W+L+ag=="],
 
     "codecs": ["codecs@3.1.0", "", { "dependencies": { "b4a": "^1.6.3" } }, "sha512-Dqx8NwvBvnMeuPQdVKy/XEF71igjR5apxBvCGeV0pP1tXadOiaLvDTXt7xh+/5wI1ASB195mXQGJbw3Ml4YDWQ=="],
 
