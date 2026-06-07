@@ -336,7 +336,18 @@
     "dropInbox": "Received entries",
     "peerOnline": "Peer online",
     "peerOffline": "Peer offline",
-    "delegate": "Delegate to station"
+    "delegate": "Delegate to station",
+    "missionFunding": "Mission funding bridge",
+    "fundingSeed": "Wallet recovery phrase for this session",
+    "fundingAmount": "Mission amount",
+    "fundingRoute": "Event surface",
+    "fundMission": "Fund mission",
+    "pollNotifications": "Poll notifications",
+    "peers": "peers",
+    "fundingStatus": {
+      "submitted": "Funding submitted",
+      "blocked": "Funding blocked"
+    }
   },
   "settings": {
     "title": "Settings",

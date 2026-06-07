@@ -6,6 +6,8 @@ import type { IntelBrief, BriefRequest } from "@/lib/agents/orchestrator";
 import type {
   LeclercAssetId,
   LeclercChainId,
+  MissionFundingConfig,
+  MissionFundingNotification,
   RainAgentCardConfig,
   WalletAssetBalance,
   WalletReceiveDetails,
@@ -155,14 +157,29 @@ export const drop = {
       passphrase,
       label,
     }),
-  send: (dropId: string, secret: string, value: unknown, kind: "brief" | "record" = "brief") =>
+  send: (dropId: string, secret: string, value: unknown, kind: "brief" | "record" | "notification" = "brief") =>
     post<{ peers: number }>("/api/drop", { action: "send", dropId, secret, kind, value }),
   read: (dropId: string, secret: string) =>
-    post<{ payloads: Array<{ kind: "brief" | "record"; value: unknown; ts: number }>; rawCount: number }>(
+    post<{
+      payloads: Array<{ kind: "brief" | "record" | "notification"; value: unknown; ts: number }>;
+      rawCount: number;
+    }>(
       "/api/drop",
       { action: "read", dropId, secret },
     ),
   close: (dropId: string) => post<{ ok: true }>("/api/drop", { action: "close", dropId }),
+};
+
+export const missionFunding = {
+  list: () => post<{ missions: MissionFundingConfig[] }>("/api/mission-funding", { action: "list" }),
+  fund: (input: {
+    seed?: string;
+    missionId: string;
+    amount: string;
+    dropId?: string;
+    secret?: string;
+  }) => post<{ notification: MissionFundingNotification; peers: number }>("/api/mission-funding", { action: "fund", ...input }),
+  events: () => post<{ events: MissionFundingNotification[] }>("/api/mission-funding", { action: "events" }),
 };
 
 export type { IntelRecord, IntelBrief };

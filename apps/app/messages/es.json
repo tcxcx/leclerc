@@ -343,7 +343,18 @@
     "dropInbox": "Entradas recibidas",
     "peerOnline": "Par en línea",
     "peerOffline": "Par fuera de línea",
-    "delegate": "Delegar a la estación"
+    "delegate": "Delegar a la estación",
+    "missionFunding": "Puente de fondeo de misión",
+    "fundingSeed": "Frase de recuperación de la billetera para esta sesión",
+    "fundingAmount": "Monto de misión",
+    "fundingRoute": "Superficie de eventos",
+    "fundMission": "Fondear misión",
+    "pollNotifications": "Revisar notificaciones",
+    "peers": "pares",
+    "fundingStatus": {
+      "submitted": "Fondeo enviado",
+      "blocked": "Fondeo bloqueado"
+    }
   },
   "settings": {
     "title": "Ajustes",

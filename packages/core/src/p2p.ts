@@ -1,5 +1,5 @@
 export interface DropPayload {
-  kind: "brief" | "record";
+  kind: "brief" | "record" | "notification";
   ct: string;
   iv: string;
   ts: number;

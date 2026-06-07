@@ -17,7 +17,7 @@ import Hyperswarm from "hyperswarm";
 import crypto from "node:crypto";
 
 export interface DropPayload {
-  kind: "brief" | "record";
+  kind: "brief" | "record" | "notification";
   /** AES-GCM ciphertext (base64) of the JSON payload. */
   ct: string;
   iv: string;

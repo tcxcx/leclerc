@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 
 type DropAction =
   | { action: "join"; passphrase: string; label?: string }
-  | { action: "send"; dropId: string; secret: string; kind: "brief" | "record"; value: unknown }
+  | { action: "send"; dropId: string; secret: string; kind: "brief" | "record" | "notification"; value: unknown }
   | { action: "read"; dropId: string; secret: string }
   | { action: "close"; dropId: string };
 

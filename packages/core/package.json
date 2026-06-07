@@ -9,6 +9,7 @@
     "./asset-catalog": "./src/asset-catalog.ts",
     "./finance": "./src/finance.ts",
     "./intel": "./src/intel.ts",
+    "./mission-funding": "./src/mission-funding.ts",
     "./p2p": "./src/p2p.ts",
     "./rag": "./src/rag.ts",
     "./rain-cards": "./src/rain-cards.ts",
