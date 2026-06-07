@@ -23,6 +23,7 @@
 | 12 | [reference-apps.md](./12-reference-apps.md) | Vendored Tether PearPass apps (`references/`) — Bare-worklet/P2P/encryption benchmark, concern→file map |
 | 13 | [cleo-plan.md](./13-cleo-plan.md) | **Product pivot (current direction):** Cleo-style voice-first home (continuous VAD), finance-led + spy-underneath, sassy voice / dark look |
 | 14 | [surfaces-and-shared-core.md](./14-surfaces-and-shared-core.md) | **Three surfaces, one core:** PWA + native Desktop (Pear+Electron) + native Mobile (Expo+Bare); `@leclerc/core` + Bare worklet; PearPass as blueprint |
+| 15 | [midnight-goals.md](./15-midnight-goals.md) | **The full vision backlog (W1–W14)** Codex finishes overnight: Ignyte glass, SPY console, missions, WDK multi-asset wallet, agent cards, ops brain + cobe globe, landing, no-hardcoding law |
 | — | [DESIGN.md](./DESIGN.md) | **Design system** (`@google/design.md`, adapted from Linear): tokens, serif/Inter/mono split, two scarce accents, the one soft spy gradient. Mirrored to `.stitch/DESIGN.md`; synced with `globals.css` |
 | — | [CODEX_OVERNIGHT.md](./CODEX_OVERNIGHT.md) | **The overnight build order** Codex executes E2E (M1–M11 + Definition of Done) |
 | — | [IMPLEMENTATION_NOTES.md](./IMPLEMENTATION_NOTES.md) | **Live build status** — what's done/proven/stubbed + the `TODO(codex)` list |

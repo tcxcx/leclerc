@@ -1,0 +1,159 @@
+{
+  "capturedAt": "2026-06-07T04:57:46.077Z",
+  "checks": [
+    {
+      "label": "desktop-home-es",
+      "screenshot": "/Users/criptopoeta/coding-dojo/leclerc/artifacts/pwa/m9-home-desktop-2026-06-07.png",
+      "buttons": [
+        "shield_person",
+        "gastos de la semana",
+        "¿en qué se me va el dinero?",
+        "armar un plan de ahorro",
+        "pagar a un informante",
+        "qué tengo sobre un sujeto",
+        "informe del día",
+        "graphic_eq",
+        "paymentsGasto",
+        "savingsGuardar",
+        "mic",
+        "request_quoteCobrar"
+      ],
+      "clientWidth": 1280,
+      "headings": [
+        "Hola, operativo."
+      ],
+      "horizontalOverflow": false,
+      "inputValues": [
+        {
+          "ariaLabel": null,
+          "placeholder": "Capturar inteligencia",
+          "readOnly": false,
+          "value": ""
+        }
+      ],
+      "scrollWidth": 1280,
+      "title": "LeClerc — Field Intelligence Station",
+      "url": "http://localhost:7001/es",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    {
+      "label": "mobile-home-es",
+      "screenshot": "/Users/criptopoeta/coding-dojo/leclerc/artifacts/pwa/m9-home-mobile-2026-06-07.png",
+      "buttons": [
+        "shield_person",
+        "gastos de la semana",
+        "¿en qué se me va el dinero?",
+        "armar un plan de ahorro",
+        "pagar a un informante",
+        "qué tengo sobre un sujeto",
+        "informe del día",
+        "graphic_eq",
+        "paymentsGasto",
+        "savingsGuardar",
+        "mic",
+        "request_quoteCobrar"
+      ],
+      "clientWidth": 390,
+      "headings": [
+        "Hola, operativo."
+      ],
+      "horizontalOverflow": false,
+      "inputValues": [
+        {
+          "ariaLabel": null,
+          "placeholder": "Capturar inteligencia",
+          "readOnly": false,
+          "value": ""
+        }
+      ],
+      "scrollWidth": 390,
+      "title": "LeClerc — Field Intelligence Station",
+      "url": "http://localhost:7001/es",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    },
+    {
+      "label": "mobile-wallet-prefill",
+      "screenshot": "/Users/criptopoeta/coding-dojo/leclerc/artifacts/pwa/m9-wallet-prefill-mobile-2026-06-07.png",
+      "buttons": [
+        "Generar billetera"
+      ],
+      "clientWidth": 390,
+      "headings": [
+        "Billetera"
+      ],
+      "horizontalOverflow": false,
+      "inputValues": [
+        {
+          "ariaLabel": "Factura (BOLT11)",
+          "placeholder": null,
+          "readOnly": true,
+          "value": "lnbc1demo-m9-quality"
+        }
+      ],
+      "scrollWidth": 390,
+      "title": "LeClerc — Field Intelligence Station",
+      "url": "http://localhost:7001/es/billetera?invoice=lnbc1demo-m9-quality",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    },
+    {
+      "label": "mobile-home-en",
+      "screenshot": "/Users/criptopoeta/coding-dojo/leclerc/artifacts/pwa/m9-home-en-mobile-2026-06-07.png",
+      "buttons": [
+        "shield_person",
+        "this week's spend",
+        "where's my money going?",
+        "build a save plan",
+        "pay an informant",
+        "what do I have on a subject",
+        "today's brief",
+        "graphic_eq",
+        "paymentsSpend",
+        "savingsStash",
+        "mic",
+        "request_quoteRequest"
+      ],
+      "clientWidth": 390,
+      "headings": [
+        "Hey you."
+      ],
+      "horizontalOverflow": false,
+      "inputValues": [
+        {
+          "ariaLabel": null,
+          "placeholder": "Capture intelligence",
+          "readOnly": false,
+          "value": ""
+        }
+      ],
+      "scrollWidth": 390,
+      "title": "LeClerc — Field Intelligence Station",
+      "url": "http://localhost:7001/",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    }
+  ],
+  "panic": {
+    "buttonCount": 1,
+    "modalText": " | ¿Borrar todo el expediente y la semilla? Irreversible.CancelarEliminar",
+    "modalScreenshot": "/Users/criptopoeta/coding-dojo/leclerc/artifacts/pwa/m9-panic-confirm-mobile-2026-06-07.png",
+    "deleteButtonCount": 1,
+    "after": {
+      "h1": "Hola, operativo.",
+      "url": "http://localhost:7001/es"
+    },
+    "afterScreenshot": "/Users/criptopoeta/coding-dojo/leclerc/artifacts/pwa/m9-after-panic-home-mobile-2026-06-07.png",
+    "storageProbeLimitation": "Browser read-only evaluate scope exposes localStorage/indexedDB as undefined; destructive code path now calls wipeAll() and wipeAllFinance(); UI confirmation and redirect were exercised."
+  },
+  "pass": true
+}

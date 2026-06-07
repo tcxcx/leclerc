@@ -157,7 +157,21 @@
     "confirmBody": "Esta acción es irreversible. Revise destinatario, red y monto.",
     "private": "Privado (fuera de cadena)",
     "receive": "Recibir",
-    "noSeed": "No hay billetera. Genere una en Ajustes."
+    "noSeed": "No hay billetera. Genere una en Ajustes.",
+    "seedGenerated": "Semilla generada — guárdela de forma segura.",
+    "unavailable": "Billetera no disponible",
+    "stationHint": "— inicia la estación o revisa @tetherto/wdk.",
+    "paying": "Pagando…",
+    "paid": "✓ Pago Lightning liquidado (fuera de cadena).",
+    "payFailed": "Pago fallido",
+    "pendingInvoice": "Factura pendiente",
+    "pendingInvoice": "Factura pendiente",
+    "seedGenerated": "Semilla generada. Guárdela de forma segura.",
+    "unavailable": "Billetera no disponible.",
+    "stationHint": "Inicie la estación o revise @tetherto/wdk.",
+    "paying": "Procesando pago...",
+    "paid": "Pago Lightning liquidado fuera de cadena.",
+    "payFailed": "Pago fallido."
   },
   "link": {
     "title": "Enlace P2P",

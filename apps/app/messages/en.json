@@ -157,7 +157,14 @@
     "confirmBody": "This is irreversible. Review recipient, network and amount.",
     "private": "Private (off-chain)",
     "receive": "Receive",
-    "noSeed": "No wallet yet. Generate one in Settings."
+    "noSeed": "No wallet yet. Generate one in Settings.",
+    "pendingInvoice": "Pending invoice",
+    "seedGenerated": "Seed generated. Store it safely.",
+    "unavailable": "Wallet unavailable.",
+    "stationHint": "Start the station or check @tetherto/wdk.",
+    "paying": "Processing payment...",
+    "paid": "Lightning payment settled off-chain.",
+    "payFailed": "Payment failed."
   },
   "link": {
     "title": "P2P Link",

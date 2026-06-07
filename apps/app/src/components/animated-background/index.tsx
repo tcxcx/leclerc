@@ -16,6 +16,9 @@ const COLOR_PRESETS = {
   // faint warm ember. Low contrast on purpose so it reads "tenue" (soft) behind
   // text — Cleo's blurred-gradient calm, but dark and covert.
   spy: ["#090d12", "#15222b", "#283a44", "#3f2c1d"],
+  // Ignyte/Arc: black graphite + steel-teal with a faint yellow splash drifting
+  // through. Still tenue; the yellow stays a low-opacity bloom, not a wash.
+  ignyte: ["#08090b", "#141b22", "#2a3a40", "#5a5012"],
   // Warmer covert dusk for accent surfaces.
   spyDusk: ["#0b0e13", "#1b2630", "#33414a", "#5a3b22"],
   bufi: ["#6954CF", "#8B7DD8", "#A78BFA", "#D8C2FF"],
@@ -38,7 +41,7 @@ interface AnimatedBackgroundProps {
 const AnimatedBackground = ({
   className = "",
   isMac = false,
-  variant = "spy",
+  variant = "ignyte",
 }: AnimatedBackgroundProps) => {
   // Slower, lighter than the source: tenue drift, easy on battery behind chat.
   const RESOLUTION_SCALE = isMac ? 0.4 : 0.3;

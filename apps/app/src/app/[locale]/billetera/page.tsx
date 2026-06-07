@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useI18n } from "@/locales/client";
 import { wallet } from "@/lib/api-client";
@@ -15,19 +15,23 @@ export default function WalletPage() {
   const searchParams = useSearchParams();
   const [seed, setSeed] = useState<string | null>(null);
   const [bal, setBal] = useState<{ address: string; usdt: string; sats: string } | null>(null);
-  const [invoice, setInvoice] = useState("");
+  const [invoice, setInvoice] = useState(() => searchParams.get("invoice") ?? "");
   const [confirming, setConfirming] = useState(false);
   const [status, setStatus] = useState("");
 
-  useEffect(() => {
-    const nextInvoice = searchParams.get("invoice");
-    if (nextInvoice) setInvoice(nextInvoice);
-  }, [searchParams]);
-
   async function gen() {
-    const { seed: s } = await wallet.generate();
-    setSeed(s);
-    setStatus("Semilla generada — guárdela de forma segura.");
+    setStatus(t("common.loading"));
+    try {
+      const { seed: s } = await wallet.generate();
+      setSeed(s);
+      setStatus(t("wallet.seedGenerated"));
+    } catch (e) {
+      // The WDK wallet backend may be unavailable in dev (native deps). Surface
+      // it instead of crashing; the full WDK onboarding is a midnight goal.
+      setStatus(
+        `${e instanceof Error ? e.message : t("wallet.unavailable")} ${t("wallet.stationHint")}`,
+      );
+    }
   }
   async function refresh() {
     if (!seed) return;
@@ -35,13 +39,13 @@ export default function WalletPage() {
   }
   async function pay() {
     if (!seed || !invoice.trim()) return;
-    setStatus("…");
+    setStatus(t("wallet.paying"));
     try {
       await wallet.payLightning(seed, invoice.trim());
-      setStatus("✓ Pago Lightning liquidado (fuera de cadena).");
+      setStatus(t("wallet.paid"));
       setInvoice("");
     } catch (e) {
-      setStatus(e instanceof Error ? e.message : "pago fallido");
+      setStatus(e instanceof Error ? e.message : t("wallet.payFailed"));
     } finally {
       setConfirming(false);
     }
@@ -52,9 +56,24 @@ export default function WalletPage() {
       <h1 className="font-headline-md">{t("wallet.title")}</h1>
 
       {!seed ? (
-        <button onClick={gen} className="w-full rounded-xl bg-primary py-3 text-on-primary font-label-md">
-          {t("settings.generateWallet")}
-        </button>
+        <div className="space-y-3">
+          <button onClick={gen} className="w-full rounded-xl bg-primary py-3 text-on-primary font-label-md">
+            {t("settings.generateWallet")}
+          </button>
+          {invoice && (
+            <div className="space-y-2 rounded-2xl border border-outline-variant bg-surface-container-low p-4">
+              <div className="text-caption uppercase tracking-wide text-on-surface-variant">
+                {t("wallet.pendingInvoice")}
+              </div>
+              <input
+                value={invoice}
+                readOnly
+                aria-label={t("wallet.invoice")}
+                className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 font-mono text-label-md"
+              />
+            </div>
+          )}
+        </div>
       ) : (
         <>
           <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4">

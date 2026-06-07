@@ -1,5 +1,12 @@
 # CODEX OVERNIGHT BUILD — finish LeClerc end-to-end
 
+> **Expanded vision backlog:** [15 · Midnight Goals](./15-midnight-goals.md) (W1–W14)
+> extends the M1–M11 below with the full product vision (Ignyte glass, SPY console,
+> missions, WDK multi-asset wallet, agent credit cards, desktop ops brain + cobe
+> globe, landing page, the no-hardcoding law). Run **both**: M1–M9 (must-ship PWA)
+> then the W-workstreams as compute allows. Design source: [DESIGN.md](./DESIGN.md).
+
+
 > **Mission:** finish the entire LeClerc app, autonomously, in one overnight run.
 > Work in a loop, commit per milestone, do not stop until the Definition of Done
 > (bottom) is met or you hit a hard blocker. This file is your brief; the full

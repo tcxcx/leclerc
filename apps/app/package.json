@@ -6,7 +6,7 @@
     "dev": "next dev --port 7001",
     "build": "next build",
     "start": "next start --port 7001",
-    "lint": "eslint",
+    "lint": "eslint src next.config.ts eslint.config.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

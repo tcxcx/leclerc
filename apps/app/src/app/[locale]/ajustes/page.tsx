@@ -7,6 +7,7 @@ import { LocaleSwitcher } from "@/components/locale-switcher";
 import { useLlmLevel, LEVEL_LABEL, type LlmLevel } from "@/lib/llm-level";
 import { unlock, lock, isUnlocked } from "@/lib/intel/crypto";
 import { wipeAll } from "@/lib/intel/store-client";
+import { wipeAllFinance } from "@/lib/finance/store-client";
 
 const LEVELS: LlmLevel[] = ["media", "alta", "medico"];
 
@@ -30,6 +31,7 @@ export default function SettingsPage() {
 
   async function panic() {
     await wipeAll();
+    await wipeAllFinance();
     lock();
     window.localStorage.removeItem("leclerc-salt");
     setConfirmWipe(false);

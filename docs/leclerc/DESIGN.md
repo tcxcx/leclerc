@@ -8,6 +8,9 @@ colors:
   on-primary: "#00102e"
   primary-hover: "#7da6ff"
   primary-focus: "#3f6fe0"
+  ignyte: "#f5e003"
+  on-ignyte: "#0a0e14"
+  ignyte-soft: "#4a4410"
   ember: "#ffb95f"
   on-ember: "#2a1700"
   ember-soft: "#4a3210"
@@ -150,9 +153,14 @@ components:
     rounded: "{rounded.full}"
     padding: 0
   voice-button-listening:
-    backgroundColor: "{colors.ember}"
-    textColor: "{colors.on-ember}"
+    backgroundColor: "{colors.ignyte}"
+    textColor: "{colors.on-ignyte}"
     rounded: "{rounded.full}"
+  glass-icon:
+    backgroundColor: "rgba(255,255,255,0.06)"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.full}"
+    note: "translucent glass body + specular highlight + ignyte rim/glow when active"
   action-bar:
     backgroundColor: "transparent"
     textColor: "{colors.ink-subtle}"
@@ -415,6 +423,33 @@ Mobile-first; the single 480px column is the canonical layout.
 
 - Touch targets ≥44px (voice button larger). Input ≥44px tall.
 - Conversation area is the only scroll region; greeting + bars stay fixed.
+
+## Ignyte / Arc glass language (icons + accent)
+Final visual reference: the **Ignyte × Arc "Stablecoins Commerce Stack" challenge**
+— pure **black**, one vivid **Ignyte yellow** (`{colors.ignyte}` #f5e003), and **white**.
+Every icon is a **3D glass object**: translucent, blurred, with a bright specular
+edge highlight and a soft inner glow — like frosted/clear glass coins and the glass
+magnifier. Not flat Material glyphs.
+
+**Accent rule (updated):** **Ignyte yellow is the hero accent** — the center voice
+button, the active/listening state, primary CTAs, the logo mark, and **data tokens**
+(amounts/sats/ids in mono now glow `{colors.ignyte}`, not ember). Steel-blue stays
+as the cool/intel secondary; ember is demoted to a warm tertiary. Two-to-three
+scarce accents max; black + yellow + white dominate.
+
+**Glass icons** (`glass-icon` treatment): render each icon (bottom-bar actions,
+gadget tiles, asset coins, send/receive balls) as glass:
+- a translucent body (`backdrop-blur`, low-opacity white fill over black),
+- a bright top specular highlight + a thin rim light (white → faint yellow),
+- a soft outer glow tinted `{colors.ignyte}` on the active item,
+- the glyph/symbol embossed inside the glass (inner shadow + highlight).
+Implement as a reusable `GlassIcon` component (layered CSS / SVG filters); never
+hardcode per-icon styles. Real 3D-rendered glass PNGs (coins, magnifier) may be
+used for hero/asset icons where CSS can't match the render.
+
+**Animated background:** the spy gradient gains a **subtle yellow splash** — a faint
+`{colors.ignyte}` bloom drifting through the steel-teal/graphite, still tenue. Use
+the `ignyte` background preset.
 
 ## Voice & Personality (the spy-Cleo register)
 - Witty, direct, a little savage but caring (Cleo). Spanish-first; en parity.

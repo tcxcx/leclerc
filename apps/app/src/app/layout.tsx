@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-page-custom-font -- App Router root layout owns the shared font preloads. */
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
@@ -11,6 +12,14 @@ export const metadata: Metadata = {
   description:
     "Local-first field intelligence: capture, recall, analyze, pay and dead-drop — nothing leaves a server you don't control. Powered by QVAC.",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

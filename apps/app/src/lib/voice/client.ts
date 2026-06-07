@@ -59,7 +59,7 @@ const DEFAULT_URL =
 
 export function createVoiceClient(opts: VoiceClientOptions = {}): VoiceClient {
   const url = opts.url ?? DEFAULT_URL;
-  let locale: "es" | "en" = opts.locale ?? "es";
+  const locale: "es" | "en" = opts.locale ?? "es";
   let speak = opts.speak ?? true;
 
   let ws: WebSocket | null = null;

@@ -11,7 +11,7 @@ import AnimatedBackground, { type ColorPreset } from "./animated-background";
  * AnimatedBackground already paints `cssGradient` as the canvas background, and
  * we simply don't fault if WebGL is blocked.
  */
-export function AppBackground({ variant = "spy" }: { variant?: ColorPreset }) {
+export function AppBackground({ variant = "ignyte" }: { variant?: ColorPreset }) {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-surface">
       {/* The drifting gradient, softened: scaled up + blurred + dimmed. */}
