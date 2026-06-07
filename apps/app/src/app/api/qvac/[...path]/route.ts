@@ -1,8 +1,8 @@
-// Vercel -> Railway proxy for `qvac serve openai`.
+// Vercel -> Railway proxy for QVAC's HTTP station endpoint.
 //
 // IMPORTANT: do NOT import @qvac/sdk or @repo/qvacs here. They pull a native
 // `bare` binary that crashes on Vercel. This route only does plain HTTP forwarding
-// to an external OpenAI-compatible QVAC server (Railway), so it stays serverless-safe.
+// to an external QVAC server (Railway), so it stays serverless-safe.
 
 import { NextResponse } from "next/server";
 

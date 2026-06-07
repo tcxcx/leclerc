@@ -230,16 +230,25 @@ export async function ocrImage(
 export async function translateText(
   modelId: string,
   text: string,
-  opts: { to?: string; from?: string } = {},
+  opts: { to?: string; from?: string; modelType?: "nmt" | "llm" } = {},
 ): Promise<string> {
-  // TODO(codex): confirm TranslateParams (modelType "nmt"|"llm", to/from) once
-  // a translate model is wired — not on the P0 capture→RAG→brief path.
-  const res = translate({
-    modelId,
-    text,
-    to: opts.to,
-    from: opts.from,
-  } as unknown as Parameters<typeof translate>[0]);
+  const params =
+    opts.modelType === "llm"
+      ? {
+          modelId,
+          text,
+          stream: false,
+          modelType: "llm" as const,
+          to: opts.to ?? "es",
+          from: opts.from,
+        }
+      : {
+          modelId,
+          text,
+          stream: false,
+          modelType: "nmt" as const,
+        };
+  const res = translate(params as Parameters<typeof translate>[0]);
   return (await (res as { text: Promise<string> | string }).text) ?? "";
 }
 

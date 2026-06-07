@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Browser-side QVAC client. Talks to an OpenAI-compatible `qvac serve openai`
+ * Browser-side QVAC client. Talks to QVAC's HTTP station endpoint
  * endpoint — NOT @qvac/sdk (which needs the native bare runtime and can't run
  * on Vercel). Resolution prioritizes the operator's own device:
  *
@@ -119,7 +119,7 @@ export interface ChatMessage {
   content: string;
 }
 
-/** Speech-to-text via POST /v1/audio/transcriptions (OpenAI multipart). */
+/** Speech-to-text via POST /v1/audio/transcriptions (multipart). */
 export async function transcribe(
   blob: Blob,
   opts: { model: string; language?: string; filename?: string },

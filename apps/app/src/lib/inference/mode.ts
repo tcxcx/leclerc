@@ -7,7 +7,7 @@ import { createContext, createElement, useContext, useEffect, useState } from "r
  * fallback (see docs/leclerc/02 §5). The transformers.js browser path was
  * removed for hackathon compliance.
  *
- *  - "station"  → talk to a local `qvac serve openai` (the laptop "safehouse"
+ *  - "station"  → talk to a local QVAC HTTP station (the laptop "safehouse"
  *                 station) over HTTP, or to a paired peer's server. Default for
  *                 the browser/PWA when a station is reachable.
  *  - "delegate" → delegate heavy QVAC jobs to the station peer over the

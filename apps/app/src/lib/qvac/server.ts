@@ -20,7 +20,7 @@ import {
   WHISPER_BASE_Q8_0,
 } from "@repo/qvacs";
 
-type ModelType = "llm" | "embeddings" | "whisper";
+type ModelType = "llm" | "embeddings" | "whisper" | "ocr" | "nmt";
 
 interface LoadOpts {
   /** Enable native tool-calling (required before completion({tools})). */
@@ -71,14 +71,13 @@ export function loadEmbed(): Promise<string> {
 export function loadOcr(): Promise<string> {
   const src = process.env.LECLERC_OCR_SRC;
   if (!src) throw new Error("LECLERC_OCR_SRC not set (document-intel feature).");
-  // TODO(codex): confirm OCR modelType once wired (not on P0 path).
-  return getModel("ocr", () => load(src, "embeddings"));
+  return getModel("ocr", () => load(src, "ocr"));
 }
 
 /** Translate model. Set LECLERC_TRANSLATE_SRC to a QVAC NMT model. */
 export function loadTranslate(): Promise<string> {
   const src = process.env.LECLERC_TRANSLATE_SRC;
   if (!src) throw new Error("LECLERC_TRANSLATE_SRC not set (translate feature).");
-  // TODO(codex): confirm NMT modelType once wired (not on P0 path).
-  return getModel("translate", () => load(src, "llm"));
+  const type = process.env.LECLERC_TRANSLATE_MODEL_TYPE === "llm" ? "llm" : "nmt";
+  return getModel(`translate-${type}`, () => load(src, type));
 }

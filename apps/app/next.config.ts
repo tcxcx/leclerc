@@ -8,10 +8,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.join(__dirname, "..", ".."),
   },
-  // NOTE: the app no longer imports @qvac/sdk. Inference runs on an external
-  // `qvac serve openai` (local device or Railway), reached over HTTP. This is
-  // what lets the app deploy to Vercel — the native bare runtime can't run in
-  // serverless functions.
+  // NOTE: the browser bundle no longer imports @qvac/sdk. Browser inference
+  // talks to QVAC's HTTP station endpoint, while SDK calls stay in Node/Bare.
+  // That keeps the PWA deployable while native surfaces use the Bare runtime.
 };
 
 export default nextConfig;

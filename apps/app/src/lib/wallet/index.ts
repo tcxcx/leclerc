@@ -6,8 +6,10 @@ import "server-only";
  * local — the seed is supplied per-call (decrypted on the client / from secure
  * storage), never persisted server-side here.
  *
- * TODO(codex): verify exact WDK method names/return shapes against the installed
- * @tetherto/wdk-* .d.ts (transfer args, Spark invoice/pay, balance units).
+ * Verified against the installed @tetherto/wdk-* .d.ts:
+ * - EVM transfer uses { token, recipient, amount } in base units.
+ * - Spark is locked to TESTNET by default and pays invoices through
+ *   payLightningInvoice({ invoice, maxFeeSats }).
  */
 import WDK from "@tetherto/wdk";
 import WalletManagerEvm from "@tetherto/wdk-wallet-evm";
@@ -66,12 +68,10 @@ export async function paySableEvm(
   amount: string,
 ): Promise<{ hash: string }> {
   const e = await evm(seed);
-  // TODO(codex): confirm EvmTransferOptions field names (recipient vs to) + amount
-  // units against the installed @tetherto/wdk-wallet-evm .d.ts.
   const res = await e.transfer({
     token: USDT_ADDRESS,
-    to,
+    recipient: to,
     amount: BigInt(amount),
-  } as unknown as Parameters<typeof e.transfer>[0]);
-  return { hash: (res as { hash: string }).hash };
+  });
+  return { hash: res.hash };
 }
