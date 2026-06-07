@@ -25,13 +25,16 @@ export function parseAtomicAmount(
 
   const [wholeRaw = "0", fractionRaw = ""] = clean.split(".");
   const whole = stripLeadingZeroes(wholeRaw);
-  const fraction = fractionRaw.slice(0, decimals).padEnd(decimals, "0");
+  if (fractionRaw.length > decimals) {
+    throw new Error(`amount supports at most ${decimals} fractional digit${decimals === 1 ? "" : "s"}`);
+  }
+  const fraction = fractionRaw.padEnd(decimals, "0");
   const atomic = stripLeadingZeroes(`${whole}${fraction}`);
 
   if (atomic === "0") throw new Error("amount must be greater than zero");
 
   return {
-    decimal: fractionRaw ? `${whole}.${fractionRaw.slice(0, decimals)}` : whole,
+    decimal: formatAtomicDecimal(atomic, decimals),
     atomic,
     decimals,
   };
@@ -53,4 +56,12 @@ export function assertHexAddress(value: string, label = "address"): `0x${string}
 
 function stripLeadingZeroes(value: string): string {
   return value.replace(/^0+(?=\d)/, "") || "0";
+}
+
+function formatAtomicDecimal(atomic: string, decimals: number): string {
+  if (decimals === 0) return atomic;
+  const padded = atomic.padStart(decimals + 1, "0");
+  const whole = stripLeadingZeroes(padded.slice(0, -decimals));
+  const fraction = padded.slice(-decimals).replace(/0+$/, "");
+  return fraction ? `${whole}.${fraction}` : whole;
 }
