@@ -18,6 +18,13 @@ export function ragIngest(docs: { id: string; text: string; meta?: Record<string
   return post<{ ok: boolean }>("/api/rag", { action: "ingest", docs });
 }
 
+export function chat(
+  messages: { role: "user" | "assistant"; content: string }[],
+  opts: { locale?: "es" | "en"; financeContext?: string } = {},
+) {
+  return post<{ text: string }>("/api/chat", { messages, ...opts });
+}
+
 export function ragAsk(query: string, k = 6) {
   return post<{ answer: string; sources: { id: string; score?: number }[] }>("/api/rag", {
     action: "query",

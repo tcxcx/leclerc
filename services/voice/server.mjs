@@ -33,14 +33,20 @@ const LOCALE = process.env.VOICE_LOCALE ?? "es";
 const TTS_SAMPLE_RATE = 44100; // Supertonic output rate
 
 const PERSONA =
-  LOCALE === "es"
+  (LOCALE === "es"
     ? "Eres LeClerc: asistente de campo con acceso a las finanzas del operativo. " +
       "Voz ingeniosa, directa y con algo de sarcasmo cariñoso (estilo Cleo). " +
       "Respuestas de 1-2 frases. NUNCA uses markdown, listas ni código: tu salida se lee en voz alta. " +
       "Responde en español."
     : "You are LeClerc: a field assistant with access to the operative's finances. " +
       "Witty, direct, a little savage (Cleo-style). Keep replies to 1-2 sentences. " +
-      "NEVER use markdown, lists, or code: your output is spoken aloud.";
+      "NEVER use markdown, lists, or code: your output is spoken aloud.") +
+  " /no_think"; // suppress Qwen3 <think> blocks (they get spoken otherwise)
+
+/** Strip any <think>…</think> reasoning block (safety net alongside /no_think). */
+function stripThink(s) {
+  return (s ?? "").replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+}
 
 // VAD tuning from the Tether voice-assistant example (conservative, anti self-hear).
 const VAD_PARAMS = {
@@ -136,11 +142,12 @@ wss.on("connection", (ws) => {
           answer += token;
           send({ type: "token", text: token });
         }
-        history.push({ role: "assistant", content: answer });
-        send({ type: "answer", text: answer });
+        const clean = stripThink(answer);
+        history.push({ role: "assistant", content: clean });
+        send({ type: "answer", text: clean });
 
-        if (speak && answer.trim()) {
-          const tts = textToSpeech({ modelId: ttsModelId, text: answer.trim(), inputType: "text", stream: false });
+        if (speak && clean) {
+          const tts = textToSpeech({ modelId: ttsModelId, text: clean, inputType: "text", stream: false });
           const samples = await tts.buffer; // Int16 PCM samples
           send({
             type: "audio",

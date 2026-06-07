@@ -1,70 +1,150 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useI18n, useCurrentLocale } from "@/locales/client";
-import { listRecords } from "@/lib/intel/store-client";
-import type { IntelRecord } from "@/lib/intel/schema";
-import { ThreatChip } from "@/components/threat-chip";
+import { ChatBubble } from "@/components/chat-bubble";
+import { Chips } from "@/components/chips";
+import { ActionBar, type BarAction } from "@/components/action-bar";
+import { useVoice } from "@/lib/voice/use-voice";
+import { chat } from "@/lib/api-client";
+import { greeting, starterChips } from "@/lib/agents/persona";
+import { seedDemo, listTransactions } from "@/lib/finance/store-client";
+import { summarize, sassySummary, financeContext } from "@/lib/finance/insights";
+
+type Msg = { role: "user" | "assistant"; content: string; pending?: boolean };
+
+const LABELS = {
+  es: { spend: "Gasto", ask: "Preguntar", stash: "Guardar", request: "Cobrar" },
+  en: { spend: "Spend", ask: "Ask", stash: "Stash", request: "Request" },
+} as const;
 
 export default function ConsolePage() {
   const t = useI18n();
-  const locale = useCurrentLocale();
-  const [records, setRecords] = useState<IntelRecord[]>([]);
+  const locale = useCurrentLocale() as "es" | "en";
+  const router = useRouter();
+
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Voice: each completed turn becomes a pair of bubbles.
+  const voice = useVoice({
+    locale,
+    onTurn: ({ user, assistant }) =>
+      setMessages((m) => [...m, { role: "user", content: user }, { role: "assistant", content: assistant }]),
+  });
+
+  // Seed believable finance demo data once so Spend/insights have something to chew on.
+  useEffect(() => {
+    seedDemo(locale).catch(() => {});
+  }, [locale]);
 
   useEffect(() => {
-    listRecords().then(setRecords).catch(() => setRecords([]));
-  }, []);
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, voice.tokens]);
+
+  async function sendText(text: string) {
+    const clean = text.trim();
+    if (!clean || busy) return;
+    setInput("");
+    const next: Msg[] = [...messages, { role: "user", content: clean }];
+    setMessages([...next, { role: "assistant", content: "", pending: true }]);
+    setBusy(true);
+    try {
+      const txs = await listTransactions().catch(() => []);
+      const ctx = txs.length ? financeContext(txs) : undefined;
+      const { text: answer } = await chat(
+        next.map((m) => ({ role: m.role, content: m.content })),
+        { locale, financeContext: ctx },
+      );
+      setMessages([...next, { role: "assistant", content: answer }]);
+    } catch (e) {
+      setMessages([...next, { role: "assistant", content: e instanceof Error ? e.message : "error" }]);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onAction(a: BarAction) {
+    if (a === "spend") {
+      const txs = await listTransactions().catch(() => []);
+      const line = sassySummary(summarize(txs), locale);
+      setMessages((m) => [...m, { role: "assistant", content: line }]);
+      return;
+    }
+    if (a === "stash") {
+      setMessages((m) => [
+        ...m,
+        {
+          role: "assistant",
+          content:
+            locale === "es"
+              ? "A la bóveda. ¿Cuánto escondemos, operativo?"
+              : "Into the vault. How much are we hiding, operative?",
+        },
+      ]);
+      return;
+    }
+    if (a === "request") router.push(`/${locale}/billetera`);
+  }
+
+  function onAsk() {
+    if (voice.state === "idle") voice.start();
+    else voice.stop();
+  }
+
+  const empty = messages.length === 0 && !voice.tokens;
+  const chips = starterChips(locale).map((c) => ({ label: c.label, onClick: () => sendText(c.label) }));
 
   return (
-    <div className="anim-enter space-y-5">
-      <p className="text-on-surface-variant text-body-md">{t("app.tagline")}</p>
+    <div className="flex h-[calc(100dvh-8.5rem)] flex-col">
+      <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto pb-2">
+        <h1 className="anim-enter pt-4 font-display-lg text-[30px] leading-tight">{greeting(locale)}</h1>
 
-      <Link
-        href={`/${locale}/capturar`}
-        className="flex items-center gap-3 rounded-2xl bg-primary px-5 py-4 text-on-primary shadow-lg shadow-primary/20 active:scale-[0.99] transition-transform"
-      >
-        <span className="material-symbols-outlined fill text-[28px]" aria-hidden>
-          mic
-        </span>
-        <div>
-          <div className="font-headline-sm">{t("console.quickCapture")}</div>
-          <div className="text-label-md opacity-80">{t("capture.title")}</div>
-        </div>
-      </Link>
+        {empty && <p className="anim-fade text-on-surface-variant text-body-lg">{t("app.tagline")}</p>}
 
-      <section>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="font-headline-sm">{t("console.recent")}</h2>
-          <Link href={`/${locale}/expediente`} className="text-label-md text-primary">
-            {t("dossier.title")}
-          </Link>
-        </div>
-        {records.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-outline-variant px-4 py-8 text-center text-on-surface-variant">
-            {t("common.empty")}
-          </p>
-        ) : (
-          <ul className="space-y-2 stagger">
-            {records.slice(0, 5).map((r) => (
-              <li key={r.id}>
-                <Link
-                  href={`/${locale}/expediente/${r.id}`}
-                  className="block rounded-xl border border-outline-variant bg-surface-container-low px-4 py-3"
-                >
-                  <div className="mb-1 flex items-center justify-between gap-2">
-                    <ThreatChip level={r.amenaza} />
-                    <span className="text-caption text-on-surface-variant">
-                      {new Date(r.createdAt).toLocaleDateString(locale)}
-                    </span>
-                  </div>
-                  <p className="line-clamp-2 text-body-md">{r.resumen}</p>
-                </Link>
-              </li>
-            ))}
-          </ul>
+        {messages.map((m, i) => (
+          <ChatBubble key={i} role={m.role} pending={m.pending}>
+            {m.content}
+          </ChatBubble>
+        ))}
+
+        {voice.transcript && voice.state !== "idle" && (
+          <ChatBubble role="user">{voice.transcript}</ChatBubble>
         )}
-      </section>
+        {voice.tokens && (
+          <ChatBubble role="assistant" pending={voice.state === "thinking"}>
+            {voice.tokens}
+          </ChatBubble>
+        )}
+
+        {empty && (
+          <div className="pt-2">
+            <Chips items={chips} />
+          </div>
+        )}
+      </div>
+
+      <div className="anim-fade flex items-center gap-2 rounded-full border border-outline-variant bg-surface-container/80 px-4 py-2 backdrop-blur">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendText(input)}
+          placeholder={t("capture.title")}
+          className="flex-1 bg-transparent text-body-md outline-none placeholder:text-on-surface-variant"
+        />
+        <button
+          onClick={() => voice.toggleSpeak()}
+          aria-label="toggle audio"
+          className={`material-symbols-outlined text-[22px] ${voice.speak ? "text-primary" : "text-on-surface-variant"}`}
+        >
+          {voice.speak ? "graphic_eq" : "volume_off"}
+        </button>
+      </div>
+
+      <ActionBar voiceState={voice.state} onAsk={onAsk} onAction={onAction} labels={LABELS[locale]} />
     </div>
   );
 }
