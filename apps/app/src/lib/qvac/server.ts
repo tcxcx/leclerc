@@ -53,11 +53,10 @@ export function loadLLM(level: "media" | "alta" | "medico" = "media"): Promise<s
     );
   }
   if (level === "medico") {
-    // MedPsy is not a bundled registry constant. Set LECLERC_MEDPSY_SRC to a
-    // registry:// or file path for the MedPsy GGUF; falls back to Qwen3-4B.
     const src = process.env.LECLERC_MEDPSY_SRC;
+    if (!src) throw new Error("LECLERC_MEDPSY_SRC not set (MedPsy medic mode).");
     return getModel("llm-medico", () =>
-      load(src ?? QWEN3_4B_INST_Q4_K_M, "llamacpp-completion", { tools: true }),
+      load(src, "llamacpp-completion", { tools: true }),
     );
   }
   return getModel("llm-media", () =>

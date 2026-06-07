@@ -148,24 +148,36 @@ export async function runAnalystDesk(
   let medicNote = "";
   if (req.includeMedic) {
     onProgress?.({ agent: "medic", status: "start" });
-    const medModel = await loadLLM("medico");
-    const medMsgs: CompleteMessage[] = [
-      {
-        role: "system",
-        content:
-          "Eres analista médico (MedPsy). A partir SOLO de los registros, evalúa estado " +
-          "de salud/heridas/triaje del/los sujeto(s). Cita ids. Si no hay contenido médico, " +
-          "responde 'sin contenido médico'. /no_think",
-      },
-      { role: "user", content: summarizeRecords(req.records) },
-    ];
-    medicNote = (await completeText({ modelId: medModel, history: medMsgs, stream: true })).trim();
-    logTool({
-      agent: "medic",
-      tool: "completion",
-      status: "ok",
-      note: "MedPsy path completed",
-    });
+    try {
+      const medModel = await loadLLM("medico");
+      const medMsgs: CompleteMessage[] = [
+        {
+          role: "system",
+          content:
+            "Eres analista médico (MedPsy). A partir SOLO de los registros, evalúa estado " +
+            "de salud/heridas/triaje del/los sujeto(s). Cita ids. Si no hay contenido médico, " +
+            "responde 'sin contenido médico'. /no_think",
+        },
+        { role: "user", content: summarizeRecords(req.records) },
+      ];
+      medicNote = (await completeText({ modelId: medModel, history: medMsgs, stream: true })).trim();
+      logTool({
+        agent: "medic",
+        tool: "completion",
+        status: "ok",
+        note: "MedPsy path completed",
+      });
+    } catch (err) {
+      medicNote =
+        "MedPsy medic mode requested but no MedPsy model is configured. " +
+        "Set LECLERC_MEDPSY_SRC to a MedPsy GGUF model source.";
+      logTool({
+        agent: "medic",
+        tool: "completion",
+        status: "fallback",
+        note: err instanceof Error ? err.message : "MedPsy unavailable",
+      });
+    }
     ran.push("medic");
     onProgress?.({ agent: "medic", status: "done" });
   }

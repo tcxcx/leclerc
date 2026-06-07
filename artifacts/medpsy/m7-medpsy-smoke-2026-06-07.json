@@ -1,0 +1,124 @@
+{
+  "request": {
+    "includeMedic": true,
+    "records": [
+      "medpsy-smoke-001",
+      "medpsy-smoke-002"
+    ],
+    "env": {
+      "LECLERC_MEDPSY_SRC": false
+    }
+  },
+  "brief": {
+    "titulo": "Informe de estado médico de Sujeto Alfa",
+    "bottomLine": "Se requiere configuración de modelo MedPsy para análisis médico",
+    "amenazaGlobal": "CRITICO",
+    "hallazgos": [
+      {
+        "texto": "Sujeto Alfa presenta síntomas críticos de lesión con necesidad de atención inmediata",
+        "fuentes": [
+          "medpsy-smoke-001"
+        ]
+      },
+      {
+        "texto": "Se documenta un traslado discreto solicitado por el acompañante para el sujeto",
+        "fuentes": [
+          "medpsy-smoke-002"
+        ]
+      },
+      {
+        "texto": "Riesgo elevado de material cifrado asociado a actividades en Taller Norte y Darsena 4",
+        "fuentes": [
+          "medpsy-smoke-001"
+        ]
+      },
+      {
+        "texto": "Se observa un patrón de movilidad y comunicación en zonas específicas con posibles implicaciones de inteligencia",
+        "fuentes": [
+          "medpsy-smoke-002"
+        ]
+      }
+    ],
+    "recomendaciones": [
+      "Configurar modelo MedPsy para análisis médico detallado",
+      "Evaluar posibles actividades de inteligencia en Taller Norte y Darsena 4",
+      "Monitorear situación crítica de Sujeto Alfa con atención médica inmediata"
+    ],
+    "geo": [
+      {
+        "lugar": "Clinica San Telmo",
+        "registros": [
+          "medpsy-smoke-001"
+        ]
+      },
+      {
+        "lugar": "Pasaje Defensa",
+        "registros": [
+          "medpsy-smoke-002"
+        ]
+      }
+    ],
+    "entidadesClave": [
+      {
+        "nombre": "Sujeto Alfa",
+        "tipo": "persona",
+        "menciones": 2
+      },
+      {
+        "nombre": "Clinica San Telmo",
+        "tipo": "organizacion",
+        "menciones": 2
+      },
+      {
+        "nombre": "acompanante",
+        "tipo": "persona",
+        "menciones": 1
+      },
+      {
+        "nombre": "Pasaje Defensa",
+        "tipo": "lugar",
+        "menciones": 1
+      }
+    ],
+    "agentesEjecutados": [
+      "triage",
+      "geo",
+      "pattern",
+      "medic",
+      "synth"
+    ],
+    "toolLog": [
+      {
+        "agent": "triage",
+        "tool": "list_records",
+        "status": "ok",
+        "note": "2 records ranked"
+      },
+      {
+        "agent": "geo",
+        "tool": "extract_locations",
+        "status": "ok",
+        "note": "2 places clustered"
+      },
+      {
+        "agent": "pattern",
+        "tool": "rag_search",
+        "status": "ok",
+        "note": "1 RAG hits"
+      },
+      {
+        "agent": "medic",
+        "tool": "completion",
+        "status": "fallback",
+        "note": "LECLERC_MEDPSY_SRC not set (MedPsy medic mode)."
+      },
+      {
+        "agent": "synth",
+        "tool": "completion_json",
+        "status": "ok",
+        "note": "4 findings synthesized"
+      }
+    ],
+    "generadoEn": 1780806906161
+  }
+}
