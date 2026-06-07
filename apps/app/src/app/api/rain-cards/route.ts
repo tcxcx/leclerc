@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import {
-  getLeclercAsset,
   listRainAgentCards,
+  rainFundingAmountToAtomic,
   rainFundingTarget,
-  type RainAgentCardConfig,
 } from "@leclerc/core";
 import { paySableEvm } from "@/lib/wallet";
 
@@ -59,7 +58,7 @@ async function fundRainCard(body: Extract<RainCardsRequest, { action: "fund" }>)
   if (!target?.configured || !target.depositAddress) {
     throw new Error(`${card.fundingDepositEnv} must be configured for live Rain card funding`);
   }
-  const amount = amountToAtomic(body.amount ?? "", card);
+  const amount = rainFundingAmountToAtomic(card, body.amount?.trim() || card.defaultFundingAmount);
   const result = await paySableEvm(seed, target.depositAddress, amount, card.assetId, card.chainId);
   return {
     ok: true,
@@ -69,16 +68,4 @@ async function fundRainCard(body: Extract<RainCardsRequest, { action: "fund" }>)
     chainId: card.chainId,
     amount,
   };
-}
-
-function amountToAtomic(input: string, card: RainAgentCardConfig): string {
-  const asset = getLeclercAsset(card.assetId);
-  const clean = input.trim();
-  if (!/^\d+(\.\d+)?$/.test(clean)) throw new Error("amount must be a positive decimal");
-  const [wholeRaw = "0", fractionRaw = ""] = clean.split(".");
-  const whole = wholeRaw.replace(/^0+(?=\d)/, "") || "0";
-  const fraction = fractionRaw.slice(0, asset.decimals).padEnd(asset.decimals, "0");
-  const atomic = `${whole}${fraction}`.replace(/^0+(?=\d)/, "");
-  if (atomic === "0") throw new Error("amount must be greater than zero");
-  return atomic;
 }

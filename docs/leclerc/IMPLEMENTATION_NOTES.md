@@ -333,3 +333,55 @@ cd packages/core && bun -e "import { inferMissionIdsForText, routeOperatorQuery 
 - Produce an Expo build artifact before enabling the landing page Expo download.
 - Keep replacing deterministic agent orchestration with verified QVAC tool-call
   loops as SDK examples/types settle.
+
+## STATUS 2026-06-07 pass 3 W7 live Rain funding smoke
+
+Branch: `feat/leclerc-scaffold`
+
+### Workstream delta
+
+| Item | Status | Smoke-proven | Wired-only / blocker |
+|---|---|---|---|
+| W7 Rain agent cards | PARTIAL | `/api/rain-cards {"action":"list"}` now reports `configured: true` for `raven-07-usdc-virtual` with `LECLERC_RAIN_USDC_DEPOSIT_ADDRESS` loaded from `apps/app/.env.local`. Added `bun run rain:smoke`, which resolves the typed Arc-testnet USDC catalog entry, verifies WDK EVM `.d.ts` transfer/balance shapes, writes JSON/MD artifacts, and refuses non-Arc-testnet writes. | Live transfer was SKIPPED because `LECLERC_SMOKE_SEED` was absent. No seed was printed or committed, no tx was fabricated, and no mainnet path was exercised. |
+| W10 Expo artifact requirement | DONE | `apps/mobile/README.md` now states that the landing page must not expose the Expo app as a completed download until a real signed `.ipa`, `.apk`, or `.aab` exists. | Current `bundle:ios`/`bundle:android` scripts remain scaffold TypeScript gates only. |
+| Two-device dead-drop notification smoke | NOT ATTEMPTED | Existing W8 local event-log proof remains the latest artifact. | No narrow existing two-process smoke script was present; still needs a real separate peer/device run. |
+
+### Artifacts added
+
+- `artifacts/wallet/rain-funding-smoke-2026-06-07.md`
+- `artifacts/wallet/rain-funding-smoke-2026-06-07.json`
+
+### Rain smoke result
+
+`bun run rain:smoke` result: `SKIPPED`.
+
+Reason: `LECLERC_SMOKE_SEED` is absent.
+
+Live steps recorded in the artifact:
+
+```bash
+export LECLERC_SMOKE_SEED=... # runtime only; never commit
+# fund that WDK sender wallet with Arc-testnet USDC on chainId 5042002
+bun run rain:smoke
+```
+
+The smoke uses the typed card default funding amount `25.00` USDC, converts it
+with the catalog's 6 USDC decimals to `25000000` atomic units, and would submit
+through the same WDK EVM transfer implementation used by `paySableEvm`.
+
+### Verification commands
+
+```bash
+bun run rain:smoke
+bun --filter @leclerc/core typecheck
+cd apps/app && bunx tsc --noEmit
+bun --filter app lint
+rg -n "from ['\"](@qvac/sdk|@tetherto/|hyperswarm|ws|@modelcontextprotocol/sdk)|require\(['\"](@qvac/sdk|@tetherto/|hyperswarm|ws|@modelcontextprotocol/sdk)" apps/app/src --glob '!apps/app/src/app/api/**' --glob '!apps/app/src/lib/wallet/**' --glob '!apps/app/src/lib/agents/**' --glob '!apps/app/src/lib/p2p/**' --glob '!apps/app/src/lib/qvac/**'
+rg -n "from ['\"](openai|@anthropic-ai|ollama|@xenova|@mlc-ai|ai|ai/react)|require\(['\"](openai|@anthropic-ai|ollama|@xenova|@mlc-ai|ai|ai/react)" apps/app/src packages/core/src --glob '!**/.next/**' --glob '!**/node_modules/**'
+bun --filter app dev
+curl -sS -X POST http://localhost:7001/api/rain-cards -H 'Content-Type: application/json' -d '{"action":"list"}'
+```
+
+Results: typecheck/lint exited 0. Both grep commands returned no matches. The
+live route returned `configured: true` for the Rain card funding target. The dev
+server was stopped after the route/smoke check.

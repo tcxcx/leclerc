@@ -16,3 +16,17 @@ bun --filter @leclerc/mobile typecheck
 bun --filter @leclerc/mobile bundle:ios
 bun --filter @leclerc/mobile bundle:android
 ```
+
+## Native build artifact requirement
+
+The landing page must not expose the Expo app as a completed download until this
+package produces a real native artifact from an Expo/Bare build. A valid artifact
+is one of:
+
+- iOS: a signed `.ipa` from EAS Build or an equivalent local Xcode archive.
+- Android: a signed `.apk` or `.aab` from EAS Build or an equivalent local
+  Gradle build.
+
+Placeholder `bundle:ios` and `bundle:android` scripts only prove TypeScript
+compatibility for the scaffold. They are not installable native builds and should
+remain documented as pending in PWA/landing artifacts.

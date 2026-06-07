@@ -12,15 +12,10 @@ import "server-only";
  *   payLightningInvoice({ invoice, maxFeeSats }).
  */
 import WDK from "@tetherto/wdk";
-import WalletManagerEvm from "@tetherto/wdk-wallet-evm";
 import WalletManagerSpark from "@tetherto/wdk-wallet-spark";
 import type { NetworkType } from "@tetherto/wdk-wallet-spark";
 import {
-  getLeclercAsset,
-  getLeclercChain,
-  isWritableChain,
   listLeclercAssets,
-  rpcUrlForChain,
   tokenAddress,
   type LeclercAssetId,
   type LeclercChainId,
@@ -28,27 +23,10 @@ import {
   type WalletReceiveDetails,
   type WalletTransaction,
 } from "@leclerc/core";
+import { evmAccount, evmChainId, payCatalogTokenEvm } from "./evm";
 
 const DEFAULT_EVM_CHAIN_ID: LeclercChainId = 5042002;
 const DEFAULT_SEND_ASSET: LeclercAssetId = "usdc";
-
-function requiredTokenAddress(assetId: LeclercAssetId, chainId: LeclercChainId): string {
-  const chain = getLeclercChain(chainId === 5042002 ? "arc-testnet" : "arbitrum-one");
-  if (!isWritableChain(chain)) {
-    throw new Error(`${chain.name} is read-only in LeClerc; writes are testnet-only`);
-  }
-  const token = tokenAddress(assetId, chainId);
-  if (!token) throw new Error(`${getLeclercAsset(assetId).displaySymbol} is not configured on ${chain.name}`);
-  return token;
-}
-
-function evmChainId(): LeclercChainId {
-  const chainId = Number(process.env.EVM_CHAIN_ID ?? DEFAULT_EVM_CHAIN_ID);
-  if (chainId !== 5042002) {
-    throw new Error("EVM_CHAIN_ID must be Arc Testnet (5042002) for writable wallet flows");
-  }
-  return chainId;
-}
 
 /** Generate a fresh 24-word seed (caller must store it encrypted / secure). */
 export function generateSeed(): string {
@@ -56,11 +34,7 @@ export function generateSeed(): string {
 }
 
 async function evm(seed: string) {
-  const chain = getLeclercChain("arc-testnet");
-  return new WalletManagerEvm(seed, {
-    provider: process.env.EVM_RPC_URL || rpcUrlForChain(chain, process.env),
-    chainId: evmChainId(),
-  }).getAccount();
+  return evmAccount(seed);
 }
 
 type DemoSparkNetwork = Extract<NetworkType, "TESTNET">;
@@ -175,12 +149,5 @@ export async function paySableEvm(
   assetId: LeclercAssetId = DEFAULT_SEND_ASSET,
   chainId: LeclercChainId = DEFAULT_EVM_CHAIN_ID,
 ): Promise<{ hash: string }> {
-  const token = requiredTokenAddress(assetId, chainId);
-  const e = await evm(seed);
-  const res = await e.transfer({
-    token,
-    recipient: to,
-    amount: BigInt(amount),
-  });
-  return { hash: res.hash };
+  return payCatalogTokenEvm(seed, to, amount, assetId, chainId);
 }

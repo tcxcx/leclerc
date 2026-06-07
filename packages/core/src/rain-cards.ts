@@ -1,4 +1,4 @@
-import type { LeclercAssetId, LeclercChainId } from "./asset-catalog";
+import { getLeclercAsset, type LeclercAssetId, type LeclercChainId } from "./asset-catalog";
 
 export type RainCardStatus = "notActivated" | "active" | "locked" | "canceled" | "frozen";
 export type RainCardType = "virtual" | "physical";
@@ -24,6 +24,7 @@ export interface RainAgentCardConfig {
   chainId: LeclercChainId;
   balance: string;
   limit: RainCardLimit;
+  defaultFundingAmount: string;
   fundingDepositEnv: string;
   backgroundImagePath: string;
   networkIconPath: string;
@@ -61,6 +62,7 @@ export const LECLERC_RAIN_AGENT_CARDS = [
       assetId: "usdc",
       frequency: "monthly",
     },
+    defaultFundingAmount: "25.00",
     fundingDepositEnv: RAIN_USDC_DEPOSIT_ENV,
     backgroundImagePath: "/assets/cards/bufi-card-bg-new.png",
     networkIconPath: "/networks/arc.svg",
@@ -72,6 +74,18 @@ export const LECLERC_RAIN_AGENT_CARDS = [
 
 export function listRainAgentCards(): RainAgentCardConfig[] {
   return [...LECLERC_RAIN_AGENT_CARDS];
+}
+
+export function rainFundingAmountToAtomic(card: RainAgentCardConfig, input = card.defaultFundingAmount): string {
+  const asset = getLeclercAsset(card.assetId);
+  const clean = input.trim();
+  if (!/^\d+(\.\d+)?$/.test(clean)) throw new Error("amount must be a positive decimal");
+  const [wholeRaw = "0", fractionRaw = ""] = clean.split(".");
+  const whole = wholeRaw.replace(/^0+(?=\d)/, "") || "0";
+  const fraction = fractionRaw.slice(0, asset.decimals).padEnd(asset.decimals, "0");
+  const atomic = `${whole}${fraction}`.replace(/^0+(?=\d)/, "");
+  if (atomic === "0") throw new Error("amount must be greater than zero");
+  return atomic;
 }
 
 export function getRainAgentCard(cardId: string): RainAgentCardConfig | null {

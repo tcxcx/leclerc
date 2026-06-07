@@ -1,0 +1,61 @@
+{
+  "createdAt": "2026-06-07T17:03:36.212Z",
+  "status": "SKIPPED",
+  "env": {
+    "appEnvLoaded": true,
+    "smokeSeedProvided": false,
+    "seedPrinted": false
+  },
+  "card": {
+    "id": "raven-07-usdc-virtual",
+    "codename": "RAVEN-07",
+    "defaultFundingAmount": "25.00"
+  },
+  "asset": {
+    "id": "usdc",
+    "displaySymbol": "USDC",
+    "decimals": 6,
+    "token": "0x3600000000000000000000000000000000000000"
+  },
+  "chain": {
+    "name": "Arc Testnet",
+    "chainId": 5042002,
+    "explorerBaseUrl": "https://explorer.testnet.arc.network"
+  },
+  "funding": {
+    "configured": true,
+    "env": "LECLERC_RAIN_USDC_DEPOSIT_ADDRESS",
+    "depositAddress": "0x97889cb47ccd35f0afbe0cf1067054b0f330c713"
+  },
+  "route": {
+    "checked": true,
+    "configured": true,
+    "source": "http://localhost:7001/api/rain-cards",
+    "reason": ""
+  },
+  "amount": {
+    "decimal": "25",
+    "atomic": "25000000"
+  },
+  "sender": {
+    "address": null,
+    "balanceAtomic": null,
+    "balanceDecimal": null
+  },
+  "result": {
+    "reason": "LECLERC_SMOKE_SEED is absent",
+    "steps": [
+      "Set LECLERC_SMOKE_SEED in the runtime environment to the sender wallet seed; do not commit it.",
+      "Fund that WDK sender wallet with Arc-testnet USDC on chainId 5042002.",
+      "Keep LECLERC_RAIN_USDC_DEPOSIT_ADDRESS set to the Rain USDC deposit address in apps/app/.env.local.",
+      "Run bun run rain:smoke from the repo root; the script refuses non-Arc-testnet writes."
+    ]
+  },
+  "verification": [
+    "@tetherto/wdk-wallet-evm d.ts: transfer({ token, recipient, amount }) accepts amount in base units.",
+    "@tetherto/wdk-wallet-evm d.ts: getTokenBalance(tokenAddress) returns token balance in base units.",
+    "LeClerc catalog: Arc Testnet chainId is 5042002.",
+    "LeClerc catalog: USDC decimals are 6; default funding amount converts to 25000000 atomic units.",
+    "Explorer URL shape: https://explorer.testnet.arc.network/tx/<tx-hash>"
+  ]
+}
