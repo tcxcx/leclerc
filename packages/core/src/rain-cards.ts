@@ -1,4 +1,5 @@
-import { getLeclercAsset, type LeclercAssetId, type LeclercChainId } from "./asset-catalog";
+import { parseAssetAmountToAtomic } from "./amounts";
+import type { LeclercAssetId, LeclercChainId } from "./asset-catalog";
 
 export type RainCardStatus = "notActivated" | "active" | "locked" | "canceled" | "frozen";
 export type RainCardType = "virtual" | "physical";
@@ -77,15 +78,7 @@ export function listRainAgentCards(): RainAgentCardConfig[] {
 }
 
 export function rainFundingAmountToAtomic(card: RainAgentCardConfig, input = card.defaultFundingAmount): string {
-  const asset = getLeclercAsset(card.assetId);
-  const clean = input.trim();
-  if (!/^\d+(\.\d+)?$/.test(clean)) throw new Error("amount must be a positive decimal");
-  const [wholeRaw = "0", fractionRaw = ""] = clean.split(".");
-  const whole = wholeRaw.replace(/^0+(?=\d)/, "") || "0";
-  const fraction = fractionRaw.slice(0, asset.decimals).padEnd(asset.decimals, "0");
-  const atomic = `${whole}${fraction}`.replace(/^0+(?=\d)/, "");
-  if (atomic === "0") throw new Error("amount must be greater than zero");
-  return atomic;
+  return parseAssetAmountToAtomic(input, card.assetId);
 }
 
 export function getRainAgentCard(cardId: string): RainAgentCardConfig | null {

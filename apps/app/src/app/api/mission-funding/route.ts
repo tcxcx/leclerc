@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
 import {
-  getLeclercAsset,
   getMissionFundingConfig,
   listMissionFundingConfigs,
   type MissionFundingNotification,
 } from "@leclerc/core";
-import { paySableEvm } from "@/lib/wallet";
 import { sendDrop } from "@/lib/p2p/deaddrop";
+import { confirmTransfer, proposeTransfer } from "@/lib/wallet/transfer-confirmation";
 
 export const runtime = "nodejs";
 
 type MissionFundingRequest =
   | { action: "list" }
   | { action: "events" }
+  | { action: "confirm"; confirmId?: string; dropId?: string; secret?: string }
   | {
       action: "fund";
       seed?: string;
@@ -34,6 +34,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ events: [...missionEvents].reverse().slice(0, 20) });
       case "fund":
         return NextResponse.json(await fundMission(body));
+      case "confirm":
+        return NextResponse.json(await confirmMissionFunding(body));
       default:
         return NextResponse.json({ error: "unknown action" }, { status: 400 });
     }
@@ -66,20 +68,40 @@ async function fundMission(body: Extract<MissionFundingRequest, { action: "fund"
   } else {
     const seed = body.seed?.trim();
     if (!seed) throw new Error("wallet seed required");
-    const atomic = amountToAtomic(amount, mission.assetId);
-    const result = await paySableEvm(seed, target, atomic, mission.assetId, mission.chainId);
-    notification = createNotification({
-      missionId: mission.missionId,
+    const proposal = proposeTransfer({
+      seed,
+      to: target,
+      amount,
       assetId: mission.assetId,
       chainId: mission.chainId,
-      amount,
-      status: "submitted",
-      hash: result.hash,
+      purpose: "mission-funding",
+      metadata: { missionId: mission.missionId },
     });
+    return { status: "requires_confirmation", proposal };
   }
 
-  missionEvents.push(notification);
-  if (missionEvents.length > 100) missionEvents.splice(0, missionEvents.length - 100);
+  recordMissionEvent(notification);
+  const peers = await sendNotification(body.dropId, body.secret, notification);
+  return { notification, peers };
+}
+
+async function confirmMissionFunding(body: Extract<MissionFundingRequest, { action: "confirm" }>) {
+  const confirmId = body.confirmId?.trim();
+  if (!confirmId) throw new Error("confirmId required");
+  const result = await confirmTransfer(confirmId);
+  if (result.proposal.purpose !== "mission-funding") throw new Error("confirmation is not for mission funding");
+  const missionId = String(result.proposal.metadata?.missionId ?? "");
+  const mission = getMissionFundingConfig(missionId);
+  if (!mission) throw new Error("unknown mission");
+  const notification = createNotification({
+    missionId: mission.missionId,
+    assetId: result.proposal.assetId,
+    chainId: result.proposal.chainId,
+    amount: result.proposal.amount,
+    status: "submitted",
+    hash: result.hash,
+  });
+  recordMissionEvent(notification);
   const peers = await sendNotification(body.dropId, body.secret, notification);
   return { notification, peers };
 }
@@ -107,13 +129,7 @@ async function sendNotification(
   }
 }
 
-function amountToAtomic(input: string, assetId: MissionFundingNotification["assetId"]): string {
-  const asset = getLeclercAsset(assetId);
-  if (!/^\d+(\.\d+)?$/.test(input)) throw new Error("amount must be a positive decimal");
-  const [wholeRaw = "0", fractionRaw = ""] = input.split(".");
-  const whole = wholeRaw.replace(/^0+(?=\d)/, "") || "0";
-  const fraction = fractionRaw.slice(0, asset.decimals).padEnd(asset.decimals, "0");
-  const atomic = `${whole}${fraction}`.replace(/^0+(?=\d)/, "");
-  if (atomic === "0") throw new Error("amount must be greater than zero");
-  return atomic;
+function recordMissionEvent(notification: MissionFundingNotification) {
+  missionEvents.push(notification);
+  if (missionEvents.length > 100) missionEvents.splice(0, missionEvents.length - 100);
 }

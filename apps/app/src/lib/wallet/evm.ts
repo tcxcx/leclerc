@@ -1,7 +1,7 @@
 import WalletManagerEvm from "@tetherto/wdk-wallet-evm";
 import {
+  chainById,
   getLeclercAsset,
-  getLeclercChain,
   isWritableChain,
   rpcUrlForChain,
   tokenAddress,
@@ -12,7 +12,8 @@ import {
 const DEFAULT_EVM_CHAIN_ID: LeclercChainId = 5042002;
 
 export function requiredTokenAddress(assetId: LeclercAssetId, chainId: LeclercChainId): string {
-  const chain = getLeclercChain(chainId === 5042002 ? "arc-testnet" : "arbitrum-one");
+  const chain = chainById(chainId);
+  if (!chain) throw new Error(`unsupported chainId ${chainId}`);
   if (!isWritableChain(chain)) {
     throw new Error(`${chain.name} is read-only in LeClerc; writes are testnet-only`);
   }
@@ -29,11 +30,17 @@ export function evmChainId(): LeclercChainId {
   return chainId;
 }
 
-export async function evmAccount(seed: string) {
-  const chain = getLeclercChain("arc-testnet");
+export async function evmAccount(seed: string, chainId: LeclercChainId = evmChainId()) {
+  const chain = chainById(chainId);
+  if (!chain) throw new Error(`unsupported chainId ${chainId}`);
+  if (!isWritableChain(chain)) {
+    throw new Error(`${chain.name} is read-only in LeClerc; writes are testnet-only`);
+  }
   return new WalletManagerEvm(seed, {
-    provider: process.env.EVM_RPC_URL || rpcUrlForChain(chain, process.env),
-    chainId: evmChainId(),
+    provider: chain.chainId === DEFAULT_EVM_CHAIN_ID
+      ? process.env.EVM_RPC_URL || rpcUrlForChain(chain, process.env)
+      : rpcUrlForChain(chain, process.env),
+    chainId: chain.chainId,
   }).getAccount();
 }
 
@@ -46,7 +53,7 @@ export async function payCatalogTokenEvm(
   chainId: LeclercChainId,
 ): Promise<{ hash: string }> {
   const token = requiredTokenAddress(assetId, chainId);
-  const e = await evmAccount(seed);
+  const e = await evmAccount(seed, chainId);
   const res = await e.transfer({
     token,
     recipient: to,
@@ -62,7 +69,7 @@ export async function catalogTokenBalanceEvm(
   chainId: LeclercChainId,
 ): Promise<{ address: string; token: string; balance: bigint }> {
   const token = requiredTokenAddress(assetId, chainId);
-  const e = await evmAccount(seed);
+  const e = await evmAccount(seed, chainId);
   try {
     const [address, balance] = await Promise.all([e.getAddress(), e.getTokenBalance(token)]);
     return { address, token, balance };

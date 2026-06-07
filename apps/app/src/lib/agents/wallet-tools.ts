@@ -3,14 +3,16 @@ import "server-only";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import {
-  getLeclercAsset,
   listLeclercAssets,
   tokenAddress,
+  type LeclercAssetId,
   type LeclercChainId,
 } from "@leclerc/core";
-import { balances, paySableEvm } from "@/lib/wallet";
+import { balances } from "@/lib/wallet";
+import { proposeTransfer } from "@/lib/wallet/transfer-confirmation";
 
 const TESTNET_CHAIN_ID = 5042002 satisfies LeclercChainId;
+const SENDABLE_ASSETS = ["usdc", "eurc", "mxnb", "qcad", "audf", "jpyc", "cirbtc"] as const;
 
 const balanceSchema = z.object({
   seed: z.string().min(1),
@@ -18,7 +20,7 @@ const balanceSchema = z.object({
 
 const sendSchema = z.object({
   seed: z.string().min(1),
-  assetId: z.enum(["usdc", "eurc", "mxnb", "qcad", "audf", "jpyc", "cirbtc"]),
+  assetId: z.enum(SENDABLE_ASSETS),
   recipient: z.string().min(1),
   amount: z.string().min(1).describe("Decimal amount, not atomic units."),
 });
@@ -47,7 +49,7 @@ export function walletAgentToolDefs() {
     },
     {
       name: "wallet_send",
-      description: "Submit an Arc Testnet EVM token transfer through WDK.",
+      description: "Propose an Arc Testnet EVM token transfer. Confirmation is required before execution.",
       schema: sendSchema,
     },
     {
@@ -114,20 +116,18 @@ export async function callWalletAgentTool(name: WalletAgentToolName, args: unkno
     }
     case "wallet_send": {
       const parsed = sendSchema.parse(args);
-      const asset = getLeclercAsset(parsed.assetId);
-      const atomic = decimalToAtomic(parsed.amount, asset.decimals);
-      const result = await paySableEvm(
-        parsed.seed,
-        parsed.recipient,
-        atomic,
-        parsed.assetId,
-        TESTNET_CHAIN_ID,
-      );
+      const result = proposeTransfer({
+        seed: parsed.seed,
+        to: parsed.recipient,
+        amount: parsed.amount,
+        assetId: parsed.assetId as LeclercAssetId,
+        chainId: TESTNET_CHAIN_ID,
+        purpose: "agent-wallet",
+        metadata: { tool: "wallet_send" },
+      });
       return {
         ...result,
-        assetId: parsed.assetId,
-        chainId: TESTNET_CHAIN_ID,
-        amountAtomic: atomic,
+        status: "requires_confirmation",
       };
     }
     case "wallet_swap": {
@@ -158,16 +158,4 @@ function textResult(value: unknown) {
       },
     ],
   };
-}
-
-function decimalToAtomic(value: string, decimals: number): string {
-  const clean = value.trim().replace(",", ".");
-  const [wholeRaw = "0", fractionRaw = ""] = clean.split(".");
-  const whole = stripLeadingZeroes(wholeRaw.replace(/\D/g, "") || "0");
-  const fraction = fractionRaw.replace(/\D/g, "").slice(0, decimals).padEnd(decimals, "0");
-  return stripLeadingZeroes(`${whole}${fraction}`);
-}
-
-function stripLeadingZeroes(value: string): string {
-  return value.replace(/^0+(?=\d)/, "") || "0";
 }

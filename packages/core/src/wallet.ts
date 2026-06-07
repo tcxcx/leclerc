@@ -27,6 +27,21 @@ export interface WalletTransaction {
   hash?: string;
 }
 
+export type TransferPurpose = "wallet" | "agent-wallet" | "mission-funding" | "rain-card";
+
+export interface TransferProposal {
+  confirmId: string;
+  expiresAt: string;
+  purpose: TransferPurpose;
+  summary: string;
+  to: string;
+  assetId: LeclercAssetId;
+  chainId: LeclercChainId;
+  amount: string;
+  amountAtomic: string;
+  metadata?: Record<string, unknown>;
+}
+
 export interface WalletBalances {
   address: string;
   handle?: string;

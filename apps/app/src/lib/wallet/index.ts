@@ -50,6 +50,10 @@ function sparkNetwork(): DemoSparkNetwork {
 async function spark(seed: string) {
   return new WalletManagerSpark(seed, {
     network: sparkNetwork(),
+    sparkscan: {
+      baseUrl: process.env.SPARKSCAN_BASE_URL,
+      apiKey: process.env.SPARKSCAN_API_KEY,
+    },
     syncAndRetry: true,
   }).getAccount();
 }
@@ -65,23 +69,31 @@ export async function balances(seed: string): Promise<Balances> {
   const e = await evm(seed);
   const chainId = evmChainId();
   const assets = listLeclercAssets();
-  const [address, sats] = await Promise.all([
+  const sparkAccountPromise = spark(seed).catch(() => null);
+  const [address, sparkAccount] = await Promise.all([
     e.getAddress(),
-    spark(seed)
-      .then((s) => s.getBalance())
-      .catch(() => "unavailable"),
+    sparkAccountPromise,
   ]);
+  const sats = sparkAccount ? await sparkAccount.getBalance().catch(() => "unavailable") : "unavailable";
+  const sparkUsdt = sparkAccount ? await sparkTokenBalance(sparkAccount, "usdt") : "unavailable";
   const evmBalances = await Promise.all(
     assets.map(async (asset): Promise<WalletAssetBalance> => {
       if (asset.id === "btc") {
         return { assetId: asset.id, value: String(sats), status: sats === "unavailable" ? "unavailable" : "ok" };
+      }
+      if (asset.id === "usdt") {
+        return {
+          assetId: asset.id,
+          value: sparkUsdt,
+          status: sparkUsdt === "unavailable" ? "unavailable" : "ok",
+        };
       }
       const token = tokenAddress(asset.id, chainId);
       if (!token) {
         return {
           assetId: asset.id,
           value: "unconfigured",
-          status: asset.kind === "spark-token" ? "unconfigured" : "unconfigured",
+          status: "unconfigured",
         };
       }
       const value = await e.getTokenBalance(token).catch(() => "unavailable");
@@ -93,17 +105,28 @@ export async function balances(seed: string): Promise<Balances> {
       };
     }),
   );
-  const usdt = evmBalances.find((asset) => asset.assetId === "usdt")?.value ?? "unconfigured";
+  const usdt = evmBalances.find((asset) => asset.assetId === "usdt")?.value ?? "unavailable";
   return { address, usdt, sats: String(sats), assets: evmBalances };
 }
 
-const MAX_LN_FEE_SATS = Number(process.env.LN_MAX_FEE_SATS ?? 50);
+function maxLightningFeeSats(): number {
+  const parsed = Number(process.env.LN_MAX_FEE_SATS ?? 50);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 50;
+}
 
 /** Pay a Lightning (BOLT11) invoice — private, off-chain. */
 export async function payLightning(seed: string, invoice: string): Promise<{ ok: true }> {
   const s = await spark(seed);
-  await s.payLightningInvoice({ invoice, maxFeeSats: MAX_LN_FEE_SATS });
+  await s.payLightningInvoice({ invoice, maxFeeSats: maxLightningFeeSats() });
   return { ok: true };
+}
+
+async function sparkTokenBalance(account: unknown, assetId: LeclercAssetId): Promise<string> {
+  const tokenAddress = process.env[`LECLERC_SPARK_${assetId.toUpperCase()}_TOKEN_ADDRESS`]?.trim();
+  if (!tokenAddress) return "unavailable";
+  const maybe = account as { getTokenBalance?: (tokenAddress: string) => Promise<bigint | number | string> };
+  if (!maybe.getTokenBalance) return "unavailable";
+  return String(await maybe.getTokenBalance(tokenAddress).catch(() => "unavailable"));
 }
 
 export async function receiveDetails(seed: string): Promise<WalletReceiveDetails> {

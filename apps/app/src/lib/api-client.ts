@@ -9,6 +9,7 @@ import type {
   MissionFundingConfig,
   MissionFundingNotification,
   RainAgentCardConfig,
+  TransferProposal,
   WalletAssetBalance,
   WalletReceiveDetails,
   WalletTransaction,
@@ -129,7 +130,17 @@ export const wallet = {
     amount: string,
     assetId?: LeclercAssetId,
     chainId?: LeclercChainId,
-  ) => post<{ hash: string }>("/api/wallet", { action: "payEvm", seed, to, amount, assetId, chainId }),
+  ) =>
+    post<{ status: "requires_confirmation" } & TransferProposal>("/api/wallet", {
+      action: "payEvm",
+      seed,
+      to,
+      amount,
+      assetId,
+      chainId,
+    }),
+  confirmTransfer: (confirmId: string) =>
+    post<{ hash: string; proposal: TransferProposal }>("/api/wallet", { action: "confirmTransfer", confirmId }),
 };
 
 export const rainCards = {
@@ -145,14 +156,21 @@ export const rainCards = {
       }>;
     }>("/api/rain-cards", { action: "list" }),
   fund: (seed: string, cardId: string, amount: string) =>
-    post<{
-      ok: true;
-      hash: string;
-      cardId: string;
-      assetId: LeclercAssetId;
-      chainId: LeclercChainId;
-      amount: string;
-    }>("/api/rain-cards", { action: "fund", seed, cardId, amount }),
+    post<{ status: "requires_confirmation"; proposal: TransferProposal }>("/api/rain-cards", {
+      action: "fund",
+      seed,
+      cardId,
+      amount,
+    }).then((proposal) =>
+      post<{
+        ok: true;
+        hash: string;
+        cardId: string;
+        assetId: LeclercAssetId;
+        chainId: LeclercChainId;
+        amount: string;
+      }>("/api/rain-cards", { action: "confirm", confirmId: proposal.proposal.confirmId }),
+    ),
 };
 
 export const station = {
@@ -188,7 +206,19 @@ export const missionFunding = {
     amount: string;
     dropId?: string;
     secret?: string;
-  }) => post<{ notification: MissionFundingNotification; peers: number }>("/api/mission-funding", { action: "fund", ...input }),
+  }) =>
+    post<
+      | { notification: MissionFundingNotification; peers: number }
+      | { status: "requires_confirmation"; proposal: TransferProposal }
+    >("/api/mission-funding", { action: "fund", ...input }).then((res) => {
+      if ("notification" in res) return res;
+      return post<{ notification: MissionFundingNotification; peers: number }>("/api/mission-funding", {
+        action: "confirm",
+        confirmId: res.proposal.confirmId,
+        dropId: input.dropId,
+        secret: input.secret,
+      });
+    }),
   events: () => post<{ events: MissionFundingNotification[] }>("/api/mission-funding", { action: "events" }),
 };
 

@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import {
   balances,
   payLightning,
-  paySableEvm,
   generateSeed,
   receiveDetails,
   walletTransactions,
 } from "@/lib/wallet";
 import type { LeclercAssetId, LeclercChainId } from "@leclerc/core";
+import { confirmTransfer, proposeTransfer } from "@/lib/wallet/transfer-confirmation";
 
 export const runtime = "nodejs";
 
@@ -18,7 +18,7 @@ export const runtime = "nodejs";
  * POST { action: "generate" }
  * POST { action: "balances", seed }
  * POST { action: "payLightning", seed, invoice }     ← gated by UI confirm
- * POST { action: "payEvm", seed, to, amount }         ← gated by UI confirm
+ * POST { action: "payEvm", seed, to, amount }         ← proposes; confirmTransfer executes
  *
  * TODO(codex): for the no-egress demo, prefer running this in a Bare worklet on
  * the device rather than a Route Handler; here it stays on the trusted station.
@@ -37,16 +37,19 @@ export async function POST(req: Request) {
         return NextResponse.json(await walletTransactions(body.seed));
       case "payLightning":
         return NextResponse.json(await payLightning(body.seed, body.invoice));
-      case "payEvm":
-        return NextResponse.json(
-          await paySableEvm(
-            body.seed,
-            body.to,
-            body.amount,
-            body.assetId as LeclercAssetId | undefined,
-            body.chainId ? (Number(body.chainId) as LeclercChainId) : undefined,
-          ),
-        );
+      case "payEvm": {
+        const proposal = proposeTransfer({
+          seed: body.seed,
+          to: body.to,
+          amount: body.amount,
+          assetId: (body.assetId as LeclercAssetId | undefined) ?? "usdc",
+          chainId: body.chainId ? (Number(body.chainId) as LeclercChainId) : 5042002,
+          purpose: "wallet",
+        });
+        return NextResponse.json({ status: "requires_confirmation", ...proposal });
+      }
+      case "confirmTransfer":
+        return NextResponse.json(await confirmTransfer(body.confirmId));
       default:
         return NextResponse.json({ error: "unknown action" }, { status: 400 });
     }

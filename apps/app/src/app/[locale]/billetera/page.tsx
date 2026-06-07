@@ -45,7 +45,6 @@ export default function WalletPage() {
   const [amount, setAmount] = useState("");
   const [status, setStatus] = useState("");
 
-  const sendAsset = getLeclercAsset(assetId);
   const sendableAssets = useMemo(
     () =>
       listLeclercAssets().filter(
@@ -115,13 +114,13 @@ export default function WalletPage() {
     if (!seed) return;
     setStatus(t("wallet.submitting"));
     try {
-      const atomic = decimalToAtomic(amount, sendAsset.decimals);
-      const res = await wallet.payEvm(seed, recipient.trim(), atomic, assetId, TESTNET_CHAIN_ID);
+      const proposal = await wallet.payEvm(seed, recipient.trim(), amount.trim(), assetId, TESTNET_CHAIN_ID);
+      const res = await wallet.confirmTransfer(proposal.confirmId);
       const tx: WalletTransaction = {
         id: res.hash,
         kind: "send",
         assetId,
-        amount: atomic,
+        amount: res.proposal.amountAtomic,
         counterparty: recipient.trim(),
         status: "submitted",
         createdAt: new Date().toISOString(),

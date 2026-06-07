@@ -10,6 +10,8 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
+    const guard = guardWalletToolsCaller(req);
+    if (guard) return guard;
     const body = (await req.json()) as {
       action?: string;
       tool?: WalletAgentToolName;
@@ -40,4 +42,16 @@ export async function POST(req: Request) {
       { status: 500 },
     );
   }
+}
+
+function guardWalletToolsCaller(req: Request): NextResponse | null {
+  const expected = process.env.LECLERC_AGENT_WALLET_TOOLS_TOKEN?.trim();
+  if (!expected) {
+    return NextResponse.json({ error: "LECLERC_AGENT_WALLET_TOOLS_TOKEN is required" }, { status: 503 });
+  }
+  const auth = req.headers.get("authorization") ?? "";
+  if (auth !== `Bearer ${expected}`) {
+    return NextResponse.json({ error: "unauthorized wallet tool caller" }, { status: 401 });
+  }
+  return null;
 }

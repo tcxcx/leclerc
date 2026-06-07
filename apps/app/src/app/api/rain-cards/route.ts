@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
 import {
   listRainAgentCards,
-  rainFundingAmountToAtomic,
   rainFundingTarget,
 } from "@leclerc/core";
-import { paySableEvm } from "@/lib/wallet";
+import { confirmTransfer, proposeTransfer } from "@/lib/wallet/transfer-confirmation";
 
 export const runtime = "nodejs";
 
 type RainCardsRequest =
   | { action: "list" }
-  | { action: "fund"; seed?: string; cardId?: string; amount?: string };
+  | { action: "fund"; seed?: string; cardId?: string; amount?: string }
+  | { action: "confirm"; confirmId?: string };
 
 export async function POST(req: Request) {
   try {
@@ -20,6 +20,8 @@ export async function POST(req: Request) {
         return NextResponse.json(listRainCardsResponse());
       case "fund":
         return NextResponse.json(await fundRainCard(body));
+      case "confirm":
+        return NextResponse.json(await confirmRainCard(body));
       default:
         return NextResponse.json({ error: "unknown action" }, { status: 400 });
     }
@@ -58,14 +60,33 @@ async function fundRainCard(body: Extract<RainCardsRequest, { action: "fund" }>)
   if (!target?.configured || !target.depositAddress) {
     throw new Error(`${card.fundingDepositEnv} must be configured for live Rain card funding`);
   }
-  const amount = rainFundingAmountToAtomic(card, body.amount?.trim() || card.defaultFundingAmount);
-  const result = await paySableEvm(seed, target.depositAddress, amount, card.assetId, card.chainId);
+  const proposal = proposeTransfer({
+    seed,
+    to: target.depositAddress,
+    amount: body.amount?.trim() || card.defaultFundingAmount,
+    assetId: card.assetId,
+    chainId: card.chainId,
+    purpose: "rain-card",
+    metadata: { cardId: card.id },
+  });
+  return {
+    status: "requires_confirmation",
+    proposal,
+  };
+}
+
+async function confirmRainCard(body: Extract<RainCardsRequest, { action: "confirm" }>) {
+  const confirmId = body.confirmId?.trim();
+  if (!confirmId) throw new Error("confirmId required");
+  const result = await confirmTransfer(confirmId);
+  if (result.proposal.purpose !== "rain-card") throw new Error("confirmation is not for Rain card funding");
+  const cardId = String(result.proposal.metadata?.cardId ?? "");
   return {
     ok: true,
     hash: result.hash,
-    cardId: card.id,
-    assetId: card.assetId,
-    chainId: card.chainId,
-    amount,
+    cardId,
+    assetId: result.proposal.assetId,
+    chainId: result.proposal.chainId,
+    amount: result.proposal.amountAtomic,
   };
 }
