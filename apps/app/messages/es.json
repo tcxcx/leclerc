@@ -1,0 +1,144 @@
+{
+  "app": {
+    "name": "LeClerc",
+    "tagline": "Estación de inteligencia de campo · local primero"
+  },
+  "nav": {
+    "console": "Consola",
+    "capture": "Capturar",
+    "dossier": "Expediente",
+    "analysis": "Análisis",
+    "wallet": "Billetera",
+    "link": "Enlace",
+    "settings": "Ajustes"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "back": "Volver",
+    "loading": "Procesando…",
+    "empty": "Sin datos en el expediente",
+    "offline": "Sin conexión",
+    "noData": "sin datos"
+  },
+  "mode": {
+    "station": "Estación",
+    "delegate": "Delegado",
+    "ondevice": "En dispositivo"
+  },
+  "threat": {
+    "CRITICO": "CRÍTICO",
+    "ELEVADO": "ELEVADO",
+    "RUTINARIO": "RUTINARIO"
+  },
+  "kind": {
+    "observacion": "Observación",
+    "contacto": "Contacto",
+    "documento": "Documento",
+    "incidente": "Incidente"
+  },
+  "console": {
+    "title": "Consola",
+    "quickCapture": "Captura rápida",
+    "recent": "Expediente reciente",
+    "stationStatus": "Estado de la estación",
+    "peerStatus": "Estado del enlace"
+  },
+  "capture": {
+    "title": "Capturar inteligencia",
+    "record": "Grabar",
+    "stop": "Detener",
+    "dictating": "Dictando…",
+    "transcribing": "Transcribiendo…",
+    "extracting": "Extrayendo ficha…",
+    "typeInstead": "Escribir en su lugar",
+    "addDocument": "Añadir documento",
+    "review": "Revisar y confirmar"
+  },
+  "dossier": {
+    "title": "Expediente",
+    "search": "Buscar en el expediente…",
+    "ask": "Preguntar al expediente",
+    "filterThreat": "Filtrar por amenaza",
+    "all": "Todos",
+    "groundedAnswer": "Respuesta fundamentada",
+    "sources": "Fuentes"
+  },
+  "record": {
+    "summary": "Resumen",
+    "threat": "Amenaza",
+    "entities": "Entidades",
+    "subject": "Sujeto",
+    "location": "Ubicación",
+    "assessment": "Evaluación",
+    "actions": "Acciones pendientes",
+    "source": "Fuente verbatim",
+    "attachments": "Adjuntos",
+    "confirm": "Confirmar registro",
+    "confirmed": "Confirmado",
+    "draft": "Borrador",
+    "exportPdf": "Exportar PDF",
+    "exportDocx": "Exportar DOCX",
+    "deadDrop": "Enviar por buzón"
+  },
+  "brief": {
+    "title": "Mesa de análisis",
+    "run": "Generar informe",
+    "running": "Analistas trabajando…",
+    "focus": "Enfoque",
+    "includeMedic": "Incluir analista médico (MedPsy)",
+    "bottomLine": "Conclusión (BLUF)",
+    "findings": "Hallazgos",
+    "keyEntities": "Entidades clave",
+    "recommendations": "Recomendaciones",
+    "readAloud": "Leer en voz alta",
+    "agents": {
+      "triage": "Triaje",
+      "dedup": "Deduplicación",
+      "geo": "Geográfico",
+      "pattern": "Patrones",
+      "medic": "Médico"
+    }
+  },
+  "wallet": {
+    "title": "Billetera",
+    "balances": "Saldos",
+    "usdt": "USDT",
+    "lightning": "Lightning (sats)",
+    "pay": "Pagar a un contacto",
+    "payLightning": "Pagar factura Lightning",
+    "invoice": "Factura (BOLT11)",
+    "recipient": "Destinatario",
+    "amount": "Monto",
+    "confirmTitle": "Confirmar pago",
+    "confirmBody": "Esta acción es irreversible. Revise destinatario, red y monto.",
+    "private": "Privado (fuera de cadena)",
+    "receive": "Recibir",
+    "noSeed": "No hay billetera. Genere una en Ajustes."
+  },
+  "link": {
+    "title": "Enlace P2P",
+    "stationKey": "Clave de la estación",
+    "showQr": "Mostrar QR de emparejamiento",
+    "scan": "Escanear par",
+    "dropTopic": "Tópico de buzón (misión)",
+    "join": "Unirse al buzón",
+    "peerOnline": "Par en línea",
+    "peerOffline": "Par fuera de línea",
+    "delegate": "Delegar a la estación"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "language": "Idioma",
+    "model": "Nivel de modelo",
+    "lock": "Bloqueo por frase",
+    "unlock": "Desbloquear bóveda",
+    "passphrase": "Frase de acceso",
+    "generateWallet": "Generar billetera",
+    "panicWipe": "Borrado de emergencia",
+    "panicConfirm": "¿Borrar todo el expediente y la semilla? Irreversible."
+  }
+}

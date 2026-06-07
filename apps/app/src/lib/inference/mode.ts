@@ -3,27 +3,30 @@
 import { createContext, createElement, useContext, useEffect, useState } from "react";
 
 /**
- * Inference mode for the field device.
+ * Inference mode for LeClerc. All three paths use QVAC — there is NO non-QVAC
+ * fallback (see docs/leclerc/02 §5). The transformers.js browser path was
+ * removed for hackathon compliance.
  *
- *  - "online"  → remote QVAC on Railway via the `/api/qvac` proxy. Needs network,
- *                no on-device weights, lighter device requirements.
- *  - "offline" → in-browser inference (transformers.js) that runs entirely on the
- *                field phone with weights cached locally. Works with no network
- *                once the model is downloaded. Heavier (see the RAM note).
+ *  - "station"  → talk to a local `qvac serve openai` (the laptop "safehouse"
+ *                 station) over HTTP, or to a paired peer's server. Default for
+ *                 the browser/PWA when a station is reachable.
+ *  - "delegate" → delegate heavy QVAC jobs to the station peer over the
+ *                 Holepunch DHT (mobile → laptop). Handled server-side / Bare.
+ *  - "ondevice" → run @qvac/sdk locally (Node on the station, Bare on a native
+ *                 mobile client). The browser cannot do this directly.
  *
- * QVAC/@repo/qvacs cannot back the offline path: it needs the native `bare`
- * runtime and cannot run in a mobile browser. So offline uses transformers.js
- * (see lib/inference/offline-engine.ts); qvacs stays the online backend.
+ * The PWA primarily uses "station". "delegate"/"ondevice" are surfaced for the
+ * P2P / mobile story and routed through Route Handlers (Node).
  */
-export type InferenceMode = "online" | "offline";
+export type InferenceMode = "station" | "delegate" | "ondevice";
 
-const KEY = "ngo-inference-mode";
-const DEFAULT: InferenceMode = "online";
+const KEY = "leclerc-inference-mode";
+const DEFAULT: InferenceMode = "station";
 
 export function getStoredMode(): InferenceMode {
   if (typeof window === "undefined") return DEFAULT;
   const v = window.localStorage.getItem(KEY);
-  return v === "online" || v === "offline" ? v : DEFAULT;
+  return v === "station" || v === "delegate" || v === "ondevice" ? v : DEFAULT;
 }
 
 interface ModeContextValue {
@@ -36,7 +39,6 @@ const ModeContext = createContext<ModeContextValue | null>(null);
 export function InferenceModeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setModeState] = useState<InferenceMode>(DEFAULT);
 
-  // Hydrate the persisted preference after mount (avoids SSR mismatch).
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setModeState(getStoredMode());

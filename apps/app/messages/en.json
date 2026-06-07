@@ -1,0 +1,144 @@
+{
+  "app": {
+    "name": "LeClerc",
+    "tagline": "Field intelligence station · local-first"
+  },
+  "nav": {
+    "console": "Console",
+    "capture": "Capture",
+    "dossier": "Dossier",
+    "analysis": "Analysis",
+    "wallet": "Wallet",
+    "link": "Link",
+    "settings": "Settings"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "loading": "Working…",
+    "empty": "No data in the dossier",
+    "offline": "Offline",
+    "noData": "no data"
+  },
+  "mode": {
+    "station": "Station",
+    "delegate": "Delegated",
+    "ondevice": "On-device"
+  },
+  "threat": {
+    "CRITICO": "CRITICAL",
+    "ELEVADO": "ELEVATED",
+    "RUTINARIO": "ROUTINE"
+  },
+  "kind": {
+    "observacion": "Observation",
+    "contacto": "Contact",
+    "documento": "Document",
+    "incidente": "Incident"
+  },
+  "console": {
+    "title": "Console",
+    "quickCapture": "Quick capture",
+    "recent": "Recent dossier",
+    "stationStatus": "Station status",
+    "peerStatus": "Link status"
+  },
+  "capture": {
+    "title": "Capture intelligence",
+    "record": "Record",
+    "stop": "Stop",
+    "dictating": "Dictating…",
+    "transcribing": "Transcribing…",
+    "extracting": "Extracting card…",
+    "typeInstead": "Type instead",
+    "addDocument": "Add document",
+    "review": "Review & confirm"
+  },
+  "dossier": {
+    "title": "Dossier",
+    "search": "Search the dossier…",
+    "ask": "Ask the dossier",
+    "filterThreat": "Filter by threat",
+    "all": "All",
+    "groundedAnswer": "Grounded answer",
+    "sources": "Sources"
+  },
+  "record": {
+    "summary": "Summary",
+    "threat": "Threat",
+    "entities": "Entities",
+    "subject": "Subject",
+    "location": "Location",
+    "assessment": "Assessment",
+    "actions": "Pending actions",
+    "source": "Verbatim source",
+    "attachments": "Attachments",
+    "confirm": "Confirm record",
+    "confirmed": "Confirmed",
+    "draft": "Draft",
+    "exportPdf": "Export PDF",
+    "exportDocx": "Export DOCX",
+    "deadDrop": "Send via dead-drop"
+  },
+  "brief": {
+    "title": "Analyst desk",
+    "run": "Generate brief",
+    "running": "Analysts working…",
+    "focus": "Focus",
+    "includeMedic": "Include medic analyst (MedPsy)",
+    "bottomLine": "Bottom line (BLUF)",
+    "findings": "Findings",
+    "keyEntities": "Key entities",
+    "recommendations": "Recommendations",
+    "readAloud": "Read aloud",
+    "agents": {
+      "triage": "Triage",
+      "dedup": "Dedup",
+      "geo": "Geo",
+      "pattern": "Pattern",
+      "medic": "Medic"
+    }
+  },
+  "wallet": {
+    "title": "Wallet",
+    "balances": "Balances",
+    "usdt": "USDT",
+    "lightning": "Lightning (sats)",
+    "pay": "Pay an asset",
+    "payLightning": "Pay Lightning invoice",
+    "invoice": "Invoice (BOLT11)",
+    "recipient": "Recipient",
+    "amount": "Amount",
+    "confirmTitle": "Confirm payment",
+    "confirmBody": "This is irreversible. Review recipient, network and amount.",
+    "private": "Private (off-chain)",
+    "receive": "Receive",
+    "noSeed": "No wallet yet. Generate one in Settings."
+  },
+  "link": {
+    "title": "P2P Link",
+    "stationKey": "Station key",
+    "showQr": "Show pairing QR",
+    "scan": "Scan peer",
+    "dropTopic": "Dead-drop topic (mission)",
+    "join": "Join dead-drop",
+    "peerOnline": "Peer online",
+    "peerOffline": "Peer offline",
+    "delegate": "Delegate to station"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "model": "Model level",
+    "lock": "Passphrase lock",
+    "unlock": "Unlock vault",
+    "passphrase": "Passphrase",
+    "generateWallet": "Generate wallet",
+    "panicWipe": "Panic wipe",
+    "panicConfirm": "Wipe the entire dossier and seed? Irreversible."
+  }
+}

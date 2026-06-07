@@ -2,26 +2,19 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Halketon",
-    short_name: "Halketon",
-    description: "On-device push-to-talk, powered by QVAC.",
+    name: "LeClerc — Field Intelligence",
+    short_name: "LeClerc",
+    description:
+      "Local-first field intelligence on QVAC: capture, recall, analyze, pay and dead-drop — offline.",
     start_url: "/",
     display: "standalone",
-    background_color: "#0a0a0a",
-    theme_color: "#0a0a0a",
+    orientation: "portrait",
+    background_color: "#0a0e14",
+    theme_color: "#0a0e14",
+    categories: ["productivity", "utilities"],
     icons: [
-      {
-        src: "/icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
-        purpose: "any",
-      },
-      {
-        src: "/icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
-        purpose: "maskable",
-      },
+      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
     ],
   };
 }

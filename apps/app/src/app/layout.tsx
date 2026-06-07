@@ -2,48 +2,42 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { ServiceWorkerRegister } from "./sw-register";
-import { FlowProvider } from "./flow-context";
-import { InferenceModeProvider } from "@/lib/inference/mode";
-import { ModeToggle } from "./mode-toggle";
 
 // Dev-only inspector (react-grab). Never loads in production builds.
 const enableReactGrab = process.env.NODE_ENV === "development";
 
 export const metadata: Metadata = {
-  title: "Smart NGO Voice Reports",
+  title: "LeClerc — Field Intelligence Station",
   description:
-    "Registro de campo por voz con inferencia local — para operaciones humanitarias.",
+    "Local-first field intelligence: capture, recall, analyze, pay and dead-drop — nothing leaves a server you don't control. Powered by QVAC.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Voice Reports",
+    title: "LeClerc",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f8f9ff",
+  themeColor: "#0a0e14",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+/**
+ * Thin root shell. The real app chrome + i18n provider live in
+ * [locale]/layout.tsx (next-international rewrite strategy).
+ */
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className="h-full">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap"
           rel="stylesheet"
         />
         <link
@@ -62,10 +56,7 @@ export default function RootLayout({
             strategy="afterInteractive"
           />
         )}
-        <InferenceModeProvider>
-          <ModeToggle />
-          <FlowProvider>{children}</FlowProvider>
-        </InferenceModeProvider>
+        {children}
         <ServiceWorkerRegister />
       </body>
     </html>

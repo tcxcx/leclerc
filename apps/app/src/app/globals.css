@@ -108,10 +108,55 @@
   --radius-xl: 0.75rem;
 }
 
+/* ── LeClerc field-console theme (dark, mobile-first) ──────────────────────
+   Overrides the inherited light NGO palette. Tailwind v4 utilities reference
+   these vars, so overriding them here re-skins every bg-/text-/border- util. */
+:root {
+  --color-primary: #5b8cff;
+  --color-on-primary: #00102e;
+  --color-primary-container: #1b2b52;
+  --color-on-primary-container: #cfdcff;
+
+  --color-secondary: #4edea3;
+  --color-on-secondary: #00251a;
+  --color-secondary-container: #123a2c;
+  --color-on-secondary-container: #8ff5cc;
+
+  --color-tertiary: #ffb95f;
+  --color-on-tertiary: #2a1700;
+  --color-tertiary-container: #4a3210;
+  --color-on-tertiary-container: #ffddb8;
+
+  --color-error: #ff5449;
+  --color-on-error: #2c0001;
+  --color-error-container: #5a1512;
+  --color-on-error-container: #ffd9d4;
+
+  --color-background: #0a0e14;
+  --color-on-background: #dde3ee;
+  --color-surface: #0a0e14;
+  --color-on-surface: #e6ebf5;
+  --color-surface-variant: #1a2230;
+  --color-on-surface-variant: #aab4c6;
+  --color-surface-bright: #141a24;
+  --color-surface-dim: #070a0f;
+  --color-surface-container-lowest: #05070b;
+  --color-surface-container-low: #11161f;
+  --color-surface-container: #151b26;
+  --color-surface-container-high: #1c2330;
+  --color-surface-container-highest: #232b3a;
+  --color-outline: #5c6678;
+  --color-outline-variant: #2b3342;
+}
+
 body {
   background-color: var(--color-surface);
   color: var(--color-on-surface);
   font-family: var(--font-body-md);
+}
+
+.font-mono {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
 }
 
 /* Google Material Symbols (loaded via <link> in layout) */
