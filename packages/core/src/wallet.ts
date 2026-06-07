@@ -9,6 +9,24 @@ export interface WalletAssetBalance {
   status: "ok" | "unconfigured" | "unavailable" | "read-only";
 }
 
+export interface WalletReceiveDetails {
+  address: string;
+  sparkAddress?: string;
+  depositAddress?: string;
+}
+
+export interface WalletTransaction {
+  id: string;
+  kind: "send" | "receive" | "transfer";
+  assetId: LeclercAssetId;
+  amount: string;
+  counterparty?: string;
+  status: "submitted" | "settled" | "pending" | "unavailable";
+  createdAt: string;
+  chainId?: LeclercChainId;
+  hash?: string;
+}
+
 export interface WalletBalances {
   address: string;
   handle?: string;
@@ -21,6 +39,8 @@ export type WalletRequest =
   | { action: "generate" }
   | { action: "claimHandle"; handle: string }
   | { action: "balances"; seed: string }
+  | { action: "receive"; seed: string }
+  | { action: "transactions"; seed: string }
   | { action: "payLightning"; seed: string; invoice: string }
   | {
       action: "payEvm";
@@ -35,6 +55,8 @@ export type WalletResponse =
   | { seed: string }
   | { handle: string; ok: true }
   | WalletBalances
+  | WalletReceiveDetails
+  | { transactions: WalletTransaction[] }
   | { ok: true }
   | { hash: string }
   | { error: string };

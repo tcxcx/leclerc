@@ -25,6 +25,8 @@ import {
   type LeclercAssetId,
   type LeclercChainId,
   type WalletAssetBalance,
+  type WalletReceiveDetails,
+  type WalletTransaction,
 } from "@leclerc/core";
 
 const DEFAULT_EVM_CHAIN_ID: LeclercChainId = 5042002;
@@ -130,7 +132,42 @@ export async function payLightning(seed: string, invoice: string): Promise<{ ok:
   return { ok: true };
 }
 
-/** On-chain USDT transfer (EVM). amount is the smallest unit (USDT = 6 decimals). */
+export async function receiveDetails(seed: string): Promise<WalletReceiveDetails> {
+  const [e, s] = await Promise.all([evm(seed), spark(seed).catch(() => null)]);
+  const [address, sparkAddress, depositAddress] = await Promise.all([
+    e.getAddress(),
+    s?.getAddress().then(String).catch(() => undefined) ?? Promise.resolve(undefined),
+    s?.getStaticDepositAddress().catch(() => undefined) ?? Promise.resolve(undefined),
+  ]);
+  return { address, sparkAddress, depositAddress };
+}
+
+export async function walletTransactions(seed: string): Promise<{ transactions: WalletTransaction[] }> {
+  const s = await spark(seed).catch(() => null);
+  if (!s) return { transactions: [] };
+  const transfers = await s.getTransfers({ limit: 20, direction: "all" }).catch(() => []);
+  return {
+    transactions: transfers.map((transfer: unknown, index): WalletTransaction => {
+      const row = transfer as Record<string, unknown>;
+      const id = String(row.id ?? row.transferId ?? row.hash ?? `spark-${index}`);
+      const direction = String(row.direction ?? row.type ?? "").toLowerCase();
+      const amount = String(row.totalValue ?? row.amountSats ?? row.value ?? row.amount ?? "0");
+      const createdAt = String(row.createdTime ?? row.createdAt ?? row.updatedTime ?? new Date().toISOString());
+      return {
+        id,
+        kind: direction.includes("out") || direction.includes("send") ? "send" : "receive",
+        assetId: "btc",
+        amount,
+        counterparty: String(row.counterparty ?? row.receiverIdentityPublicKey ?? row.senderIdentityPublicKey ?? ""),
+        status: "settled",
+        createdAt,
+        hash: id,
+      };
+    }),
+  };
+}
+
+/** On-chain catalog-token transfer. amount is the smallest unit for the selected asset. */
 export async function paySableEvm(
   seed: string,
   to: string,

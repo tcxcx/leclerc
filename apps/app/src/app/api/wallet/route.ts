@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
-import { balances, payLightning, paySableEvm, generateSeed } from "@/lib/wallet";
+import {
+  balances,
+  payLightning,
+  paySableEvm,
+  generateSeed,
+  receiveDetails,
+  walletTransactions,
+} from "@/lib/wallet";
 import type { LeclercAssetId, LeclercChainId } from "@leclerc/core";
 
 export const runtime = "nodejs";
@@ -24,6 +31,10 @@ export async function POST(req: Request) {
         return NextResponse.json({ seed: generateSeed() });
       case "balances":
         return NextResponse.json(await balances(body.seed));
+      case "receive":
+        return NextResponse.json(await receiveDetails(body.seed));
+      case "transactions":
+        return NextResponse.json(await walletTransactions(body.seed));
       case "payLightning":
         return NextResponse.json(await payLightning(body.seed, body.invoice));
       case "payEvm":

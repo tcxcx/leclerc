@@ -1,0 +1,52 @@
+{
+  "createdAt": "2026-06-07T15:51:35.196Z",
+  "packageVersions": {
+    "wdk": "1.0.0-beta.10",
+    "evm": "1.0.0-beta.13",
+    "spark": "1.0.0-beta.19"
+  },
+  "verifiedApiShapes": [
+    "WDK.getRandomSeedPhrase(24)",
+    "WalletManagerEvm(...).getAccount().getTokenBalance(token)",
+    "WalletManagerEvm(...).getAccount().transfer({ token, recipient, amount })",
+    "WalletManagerSpark(...).getAccount().payLightningInvoice({ invoice, maxFeeSats })"
+  ],
+  "network": {
+    "spark": "TESTNET",
+    "evmChainId": 11155111,
+    "evmRpcConfigured": false,
+    "tokenConfigured": false
+  },
+  "seed": {
+    "generated": true,
+    "wordCount": 24,
+    "valid": true,
+    "printed": false
+  },
+  "checks": {
+    "evmAddress": {
+      "status": "PASS",
+      "address": "0x4Ee8a5208f399c0b0b4cCB3c6033BF828505abe8"
+    },
+    "evmTokenBalance": {
+      "status": "SKIPPED",
+      "reason": "USDT_ADDRESS not set; configure a testnet token address to exercise token balances/transfers",
+      "envVar": "USDT_ADDRESS"
+    },
+    "sparkAddress": {
+      "status": "SKIPPED",
+      "reason": "live Spark testnet auth was not requested; set LECLERC_ENABLE_LIVE_SPARK_SMOKE=1 to exercise address/balance",
+      "envVar": "LECLERC_ENABLE_LIVE_SPARK_SMOKE"
+    },
+    "sparkBalance": {
+      "status": "SKIPPED",
+      "reason": "live Spark testnet auth was not requested; set LECLERC_ENABLE_LIVE_SPARK_SMOKE=1 to exercise address/balance",
+      "envVar": "LECLERC_ENABLE_LIVE_SPARK_SMOKE"
+    },
+    "lightningPayment": {
+      "status": "SKIPPED",
+      "reason": "LECLERC_TESTNET_LIGHTNING_INVOICE not set; provide a funded testnet BOLT11 invoice to exercise payment",
+      "envVar": "LECLERC_TESTNET_LIGHTNING_INVOICE"
+    }
+  }
+}

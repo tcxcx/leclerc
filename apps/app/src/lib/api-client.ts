@@ -3,7 +3,13 @@
 /** Thin client helpers for the station Route Handlers. */
 import type { IntelRecord } from "@/lib/intel/schema";
 import type { IntelBrief, BriefRequest } from "@/lib/agents/orchestrator";
-import type { LeclercAssetId, LeclercChainId, WalletAssetBalance } from "@leclerc/core";
+import type {
+  LeclercAssetId,
+  LeclercChainId,
+  WalletAssetBalance,
+  WalletReceiveDetails,
+  WalletTransaction,
+} from "@leclerc/core";
 
 async function post<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
@@ -101,6 +107,9 @@ export const wallet = {
     }),
   payLightning: (seed: string, invoice: string) =>
     post<{ ok: true }>("/api/wallet", { action: "payLightning", seed, invoice }),
+  receive: (seed: string) => post<WalletReceiveDetails>("/api/wallet", { action: "receive", seed }),
+  transactions: (seed: string) =>
+    post<{ transactions: WalletTransaction[] }>("/api/wallet", { action: "transactions", seed }),
   payEvm: (
     seed: string,
     to: string,
