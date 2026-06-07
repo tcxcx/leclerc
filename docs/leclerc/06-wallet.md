@@ -48,10 +48,15 @@ const quote = await account.quoteSendTransaction({ to: assetAddress, value: "0" 
 
 ## 4. Lightning private payment (the headline gadget)
 
+> **Network decision (locked): `TESTNET`.** Lightning testnet is a public,
+> shared network — faucet-funded, verifiable on a testnet explorer — so the demo
+> shows a real self-custodial payment. NOT regtest (a private local chain, only
+> worth it to avoid public networks entirely). NEVER mainnet for the demo.
+
 ```ts
 import WalletManagerSpark from "@tetherto/wdk-wallet-spark";
 
-const spark = await new WalletManagerSpark(seedPhrase, { network: "mainnet" /* or testnet/regtest */ }).getAccount();
+const spark = await new WalletManagerSpark(seedPhrase, { network: "TESTNET" }).getAccount();
 const balance = await spark.getBalance();
 
 // pay an asset off-chain — not broadcast to the base chain
