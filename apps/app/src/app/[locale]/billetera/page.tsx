@@ -7,6 +7,7 @@ import {
   getLeclercAsset,
   getLeclercChain,
   listLeclercAssets,
+  parseAtomicAmount,
   tokenAddress,
   type LeclercAssetId,
   type WalletAssetBalance,
@@ -598,11 +599,11 @@ function makeQrCells(value: string, size: number): boolean[] {
 }
 
 function decimalToAtomic(value: string, decimals: number): string {
-  const clean = value.trim().replace(",", ".");
-  const [wholeRaw = "0", fractionRaw = ""] = clean.split(".");
-  const whole = stripLeadingZeroes(wholeRaw.replace(/\D/g, "") || "0");
-  const fraction = fractionRaw.replace(/\D/g, "").slice(0, decimals).padEnd(decimals, "0");
-  return stripLeadingZeroes(`${whole}${fraction}`);
+  try {
+    return parseAtomicAmount(value, decimals).atomic;
+  } catch {
+    return "";
+  }
 }
 
 function formatAtomic(value: string, decimals: number): string {

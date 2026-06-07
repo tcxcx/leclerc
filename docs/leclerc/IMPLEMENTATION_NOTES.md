@@ -385,3 +385,40 @@ curl -sS -X POST http://localhost:7001/api/rain-cards -H 'Content-Type: applicat
 Results: typecheck/lint exited 0. Both grep commands returned no matches. The
 live route returned `configured: true` for the Rain card funding target. The dev
 server was stopped after the route/smoke check.
+
+## STATUS 2026-06-07 pass 4 FIX review findings
+
+Branch: `feat/leclerc-scaffold`
+
+### Findings
+
+| # | Status | Commit | Verification |
+|---|---|---|---|
+| 1. Server-side transfer confirmation + agent auth | FIXED | `a90cb8f` | `wallet_send` now calls `proposeTransfer()` only; `/api/wallet`, `/api/mission-funding`, and `/api/rain-cards` expose propose then confirm paths through `confirmTransfer()`. `/api/agent/wallet-tools` requires `LECLERC_AGENT_WALLET_TOOLS_TOKEN`. `cd apps/app && bunx tsc --noEmit`, `bun --filter app lint`, and final build passed. |
+| 2. Unsafe `decimalToAtomic()` in wallet agent | FIXED | `a90cb8f` | Removed the agent-local parser; `proposeTransfer()` uses `@leclerc/core` `parseAtomicAmount()`. Amount parser smoke passed for valid, precision-clamped, zero, and malformed amounts. |
+| 3. `/api/wallet` amount/address validation | FIXED | `a90cb8f`, `4d30c0d` | Added `parseAtomicAmount()` and `assertHexAddress()` in `@leclerc/core`; `/api/wallet` parses human decimals server-side and validates recipient addresses before proposal. The wallet UI display helper now delegates to the same core parser. |
+| 4. Mission-scoped RAG metadata | FIXED | `b3e8e3a` | `@repo/qvacs` persists workspace metadata sidecars and restores `meta` onto `ragQuery()` hits; app RAG search/answer and agent `ragSearchTool` apply `missionMatchesMeta()`. `cd packages/qvacs && bun run smoke.mjs` passed, including two-doc mission metadata filter assertion. |
+| 5. USDT balance + dead ternary | FIXED | `a90cb8f` | Removed the dead ternary; top-level `usdt` now reflects Spark token balance via `LECLERC_SPARK_USDT_TOKEN_ADDRESS` when configured, otherwise an honest `unavailable`, not fake `unconfigured`. App typecheck/lint passed. |
+| 6. Plaintext IndexedDB writes | FIXED | `ff05e5b` | Added centralized `lib/vault/envelope-client.ts`; intel and finance stores now reject locked writes and only keep legacy plaintext read fallback. App typecheck/lint passed. |
+| 7. Dead-drop state and zero-peer send | FIXED | `ced7120` | Drop registry moved to `globalThis`, join wait widened to 5s, and `sendDrop()` returns `status: "pending"` with zero peers instead of silent success. App typecheck/lint passed. |
+| 8. Non-functional EVM `chainId` | FIXED | `a90cb8f` | `evmAccount()` now resolves chain/RPC by requested `chainId`, enforces writable testnet policy explicitly, and unsupported/read-only chains fail clearly instead of defaulting to Arbitrum. App typecheck/lint passed. |
+| 9. Lightning fee NaN guard | FIXED | `a90cb8f` | Replaced module-level `Number(...)` with `maxLightningFeeSats()` that falls back to 50 on NaN/non-positive values. App typecheck/lint passed. |
+| 10. Divergent voice persona | FIXED | `c061dbd` | `packages/core/src/agents.ts` is the single persona source; app persona re-exports it, voice server and voice smoke import it, and the shared side-effect confirmation clause is present. Voice import smoke passed. |
+
+### Final verification
+
+```bash
+cd apps/app && bunx tsc --noEmit
+bun --filter @leclerc/core typecheck
+bun --filter app lint
+bunx tsc -p packages/qvacs/tsconfig.json --noEmit
+grep -rE "huggingface|openai|anthropic|@google/gen|langchain|chromadb|pinecone" apps/app/src packages services --exclude-dir=.next || true
+rg "server-only" apps/app/src/components 'apps/app/src/app/[locale]' --glob '*.tsx' --glob '*.ts'
+cd packages/qvacs && bun run smoke.mjs
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+```
+
+Results: all typecheck/lint/build commands exited 0. The forbidden-inference
+grep returned no source matches. The browser-surface `server-only` grep returned
+no matches (exit 1 expected). The QVAC smoke loaded cached EmbeddingGemma,
+completed embed/RAG round-trip, and passed the mission metadata filter check.
