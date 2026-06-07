@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useI18n, useCurrentLocale } from "@/locales/client";
-import { listRecords } from "@/lib/intel/store-client";
-import { runBrief } from "@/lib/api-client";
+import { listRecords, seedDemoRecords } from "@/lib/intel/store-client";
+import { exportBrief, runBrief, type BriefExportFormat } from "@/lib/api-client";
 import type { IntelRecord } from "@/lib/intel/schema";
 import type { IntelBrief } from "@/lib/agents/orchestrator";
 import { ThreatChip } from "@/components/threat-chip";
@@ -17,18 +17,34 @@ export default function AnalysisPage() {
   const [running, setRunning] = useState(false);
   const [brief, setBrief] = useState<IntelBrief | null>(null);
   const [err, setErr] = useState("");
+  const [status, setStatus] = useState("");
+  const [exporting, setExporting] = useState<BriefExportFormat | null>(null);
 
   useEffect(() => {
     listRecords().then(setRecords).catch(() => setRecords([]));
   }, []);
 
+  async function seed() {
+    setErr("");
+    setStatus("");
+    const nextRecords = await seedDemoRecords(locale as "es" | "en");
+    setRecords(nextRecords);
+    setStatus(t("brief.seeded"));
+  }
+
   async function run() {
+    const confirmed = records.filter((r) => r.estado === "CONFIRMADO");
+    if (!confirmed.length) {
+      setErr(t("brief.noRecords"));
+      return;
+    }
     setRunning(true);
     setErr("");
+    setStatus("");
     setBrief(null);
     try {
       const b = await runBrief({
-        records,
+        records: confirmed,
         focus: focus.trim() || undefined,
         locale: locale as "es" | "en",
         includeMedic: medic,
@@ -40,6 +56,34 @@ export default function AnalysisPage() {
       setRunning(false);
     }
   }
+
+  async function download(format: BriefExportFormat) {
+    if (!brief) return;
+    setExporting(format);
+    setErr("");
+    setStatus("");
+    try {
+      const { blob, filename } = await exportBrief({
+        brief,
+        records,
+        locale: locale as "es" | "en",
+        format,
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      setStatus(t("brief.exportReady"));
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : t("brief.exportFailed"));
+    } finally {
+      setExporting(null);
+    }
+  }
+
+  const confirmedCount = records.filter((r) => r.estado === "CONFIRMADO").length;
 
   return (
     <div className="anim-enter space-y-4">
@@ -59,17 +103,42 @@ export default function AnalysisPage() {
           </label>
           <button
             onClick={run}
-            disabled={running || records.length === 0}
+            disabled={running || confirmedCount === 0}
             className="w-full rounded-xl bg-primary py-3 text-on-primary font-label-md disabled:opacity-50"
           >
             {running ? t("brief.running") : t("brief.run")}
           </button>
-          <p className="text-caption text-on-surface-variant">{records.length} registros</p>
+          {confirmedCount === 0 && (
+            <button
+              type="button"
+              onClick={seed}
+              className="w-full rounded-xl border border-outline-variant py-3 text-label-md"
+            >
+              {t("brief.seedDemo")}
+            </button>
+          )}
+          <p className="text-caption text-on-surface-variant">
+            {t("brief.records").replace("{count}", String(confirmedCount))}
+          </p>
+          {running && (
+            <div className="grid grid-cols-4 gap-1 text-center text-caption text-on-surface-variant">
+              {["triage", "geo", "pattern", "synth"].map((agent) => (
+                <span key={agent} className="rounded-full bg-surface-container px-2 py-1">
+                  {agent}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {err && (
         <p className="rounded-xl bg-error-container px-4 py-3 text-on-error-container text-label-md">{err}</p>
+      )}
+      {status && (
+        <p className="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-3 text-label-md text-on-surface-variant">
+          {status}
+        </p>
       )}
 
       {brief && (
@@ -102,6 +171,40 @@ export default function AnalysisPage() {
             </ul>
           </Block>
 
+          {brief.geo.length > 0 && (
+            <Block title={t("brief.geo")}>
+              <ul className="space-y-2">
+                {brief.geo.map((place) => (
+                  <li key={place.lugar} className="rounded-lg bg-surface-container p-2 text-body-md">
+                    <div>{place.lugar}</div>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {place.registros.map((id) => (
+                        <span key={id} className="rounded-full bg-surface px-1.5 font-mono text-caption text-primary">
+                          {id.slice(0, 12)}
+                        </span>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </Block>
+          )}
+
+          {brief.entidadesClave.length > 0 && (
+            <Block title={t("brief.keyEntities")}>
+              <div className="flex flex-wrap gap-2">
+                {brief.entidadesClave.map((entity) => (
+                  <span
+                    key={`${entity.tipo}-${entity.nombre}`}
+                    className="rounded-full bg-surface-container px-2 py-1 text-caption text-on-surface-variant"
+                  >
+                    {entity.nombre} · {entity.tipo} · {entity.menciones}
+                  </span>
+                ))}
+              </div>
+            </Block>
+          )}
+
           {brief.recomendaciones.length > 0 && (
             <Block title={t("brief.recommendations")}>
               <ul className="list-inside list-disc text-body-md">
@@ -116,12 +219,33 @@ export default function AnalysisPage() {
             {t("common.loading").replace("…", "")} · {brief.agentesEjecutados.join(" → ")}
           </p>
 
+          {brief.toolLog.length > 0 && (
+            <Block title={t("brief.toolLog")}>
+              <ul className="space-y-1 text-caption text-on-surface-variant">
+                {brief.toolLog.map((event, i) => (
+                  <li key={`${event.agent}-${event.tool}-${i}`}>
+                    <span className="font-mono text-primary">{event.agent}</span> / {event.tool} / {event.status} ·{" "}
+                    {event.note}
+                  </li>
+                ))}
+              </ul>
+            </Block>
+          )}
+
           <div className="flex gap-2">
-            <button className="flex-1 rounded-xl border border-outline-variant py-3 text-label-md">
-              {t("record.exportPdf")}
+            <button
+              onClick={() => download("pdf")}
+              disabled={exporting != null}
+              className="flex-1 rounded-xl border border-outline-variant py-3 text-label-md disabled:opacity-50"
+            >
+              {exporting === "pdf" ? t("common.loading") : t("record.exportPdf")}
             </button>
-            <button className="flex-1 rounded-xl border border-outline-variant py-3 text-label-md">
-              {t("record.deadDrop")}
+            <button
+              onClick={() => download("docx")}
+              disabled={exporting != null}
+              className="flex-1 rounded-xl border border-outline-variant py-3 text-label-md disabled:opacity-50"
+            >
+              {exporting === "docx" ? t("common.loading") : t("record.exportDocx")}
             </button>
           </div>
           <button onClick={() => setBrief(null)} className="w-full py-2 text-label-md text-primary">

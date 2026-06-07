@@ -45,6 +45,26 @@ export function runBrief(req: BriefRequest) {
   return post<IntelBrief>("/api/brief", req);
 }
 
+export type BriefExportFormat = "pdf" | "docx";
+
+export async function exportBrief(req: {
+  brief: IntelBrief;
+  records: IntelRecord[];
+  locale: "es" | "en";
+  format: BriefExportFormat;
+}): Promise<{ blob: Blob; filename: string }> {
+  const res = await fetch("/api/brief/export", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `export ${res.status}`);
+  const filename =
+    res.headers.get("content-disposition")?.match(/filename="([^"]+)"/)?.[1] ??
+    `leclerc-brief.${req.format}`;
+  return { blob: await res.blob(), filename };
+}
+
 export const wallet = {
   generate: () => post<{ seed: string }>("/api/wallet", { action: "generate" }),
   balances: (seed: string) =>

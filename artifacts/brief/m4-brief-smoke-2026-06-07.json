@@ -1,0 +1,163 @@
+{
+  "request": {
+    "focus": "Vector Gris, entrega Darsena 4, herida Sujeto Alfa",
+    "locale": "es",
+    "includeMedic": false,
+    "records": [
+      "smoke-rio-001",
+      "smoke-clinica-002",
+      "smoke-boveda-003"
+    ]
+  },
+  "brief": {
+    "titulo": "Análisis de inteligencia - Vector Gris, entrega Darsena 4, herida Sujeto Alfa",
+    "bottomLine": "Sujeto Alfa está en estado de herida y fue transportado a la Clinica San Telmo, con posibles implicaciones con Kestrel y actividades de Vector Gris en Darsena 4.",
+    "amenazaGlobal": "CRITICO",
+    "hallazgos": [
+      {
+        "texto": "Sujeto Alfa fue atendido en la Clinica San Telmo con un vendaje y apoyo de un tercero, lo que sugiere una posible complicación médica o una actividad de Vector Gris.",
+        "fuentes": [
+          "smoke-clinica-002"
+        ]
+      },
+      {
+        "texto": "Se ha documentado una entrega aplazada de baterias cifradas a Kestrel, lo que podría indicar una interrupción en el plan original de Vector Gris.",
+        "fuentes": [
+          "smoke-boveda-003"
+        ]
+      },
+      {
+        "texto": "Un contacto nocturno entre Vector Gris y un mensajero de Kestrel en el muelle sur podría indicar una coordinación entre ambas entidades para actividades futuras.",
+        "fuentes": [
+          "smoke-rio-001"
+        ]
+      }
+    ],
+    "recomendaciones": [
+      "Monitorear la condición de Sujeto Alfa en la Clinica San Telmo para determinar si hay necesidad de atención adicional o seguimiento."
+    ],
+    "geo": [
+      {
+        "lugar": "Muelle Sur",
+        "registros": [
+          "smoke-rio-001"
+        ]
+      },
+      {
+        "lugar": "Darsena 4",
+        "registros": [
+          "smoke-rio-001",
+          "smoke-boveda-003"
+        ]
+      },
+      {
+        "lugar": "Clinica San Telmo",
+        "registros": [
+          "smoke-clinica-002"
+        ]
+      },
+      {
+        "lugar": "Pasaje Defensa",
+        "registros": [
+          "smoke-clinica-002"
+        ]
+      },
+      {
+        "lugar": "Taller Norte",
+        "registros": [
+          "smoke-boveda-003"
+        ]
+      }
+    ],
+    "entidadesClave": [
+      {
+        "nombre": "Vector Gris",
+        "tipo": "persona",
+        "menciones": 2
+      },
+      {
+        "nombre": "Kestrel",
+        "tipo": "organizacion",
+        "menciones": 2
+      },
+      {
+        "nombre": "Darsena 4",
+        "tipo": "lugar",
+        "menciones": 2
+      },
+      {
+        "nombre": "Clinica San Telmo",
+        "tipo": "organizacion",
+        "menciones": 2
+      },
+      {
+        "nombre": "Taller Norte",
+        "tipo": "organizacion",
+        "menciones": 2
+      },
+      {
+        "nombre": "mensajero Kestrel",
+        "tipo": "persona",
+        "menciones": 1
+      },
+      {
+        "nombre": "Muelle Sur",
+        "tipo": "lugar",
+        "menciones": 1
+      },
+      {
+        "nombre": "Sujeto Alfa",
+        "tipo": "persona",
+        "menciones": 1
+      },
+      {
+        "nombre": "Dra. Marquez",
+        "tipo": "persona",
+        "menciones": 1
+      },
+      {
+        "nombre": "Pasaje Defensa",
+        "tipo": "lugar",
+        "menciones": 1
+      },
+      {
+        "nombre": "Nina",
+        "tipo": "persona",
+        "menciones": 1
+      }
+    ],
+    "agentesEjecutados": [
+      "triage",
+      "geo",
+      "pattern",
+      "synth"
+    ],
+    "toolLog": [
+      {
+        "agent": "triage",
+        "tool": "list_records",
+        "status": "ok",
+        "note": "3 records ranked"
+      },
+      {
+        "agent": "geo",
+        "tool": "extract_locations",
+        "status": "ok",
+        "note": "5 places clustered"
+      },
+      {
+        "agent": "pattern",
+        "tool": "rag_search",
+        "status": "ok",
+        "note": "0 RAG hits"
+      },
+      {
+        "agent": "synth",
+        "tool": "completion_json",
+        "status": "ok",
+        "note": "3 findings synthesized"
+      }
+    ],
+    "generadoEn": 1780805812481
+  }
+}

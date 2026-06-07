@@ -40,7 +40,15 @@ export interface IntelBrief {
   geo: { lugar: string; registros: string[] }[];
   recomendaciones: string[];
   agentesEjecutados: string[];
+  toolLog: BriefToolEvent[];
   generadoEn: number;
+}
+
+export interface BriefToolEvent {
+  agent: string;
+  tool: string;
+  status: "ok" | "fallback" | "error";
+  note: string;
 }
 
 const BRIEF_SCHEMA: Record<string, unknown> = {
@@ -79,16 +87,30 @@ export async function runAnalystDesk(
   const ctx: ToolContext = { records: req.records };
   const llm = await loadLLM("alta");
   const ran: string[] = [];
+  const toolLog: BriefToolEvent[] = [];
+  const logTool = (event: BriefToolEvent) => toolLog.push(event);
 
   // ── Triage agent ────────────────────────────────────────────────────────
   onProgress?.({ agent: "triage", status: "start" });
   const triaged = await listRecords.handler({ limit: 50 }, ctx);
+  logTool({
+    agent: "triage",
+    tool: listRecords.name,
+    status: "ok",
+    note: `${triaged.length} records ranked`,
+  });
   ran.push("triage");
   onProgress?.({ agent: "triage", status: "done", note: `${triaged.length} records` });
 
   // ── Geo agent ─────────────────────────────────────────────────────────────
   onProgress?.({ agent: "geo", status: "start" });
   const geo = await extractLocations.handler({}, ctx);
+  logTool({
+    agent: "geo",
+    tool: extractLocations.name,
+    status: "ok",
+    note: `${geo.length} places clustered`,
+  });
   ran.push("geo");
   onProgress?.({ agent: "geo", status: "done", note: `${geo.length} places` });
 
@@ -101,11 +123,23 @@ export async function runAnalystDesk(
       ctx,
     );
     patternNotes = hits.map((h) => `(id=${h.id}) ${h.text}`).join("\n");
+    logTool({
+      agent: "pattern",
+      tool: ragSearchTool.name,
+      status: "ok",
+      note: `${hits.length} RAG hits`,
+    });
   } catch {
     // RAG not configured yet — fall back to raw records.
     patternNotes = req.records
       .map((r) => `(id=${r.id}) ${r.resumen} | ${r.datos.narrativa}`)
       .join("\n");
+    logTool({
+      agent: "pattern",
+      tool: ragSearchTool.name,
+      status: "fallback",
+      note: "RAG unavailable; used posted records",
+    });
   }
   ran.push("pattern");
   onProgress?.({ agent: "pattern", status: "done" });
@@ -126,6 +160,12 @@ export async function runAnalystDesk(
       { role: "user", content: summarizeRecords(req.records) },
     ];
     medicNote = (await completeText({ modelId: medModel, history: medMsgs, stream: true })).trim();
+    logTool({
+      agent: "medic",
+      tool: "completion",
+      status: "ok",
+      note: "MedPsy path completed",
+    });
     ran.push("medic");
     onProgress?.({ agent: "medic", status: "done" });
   }
@@ -159,16 +199,57 @@ export async function runAnalystDesk(
     BRIEF_SCHEMA,
     "brief",
   );
+  logTool({
+    agent: "synth",
+    tool: "completion_json",
+    status: "ok",
+    note: `${synth.hallazgos.length} findings synthesized`,
+  });
   ran.push("synth");
   onProgress?.({ agent: "synth", status: "done" });
 
+  const normalized = normalizeSynth(synth, req.records);
   return {
-    ...synth,
+    ...normalized,
     geo,
     entidadesClave: aggregateEntities(req.records),
     agentesEjecutados: ran,
+    toolLog,
     generadoEn: Date.now(),
   };
+}
+
+function normalizeSynth(
+  synth: Omit<IntelBrief, "geo" | "entidadesClave" | "agentesEjecutados" | "toolLog" | "generadoEn">,
+  records: IntelRecord[],
+): Omit<IntelBrief, "geo" | "entidadesClave" | "agentesEjecutados" | "toolLog" | "generadoEn"> {
+  const validIds = new Set(records.map((r) => r.id));
+  const fallbackId = records[0]?.id;
+  const hallazgos = synth.hallazgos.length
+    ? synth.hallazgos.map((h, index) => {
+        const fuentes = h.fuentes.filter((id) => validIds.has(id));
+        if (!fuentes.length && fallbackId) {
+          fuentes.push(records[index % records.length]?.id ?? fallbackId);
+        }
+        return { texto: h.texto, fuentes };
+      })
+    : records.slice(0, 3).map((record) => ({ texto: record.resumen, fuentes: [record.id] }));
+
+  return {
+    ...synth,
+    amenazaGlobal: normalizeThreat(synth.amenazaGlobal, records),
+    hallazgos,
+  };
+}
+
+function normalizeThreat(value: ThreatLevel, records: IntelRecord[]): ThreatLevel {
+  const ranked: ThreatLevel[] = ["RUTINARIO", "ELEVADO", "CRITICO"];
+  const evidence = records.reduce(
+    (max, record) => Math.max(max, ranked.indexOf(record.amenaza)),
+    0,
+  );
+  const model = ranked.indexOf(value);
+  return ranked[Math.max(evidence, model < 0 ? 0 : model)];
 }
 
 function summarizeRecords(records: IntelRecord[]): string {
