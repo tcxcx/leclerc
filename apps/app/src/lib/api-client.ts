@@ -6,14 +6,20 @@ import type { IntelBrief, BriefRequest } from "@/lib/agents/orchestrator";
 import type {
   LeclercAssetId,
   LeclercChainId,
+} from "@leclerc/transfer-core";
+import type {
   MissionFundingConfig,
   MissionFundingNotification,
-  RainAgentCardConfig,
   TransferProposal,
+} from "@leclerc/transfers";
+import type {
+  RainAgentCardConfig,
+} from "@leclerc/cards";
+import type {
   WalletAssetBalance,
   WalletReceiveDetails,
   WalletTransaction,
-} from "@leclerc/core";
+} from "@leclerc/wallet";
 
 async function post<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {

@@ -7,9 +7,9 @@ import {
   tokenAddress,
   type LeclercAssetId,
   type LeclercChainId,
-} from "@leclerc/core";
-import { balances } from "@/lib/wallet";
-import { proposeTransfer } from "@/lib/wallet/transfer-confirmation";
+} from "@leclerc/transfer-core";
+import { balances } from "@leclerc/wallet";
+import { proposeTransfer } from "@leclerc/transfers";
 
 const TESTNET_CHAIN_ID = 5042002 satisfies LeclercChainId;
 const SENDABLE_ASSETS = ["usdc", "eurc", "mxnb", "qcad", "audf", "jpyc", "cirbtc"] as const;

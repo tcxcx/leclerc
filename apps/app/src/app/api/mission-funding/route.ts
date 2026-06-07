@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import {
-  getMissionFundingConfig,
+  confirmMissionFunding as confirmMissionFundingTransfer,
   listMissionFundingConfigs,
+  proposeMissionFunding,
   type MissionFundingNotification,
-} from "@leclerc/core";
+} from "@leclerc/transfers";
 import { sendDrop } from "@/lib/p2p/deaddrop";
-import { confirmTransfer, proposeTransfer } from "@/lib/wallet/transfer-confirmation";
 
 export const runtime = "nodejs";
 
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
       case "fund":
         return NextResponse.json(await fundMission(body));
       case "confirm":
-        return NextResponse.json(await confirmMissionFunding(body));
+        return NextResponse.json(await confirmMissionFundingRequest(body));
       default:
         return NextResponse.json({ error: "unknown action" }, { status: 400 });
     }
@@ -48,71 +48,23 @@ export async function POST(req: Request) {
 }
 
 async function fundMission(body: Extract<MissionFundingRequest, { action: "fund" }>) {
-  const missionId = body.missionId?.trim() || "raven";
-  const mission = getMissionFundingConfig(missionId);
-  if (!mission) throw new Error("unknown mission");
-
-  const amount = body.amount?.trim() || mission.defaultAmount;
-  const target = process.env[mission.fundingTargetEnv]?.trim();
-  let notification: MissionFundingNotification;
-
-  if (!target || target === "0x0000000000000000000000000000000000000000") {
-    notification = createNotification({
-      missionId: mission.missionId,
-      assetId: mission.assetId,
-      chainId: mission.chainId,
-      amount,
-      status: "blocked",
-      reason: `${mission.fundingTargetEnv} is not configured`,
-    });
-  } else {
-    const seed = body.seed?.trim();
-    if (!seed) throw new Error("wallet seed required");
-    const proposal = proposeTransfer({
-      seed,
-      to: target,
-      amount,
-      assetId: mission.assetId,
-      chainId: mission.chainId,
-      purpose: "mission-funding",
-      metadata: { missionId: mission.missionId },
-    });
-    return { status: "requires_confirmation", proposal };
-  }
-
-  recordMissionEvent(notification);
-  const peers = await sendNotification(body.dropId, body.secret, notification);
-  return { notification, peers };
-}
-
-async function confirmMissionFunding(body: Extract<MissionFundingRequest, { action: "confirm" }>) {
-  const confirmId = body.confirmId?.trim();
-  if (!confirmId) throw new Error("confirmId required");
-  const result = await confirmTransfer(confirmId);
-  if (result.proposal.purpose !== "mission-funding") throw new Error("confirmation is not for mission funding");
-  const missionId = String(result.proposal.metadata?.missionId ?? "");
-  const mission = getMissionFundingConfig(missionId);
-  if (!mission) throw new Error("unknown mission");
-  const notification = createNotification({
-    missionId: mission.missionId,
-    assetId: result.proposal.assetId,
-    chainId: result.proposal.chainId,
-    amount: result.proposal.amount,
-    status: "submitted",
-    hash: result.hash,
+  const result = proposeMissionFunding({
+    seed: body.seed,
+    missionId: body.missionId,
+    amount: body.amount,
+    env: process.env,
   });
+  if (result.status === "requires_confirmation") return result;
+  recordMissionEvent(result.notification);
+  const peers = await sendNotification(body.dropId, body.secret, result.notification);
+  return { notification: result.notification, peers };
+}
+
+async function confirmMissionFundingRequest(body: Extract<MissionFundingRequest, { action: "confirm" }>) {
+  const notification = await confirmMissionFundingTransfer(body.confirmId ?? "");
   recordMissionEvent(notification);
   const peers = await sendNotification(body.dropId, body.secret, notification);
   return { notification, peers };
-}
-
-function createNotification(input: Omit<MissionFundingNotification, "id" | "kind" | "createdAt">) {
-  return {
-    id: `fund-${input.missionId}-${Date.now()}`,
-    kind: "mission_funding",
-    createdAt: new Date().toISOString(),
-    ...input,
-  } satisfies MissionFundingNotification;
 }
 
 async function sendNotification(

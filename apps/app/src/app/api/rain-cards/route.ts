@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import {
-  listRainAgentCards,
-  rainFundingTarget,
-} from "@leclerc/core";
-import { confirmTransfer, proposeTransfer } from "@/lib/wallet/transfer-confirmation";
+  confirmRainCardFunding,
+  listRainCardsResponse,
+  proposeRainCardFunding,
+} from "@leclerc/cards";
 
 export const runtime = "nodejs";
 
@@ -17,11 +17,18 @@ export async function POST(req: Request) {
     const body = (await req.json()) as RainCardsRequest;
     switch (body.action) {
       case "list":
-        return NextResponse.json(listRainCardsResponse());
+        return NextResponse.json(listRainCardsResponse(process.env));
       case "fund":
-        return NextResponse.json(await fundRainCard(body));
+        return NextResponse.json(
+          proposeRainCardFunding({
+            seed: body.seed ?? "",
+            cardId: body.cardId ?? "",
+            amount: body.amount,
+            env: process.env,
+          }),
+        );
       case "confirm":
-        return NextResponse.json(await confirmRainCard(body));
+        return NextResponse.json(await confirmRainCardFunding(body.confirmId ?? ""));
       default:
         return NextResponse.json({ error: "unknown action" }, { status: 400 });
     }
@@ -31,62 +38,4 @@ export async function POST(req: Request) {
       { status: 500 },
     );
   }
-}
-
-function listRainCardsResponse() {
-  return {
-    cards: listRainAgentCards(),
-    funding: listRainAgentCards().map((card) => {
-      const target = rainFundingTarget(card.id, process.env);
-      return {
-        cardId: card.id,
-        assetId: card.assetId,
-        chainId: card.chainId,
-        configured: target?.configured ?? false,
-        env: target?.env ?? card.fundingDepositEnv,
-      };
-    }),
-  };
-}
-
-async function fundRainCard(body: Extract<RainCardsRequest, { action: "fund" }>) {
-  const seed = body.seed?.trim();
-  if (!seed) throw new Error("wallet seed required");
-  const cardId = body.cardId?.trim();
-  if (!cardId) throw new Error("card id required");
-  const card = listRainAgentCards().find((entry) => entry.id === cardId);
-  if (!card) throw new Error("unknown card");
-  const target = rainFundingTarget(card.id, process.env);
-  if (!target?.configured || !target.depositAddress) {
-    throw new Error(`${card.fundingDepositEnv} must be configured for live Rain card funding`);
-  }
-  const proposal = proposeTransfer({
-    seed,
-    to: target.depositAddress,
-    amount: body.amount?.trim() || card.defaultFundingAmount,
-    assetId: card.assetId,
-    chainId: card.chainId,
-    purpose: "rain-card",
-    metadata: { cardId: card.id },
-  });
-  return {
-    status: "requires_confirmation",
-    proposal,
-  };
-}
-
-async function confirmRainCard(body: Extract<RainCardsRequest, { action: "confirm" }>) {
-  const confirmId = body.confirmId?.trim();
-  if (!confirmId) throw new Error("confirmId required");
-  const result = await confirmTransfer(confirmId);
-  if (result.proposal.purpose !== "rain-card") throw new Error("confirmation is not for Rain card funding");
-  const cardId = String(result.proposal.metadata?.cardId ?? "");
-  return {
-    ok: true,
-    hash: result.hash,
-    cardId,
-    assetId: result.proposal.assetId,
-    chainId: result.proposal.chainId,
-    amount: result.proposal.amountAtomic,
-  };
 }

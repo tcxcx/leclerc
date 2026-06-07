@@ -3,17 +3,18 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
-  explorerTxUrl,
   getLeclercAsset,
   getLeclercChain,
   listLeclercAssets,
-  parseAtomicAmount,
   tokenAddress,
   type LeclercAssetId,
-  type WalletAssetBalance,
-  type WalletReceiveDetails,
-  type WalletTransaction,
-} from "@leclerc/core";
+} from "@leclerc/transfer-core";
+import { explorerTxUrl, fromAtomic, toAtomic } from "@leclerc/transfer-utils";
+import type {
+  WalletAssetBalance,
+  WalletReceiveDetails,
+  WalletTransaction,
+} from "@leclerc/wallet";
 import { GlassIcon } from "@/components/glass-icon";
 import { useI18n } from "@/locales/client";
 import { wallet } from "@/lib/api-client";
@@ -385,7 +386,7 @@ function SendPanel({
 }) {
   const t = useI18n();
   const asset = getLeclercAsset(assetId);
-  const atomic = amount.trim() ? decimalToAtomic(amount, asset.decimals) : "";
+  const atomic = amount.trim() ? previewAtomic(amount, asset.decimals) : "";
   if (stage === "submitted") {
     return (
       <div className="space-y-3 rounded-2xl border border-outline-variant bg-surface-container-low p-4">
@@ -510,7 +511,7 @@ function TransactionsPanel({ transactions }: { transactions: WalletTransaction[]
                 <span className="font-mono text-caption text-ignyte">{tx.status}</span>
               </div>
               <div className="font-mono text-body-md">
-                {formatAtomic(tx.amount, asset.decimals)} {asset.displaySymbol}
+                {formatAtomicPreview(tx.amount, asset.decimals)} {asset.displaySymbol}
               </div>
               {tx.hash && tx.chainId === TESTNET_CHAIN_ID && (
                 <a
@@ -551,7 +552,7 @@ function AssetStat({
         </div>
       </div>
       <div className="truncate font-mono text-body-lg">
-        {status === "ok" ? formatAtomic(value, asset.decimals) : value}
+        {status === "ok" ? formatAtomicPreview(value, asset.decimals) : value}
       </div>
       {status && status !== "ok" && (
         <div className="mt-1 truncate text-[11px] text-on-surface-variant">{status}</div>
@@ -598,24 +599,20 @@ function makeQrCells(value: string, size: number): boolean[] {
   });
 }
 
-function decimalToAtomic(value: string, decimals: number): string {
+function previewAtomic(value: string, decimals: number): string {
   try {
-    return parseAtomicAmount(value, decimals).atomic;
+    return toAtomic(value, decimals).atomic;
   } catch {
     return "";
   }
 }
 
-function formatAtomic(value: string, decimals: number): string {
-  if (!/^\d+$/.test(value)) return value;
-  const padded = value.padStart(decimals + 1, "0");
-  const whole = stripLeadingZeroes(padded.slice(0, -decimals) || "0");
-  const fraction = padded.slice(-decimals).replace(/0+$/, "");
-  return fraction ? `${whole}.${fraction}` : whole.toString();
-}
-
-function stripLeadingZeroes(value: string): string {
-  return value.replace(/^0+(?=\d)/, "") || "0";
+function formatAtomicPreview(value: string, decimals: number): string {
+  try {
+    return fromAtomic(value, decimals).decimal;
+  } catch {
+    return value;
+  }
 }
 
 function onboardingLabel(t: ReturnType<typeof useI18n>, step: Exclude<OnboardingStep, "ready">): string {

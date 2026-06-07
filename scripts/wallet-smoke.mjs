@@ -28,7 +28,7 @@ function evmChainId() {
   return chainId;
 }
 
-function tokenAddress() {
+function configuredTokenAddress() {
   const token = process.env.USDT_ADDRESS?.trim();
   if (!token) return null;
   if (token.toLowerCase() === MAINNET_USDT_ADDRESS.toLowerCase()) {
@@ -81,7 +81,7 @@ async function main() {
       spark: requireTestnetSparkNetwork(),
       evmChainId: evmChainId(),
       evmRpcConfigured: Boolean(process.env.EVM_RPC_URL),
-      tokenConfigured: Boolean(tokenAddress()),
+      tokenConfigured: Boolean(configuredTokenAddress()),
     },
     seed: {
       generated: false,
@@ -110,7 +110,7 @@ async function main() {
     address: await withTimeout("EVM address", evmAccount.getAddress()),
   };
 
-  const token = tokenAddress();
+  const token = configuredTokenAddress();
   if (!token) {
     artifact.checks.evmTokenBalance = {
       status: "SKIPPED",

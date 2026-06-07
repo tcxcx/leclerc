@@ -19,11 +19,19 @@
     "./rpc": "./src/rpc.ts",
     "./surfaces": "./src/surfaces.ts",
     "./tool-router": "./src/tool-router.ts",
+    "./transfers": "./src/transfers.ts",
     "./voice": "./src/voice.ts",
     "./wallet": "./src/wallet.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@leclerc/cards": "workspace:*",
+    "@leclerc/transfer-core": "workspace:*",
+    "@leclerc/transfer-utils": "workspace:*",
+    "@leclerc/transfers": "workspace:*",
+    "@leclerc/wallet": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5"

@@ -13,7 +13,12 @@
       "name": "app",
       "version": "0.1.0",
       "dependencies": {
+        "@leclerc/cards": "workspace:*",
         "@leclerc/core": "workspace:*",
+        "@leclerc/transfer-core": "workspace:*",
+        "@leclerc/transfer-utils": "workspace:*",
+        "@leclerc/transfers": "workspace:*",
+        "@leclerc/wallet": "workspace:*",
         "@modelcontextprotocol/sdk": "^1.29.0",
         "@react-pdf/renderer": "^4.3.0",
         "@repo/qvacs": "workspace:*",
@@ -68,9 +73,28 @@
         "typescript": "^5",
       },
     },
+    "packages/cards": {
+      "name": "@leclerc/cards",
+      "version": "0.1.0",
+      "dependencies": {
+        "@leclerc/transfer-core": "workspace:*",
+        "@leclerc/transfer-utils": "workspace:*",
+        "@leclerc/transfers": "workspace:*",
+      },
+      "devDependencies": {
+        "typescript": "^5",
+      },
+    },
     "packages/core": {
       "name": "@leclerc/core",
       "version": "0.1.0",
+      "dependencies": {
+        "@leclerc/cards": "workspace:*",
+        "@leclerc/transfer-core": "workspace:*",
+        "@leclerc/transfer-utils": "workspace:*",
+        "@leclerc/transfers": "workspace:*",
+        "@leclerc/wallet": "workspace:*",
+      },
       "devDependencies": {
         "typescript": "^5",
       },
@@ -84,6 +108,49 @@
       },
       "devDependencies": {
         "@types/node": "^20",
+        "typescript": "^5",
+      },
+    },
+    "packages/transfer-core": {
+      "name": "@leclerc/transfer-core",
+      "version": "0.1.0",
+      "devDependencies": {
+        "typescript": "^5",
+      },
+    },
+    "packages/transfer-utils": {
+      "name": "@leclerc/transfer-utils",
+      "version": "0.1.0",
+      "dependencies": {
+        "@leclerc/transfer-core": "workspace:*",
+      },
+      "devDependencies": {
+        "typescript": "^5",
+      },
+    },
+    "packages/transfers": {
+      "name": "@leclerc/transfers",
+      "version": "0.1.0",
+      "dependencies": {
+        "@leclerc/transfer-core": "workspace:*",
+        "@leclerc/transfer-utils": "workspace:*",
+        "@leclerc/wallet": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/node": "^20",
+        "typescript": "^5",
+      },
+    },
+    "packages/wallet": {
+      "name": "@leclerc/wallet",
+      "version": "0.1.0",
+      "dependencies": {
+        "@leclerc/transfer-core": "workspace:*",
+        "@tetherto/wdk": "^1.0.0-beta.10",
+        "@tetherto/wdk-wallet-evm": "^1.0.0-beta.13",
+        "@tetherto/wdk-wallet-spark": "^1.0.0-beta.19",
+      },
+      "devDependencies": {
         "typescript": "^5",
       },
     },
@@ -428,11 +495,21 @@
 
     "@js-sdsl/ordered-map": ["@js-sdsl/ordered-map@4.4.2", "", {}, "sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw=="],
 
+    "@leclerc/cards": ["@leclerc/cards@workspace:packages/cards"],
+
     "@leclerc/core": ["@leclerc/core@workspace:packages/core"],
 
     "@leclerc/desktop": ["@leclerc/desktop@workspace:apps/desktop"],
 
     "@leclerc/mobile": ["@leclerc/mobile@workspace:apps/mobile"],
+
+    "@leclerc/transfer-core": ["@leclerc/transfer-core@workspace:packages/transfer-core"],
+
+    "@leclerc/transfer-utils": ["@leclerc/transfer-utils@workspace:packages/transfer-utils"],
+
+    "@leclerc/transfers": ["@leclerc/transfers@workspace:packages/transfers"],
+
+    "@leclerc/wallet": ["@leclerc/wallet@workspace:packages/wallet"],
 
     "@leclerc/worklet": ["@leclerc/worklet@workspace:packages/worklet"],
 
@@ -2334,7 +2411,7 @@
 
     "ua-is-frozen": ["ua-is-frozen@0.1.2", "", {}, "sha512-RwKDW2p3iyWn4UbaxpP2+VxwqXh0jpvdxsYpZ5j/MLLiQOfbsV5shpgQiw93+KMYQPcteeMQ289MaAFzs3G9pw=="],
 
-    "ua-parser-js": ["ua-parser-js@0.7.41", "", { "bin": { "ua-parser-js": "script/cli.js" } }, "sha512-O3oYyCMPYgNNHuO7Jjk3uacJWZF8loBgwrfd/5LE/HyZ3lUIOdniQ7DNXJcIgZbwioZxk0fLfI4EVnetdiX5jg=="],
+    "ua-parser-js": ["ua-parser-js@2.0.10", "", { "dependencies": { "detect-europe-js": "^0.1.2", "is-standalone-pwa": "^0.1.1", "ua-is-frozen": "^0.1.2" }, "bin": { "ua-parser-js": "script/cli.js" } }, "sha512-t+3Ktbq0Ies2vaSezfOaWiolH4OigQIO1dk+1xDpOydB1COVPocVYOrEV5rqZ0kFY9XYG1v9LutCyMgYBpABcw=="],
 
     "udx-native": ["udx-native@1.19.2", "", { "dependencies": { "b4a": "^1.5.0", "bare-events": "^2.2.0", "require-addon": "^1.1.0", "streamx": "^2.22.0" } }, "sha512-RNYh+UhfryCsF5hE2ZOuIqcZ+qdipXK3UsarwxWJwsUQZFE3ybwz0mPjwb5ev1PMBcjFahWiepS/q0wwL51c2g=="],
 
@@ -2475,8 +2552,6 @@
     "@buildonspark/spark-sdk/@noble/curves": ["@noble/curves@1.9.7", "", { "dependencies": { "@noble/hashes": "1.8.0" } }, "sha512-gbKGcRUYIjA3/zCCNaWDciTMFI0dCkvou3TL8Zmy5Nc7sJ47a0jtOeZoTaMxkuqRo9cRhjOdZJXegxYE5FN/xw=="],
 
     "@buildonspark/spark-sdk/bare-fetch": ["bare-fetch@3.0.1", "", { "dependencies": { "bare-form-data": "^1.2.0", "bare-http1": "^4.5.2", "bare-https": "^3.0.0", "bare-mime": "^1.0.0", "bare-stream": "^2.9.1", "bare-url": "^2.4.0", "bare-zlib": "^1.3.0" }, "peerDependencies": { "bare-abort-controller": "*", "bare-buffer": "*" }, "optionalPeers": ["bare-abort-controller", "bare-buffer"] }, "sha512-OWC8Z62E8JmomltTkXt9cCPMPj2DNi2vp66FOj3BkglNKNshZuk8n98Ba3afUxrrM4kv9/eMzh9+U9dXZSQyOg=="],
-
-    "@buildonspark/spark-sdk/ua-parser-js": ["ua-parser-js@2.0.10", "", { "dependencies": { "detect-europe-js": "^0.1.2", "is-standalone-pwa": "^0.1.1", "ua-is-frozen": "^0.1.2" }, "bin": { "ua-parser-js": "script/cli.js" } }, "sha512-t+3Ktbq0Ies2vaSezfOaWiolH4OigQIO1dk+1xDpOydB1COVPocVYOrEV5rqZ0kFY9XYG1v9LutCyMgYBpABcw=="],
 
     "@emnapi/core/tslib": ["tslib@2.8.1", "", {}, "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="],
 
@@ -2667,6 +2742,8 @@
     "expo/expo-file-system": ["expo-file-system@56.0.7", "", { "peerDependencies": { "expo": "*", "react-native": "*" } }, "sha512-dcKzo8ShPloM7jgfnMcJStgQebhP8owVjCkNI/aX6NMFV1CYB8bxKGMdnzJ3mXk5nfaiW+F/lSKr2UIJ02WAUA=="],
 
     "expo-build-properties/ajv": ["ajv@8.20.0", "", { "dependencies": { "fast-deep-equal": "^3.1.3", "fast-uri": "^3.0.1", "json-schema-traverse": "^1.0.0", "require-from-string": "^2.0.2" } }, "sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA=="],
+
+    "expo-device/ua-parser-js": ["ua-parser-js@0.7.41", "", { "bin": { "ua-parser-js": "script/cli.js" } }, "sha512-O3oYyCMPYgNNHuO7Jjk3uacJWZF8loBgwrfd/5LE/HyZ3lUIOdniQ7DNXJcIgZbwioZxk0fLfI4EVnetdiX5jg=="],
 
     "expo-modules-autolinking/commander": ["commander@7.2.0", "", {}, "sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw=="],
 

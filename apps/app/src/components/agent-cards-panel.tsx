@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { getLeclercAsset, getLeclercChain, type RainAgentCardConfig, type TransferProposal } from "@leclerc/core";
+import { getLeclercAsset, getLeclercChain } from "@leclerc/transfer-core";
+import type { RainAgentCardConfig } from "@leclerc/cards";
+import type { TransferProposal } from "@leclerc/transfers";
 import { rainCards } from "@/lib/api-client";
 import { useI18n } from "@/locales/client";
 import { GlassIcon } from "./glass-icon";

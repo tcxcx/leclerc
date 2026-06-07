@@ -10,7 +10,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@leclerc/cards": "workspace:*",
     "@leclerc/core": "workspace:*",
+    "@leclerc/transfer-core": "workspace:*",
+    "@leclerc/transfer-utils": "workspace:*",
+    "@leclerc/transfers": "workspace:*",
+    "@leclerc/wallet": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@react-pdf/renderer": "^4.3.0",
     "@repo/qvacs": "workspace:*",

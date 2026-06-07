@@ -1,6 +1,6 @@
 # Rain Funding Smoke
 
-Created: 2026-06-07T17:03:36.212Z
+Created: 2026-06-07T21:02:40.570Z
 Status: SKIPPED
 
 ## Card
@@ -10,7 +10,7 @@ Status: SKIPPED
 - Chain: Arc Testnet (5042002)
 - Deposit configured: true
 - Route reports configured: true
-- Route check: http://localhost:7001/api/rain-cards
+- Route check: route not reachable at http://localhost:7001: Unable to connect. Is the computer able to access the url?
 - Amount: 25 USDC (25000000 atomic)
 
 ## Result

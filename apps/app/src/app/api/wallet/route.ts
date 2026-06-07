@@ -5,9 +5,9 @@ import {
   generateSeed,
   receiveDetails,
   walletTransactions,
-} from "@/lib/wallet";
-import type { LeclercAssetId, LeclercChainId } from "@leclerc/core";
-import { confirmTransfer, proposeTransfer } from "@/lib/wallet/transfer-confirmation";
+} from "@leclerc/wallet";
+import type { LeclercAssetId, LeclercChainId } from "@leclerc/transfer-core";
+import { confirmTransfer, proposeTransfer } from "@leclerc/transfers";
 
 export const runtime = "nodejs";
 

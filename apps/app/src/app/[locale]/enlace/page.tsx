@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useI18n } from "@/locales/client";
 import { OperationsGlobe } from "@/components/operations-globe";
 import { drop, missionFunding, station } from "@/lib/api-client";
-import type { MissionFundingConfig, MissionFundingNotification, TransferProposal } from "@leclerc/core";
+import type { MissionFundingConfig, MissionFundingNotification, TransferProposal } from "@leclerc/transfers";
 
 /**
  * P2P link/pairing. Shows the station's stable peer key for delegation, and a

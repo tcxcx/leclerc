@@ -3,10 +3,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const APP_DIR = path.join(ROOT, "apps", "app");
 const ARTIFACT_DIR = path.join(ROOT, "artifacts", "wallet");
 const DATE = new Date().toISOString().slice(0, 10);
-const TRANSFER_MODULE = pathToFileURL(path.join(APP_DIR, "src", "lib", "wallet", "transfer-confirmation.ts")).href;
+const TRANSFER_MODULE = pathToFileURL(path.join(ROOT, "packages", "transfers", "src", "index.ts")).href;
 const RECIPIENT = "0x000000000000000000000000000000000000dEaD";
 
 async function loadTransferModule(label) {

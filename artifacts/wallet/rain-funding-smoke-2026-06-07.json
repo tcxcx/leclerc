@@ -1,5 +1,5 @@
 {
-  "createdAt": "2026-06-07T17:03:36.212Z",
+  "createdAt": "2026-06-07T21:02:40.570Z",
   "status": "SKIPPED",
   "env": {
     "appEnvLoaded": true,
@@ -28,10 +28,10 @@
     "depositAddress": "0x97889cb47ccd35f0afbe0cf1067054b0f330c713"
   },
   "route": {
-    "checked": true,
+    "checked": false,
     "configured": true,
-    "source": "http://localhost:7001/api/rain-cards",
-    "reason": ""
+    "source": "direct config fallback",
+    "reason": "route not reachable at http://localhost:7001: Unable to connect. Is the computer able to access the url?"
   },
   "amount": {
     "decimal": "25",

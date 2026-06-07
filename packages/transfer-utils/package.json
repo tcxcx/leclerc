@@ -1,0 +1,26 @@
+{
+  "name": "@leclerc/transfer-utils",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./currency": "./src/currency.ts",
+    "./explorer": "./src/explorer.ts",
+    "./smallest-unit": "./src/smallest-unit.ts",
+    "./transaction-category": "./src/transaction-category.ts",
+    "./transaction-state": "./src/transaction-state.ts",
+    "./transaction-type": "./src/transaction-type.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@leclerc/transfer-core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

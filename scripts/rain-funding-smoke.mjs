@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
@@ -41,15 +41,6 @@ async function loadAppEnv() {
 
 function serializeError(err) {
   return err instanceof Error ? err.message : String(err);
-}
-
-function decimalFromAtomic(atomic, decimals) {
-  const value = BigInt(atomic);
-  const base = 10n ** BigInt(decimals);
-  const whole = value / base;
-  const fraction = value % base;
-  if (fraction === 0n) return whole.toString();
-  return `${whole}.${fraction.toString().padStart(decimals, "0").replace(/0+$/, "")}`;
 }
 
 function liveSteps(card, target) {
@@ -152,16 +143,18 @@ async function checkRainRoute(cardId, fallbackConfigured) {
 
 async function main() {
   const env = await loadAppEnv();
-  const core = await import(appRequire.resolve("@leclerc/core"));
+  const cards = await import(appRequire.resolve("@leclerc/cards"));
+  const transferCore = await import(appRequire.resolve("@leclerc/transfer-core"));
+  const transferUtils = await import(appRequire.resolve("@leclerc/transfer-utils"));
   const WDK = (await import(appRequire.resolve("@tetherto/wdk"))).default;
-  const walletEvm = await import(pathToFileURL(path.join(APP_DIR, "src", "lib", "wallet", "evm.ts")).href);
+  const wallet = await import(appRequire.resolve("@leclerc/wallet"));
 
-  const card = core.listRainAgentCards()[0];
-  const chain = core.getLeclercChain(card.chainId === ARC_TESTNET_CHAIN_ID ? "arc-testnet" : "arbitrum-one");
-  const asset = core.getLeclercAsset(card.assetId);
-  const target = core.rainFundingTarget(card.id, process.env);
-  const amountAtomic = core.rainFundingAmountToAtomic(card, card.defaultFundingAmount);
-  const token = core.tokenAddress(card.assetId, card.chainId);
+  const card = cards.listRainAgentCards()[0];
+  const chain = transferCore.getLeclercChain(card.chainId === ARC_TESTNET_CHAIN_ID ? "arc-testnet" : "arbitrum-one");
+  const asset = transferCore.getLeclercAsset(card.assetId);
+  const target = cards.rainFundingTarget(card.id, process.env);
+  const amountAtomic = cards.rainFundingAmountToAtomic(card, card.defaultFundingAmount);
+  const token = transferCore.tokenAddress(card.assetId, card.chainId);
   const explorerPreview = chain ? `${chain.explorerBaseUrl}/${chain.explorerTxPath}/<tx-hash>` : null;
   const routeCheck = await checkRainRoute(card.id, Boolean(target?.configured));
 
@@ -201,7 +194,7 @@ async function main() {
       reason: routeCheck.reason,
     },
     amount: {
-      decimal: decimalFromAtomic(amountAtomic, asset.decimals),
+      decimal: transferUtils.fromAtomic(amountAtomic, asset.decimals).decimal,
       atomic: amountAtomic,
     },
     sender: {
@@ -269,7 +262,7 @@ async function main() {
   try {
     balance = await withTimeout(
       "Arc-testnet USDC balance",
-      walletEvm.catalogTokenBalanceEvm(seed, card.assetId, card.chainId),
+      wallet.catalogTokenBalanceEvm(seed, card.assetId, card.chainId),
     );
   } catch (err) {
     artifact.result = {
@@ -284,7 +277,7 @@ async function main() {
 
   artifact.sender.address = balance.address;
   artifact.sender.balanceAtomic = balance.balance.toString();
-  artifact.sender.balanceDecimal = decimalFromAtomic(balance.balance, asset.decimals);
+  artifact.sender.balanceDecimal = transferUtils.fromAtomic(balance.balance, asset.decimals).decimal;
 
   const required = BigInt(amountAtomic);
   if (balance.balance < required) {
@@ -301,9 +294,9 @@ async function main() {
   try {
     const result = await withTimeout(
       "Rain card USDC funding transfer",
-      walletEvm.payCatalogTokenEvm(seed, target.depositAddress, amountAtomic, card.assetId, card.chainId),
+      wallet.payCatalogTokenEvm(seed, target.depositAddress, amountAtomic, card.assetId, card.chainId),
     );
-    const explorerUrl = core.explorerTxUrl(chain, result.hash);
+    const explorerUrl = transferUtils.explorerTxUrl(chain, result.hash);
     artifact.status = "PASS";
     artifact.result = {
       hash: result.hash,
