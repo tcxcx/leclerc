@@ -7,7 +7,7 @@ import { ChatBubble } from "@/components/chat-bubble";
 import { Chips } from "@/components/chips";
 import { ActionBar, type BarAction } from "@/components/action-bar";
 import { useVoice } from "@/lib/voice/use-voice";
-import { chat } from "@/lib/api-client";
+import { chat, ragSearch } from "@/lib/api-client";
 import { greeting, starterChips } from "@/lib/agents/persona";
 import { seedDemo, listTransactions } from "@/lib/finance/store-client";
 import { summarize, sassySummary, financeContext } from "@/lib/finance/insights";
@@ -27,13 +27,30 @@ export default function ConsolePage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [ragChips, setRagChips] = useState<{ label: string; onClick: () => void }[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Voice: each completed turn becomes a pair of bubbles.
+  // Live RAG chips: after a turn, surface related dossier hits as tappable chips.
+  function refreshChips(query: string) {
+    ragSearch(query, 4)
+      .then(({ hits }) =>
+        setRagChips(
+          hits.map((h) => ({
+            label: h.text.replace(/\s+/g, " ").trim().slice(0, 36) || h.id.slice(0, 8),
+            onClick: () => router.push(`/${locale}/expediente/${h.id}`),
+          })),
+        ),
+      )
+      .catch(() => setRagChips([]));
+  }
+
+  // Voice: each completed turn becomes a pair of bubbles + refreshed chips.
   const voice = useVoice({
     locale,
-    onTurn: ({ user, assistant }) =>
-      setMessages((m) => [...m, { role: "user", content: user }, { role: "assistant", content: assistant }]),
+    onTurn: ({ user, assistant }) => {
+      setMessages((m) => [...m, { role: "user", content: user }, { role: "assistant", content: assistant }]);
+      refreshChips(user);
+    },
   });
 
   // Seed believable finance demo data once so Spend/insights have something to chew on.
@@ -60,6 +77,7 @@ export default function ConsolePage() {
         { locale, financeContext: ctx },
       );
       setMessages([...next, { role: "assistant", content: answer }]);
+      refreshChips(clean);
     } catch (e) {
       setMessages([...next, { role: "assistant", content: e instanceof Error ? e.message : "error" }]);
     } finally {
@@ -126,6 +144,13 @@ export default function ConsolePage() {
           </div>
         )}
       </div>
+
+      {/* Live RAG chips: related dossier hits, tappable to the source record. */}
+      {ragChips.length > 0 && (
+        <div className="pb-2">
+          <Chips items={ragChips} />
+        </div>
+      )}
 
       <div className="anim-fade flex items-center gap-2 rounded-full border border-outline-variant bg-surface-container/80 px-4 py-2 backdrop-blur">
         <input

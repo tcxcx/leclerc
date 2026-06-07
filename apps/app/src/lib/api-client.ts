@@ -33,6 +33,14 @@ export function ragAsk(query: string, k = 6) {
   });
 }
 
+export function ragSearch(query: string, k = 4) {
+  return post<{ hits: { id: string; text: string; score?: number }[] }>("/api/rag", {
+    action: "search",
+    query,
+    k,
+  });
+}
+
 export function runBrief(req: BriefRequest) {
   return post<IntelBrief>("/api/brief", req);
 }

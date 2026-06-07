@@ -19,6 +19,12 @@ export async function ingest(docs: IngestDoc[]): Promise<void> {
   await ragIngestDocs(RAG_WORKSPACE, embed, docs);
 }
 
+/** Raw top-k dossier hits (for contextual chips under answers). */
+export async function search(query: string, k = 4): Promise<RagHit[]> {
+  const embed = await loadEmbed();
+  return ragQuery(RAG_WORKSPACE, embed, query, k);
+}
+
 export interface GroundedAnswer {
   answer: string;
   sources: { id: string; score?: number }[];
