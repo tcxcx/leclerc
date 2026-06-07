@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { getLeclercAsset, getLeclercChain, type RainAgentCardConfig } from "@leclerc/core";
+import { getLeclercAsset, getLeclercChain, type RainAgentCardConfig, type TransferProposal } from "@leclerc/core";
 import { rainCards } from "@/lib/api-client";
 import { useI18n } from "@/locales/client";
 import { GlassIcon } from "./glass-icon";
@@ -22,6 +22,7 @@ export function AgentCardsPanel() {
   const [selectedId, setSelectedId] = useState("");
   const [seed, setSeed] = useState("");
   const [amount, setAmount] = useState("");
+  const [proposal, setProposal] = useState<TransferProposal | null>(null);
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -45,10 +46,26 @@ export function AgentCardsPanel() {
   async function submitFunding() {
     if (!selected || busy) return;
     setBusy(true);
-    setStatus(t("cards.funding"));
+    setStatus(t("cards.reviewing"));
     try {
       const res = await rainCards.fund(seed, selected.id, amount);
+      setProposal(res.proposal);
+      setStatus(t("cards.reviewReady"));
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : t("cards.fundFailed"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function confirmFunding() {
+    if (!proposal || busy) return;
+    setBusy(true);
+    setStatus(t("cards.funding"));
+    try {
+      const res = await rainCards.confirm(proposal.confirmId);
       setStatus(`${t("cards.funded")} ${res.hash}`);
+      setProposal(null);
       setAmount("");
     } catch (err) {
       setStatus(err instanceof Error ? err.message : t("cards.fundFailed"));
@@ -135,7 +152,10 @@ export function AgentCardsPanel() {
         <div className="text-label-md text-on-surface">{t("cards.fund")}</div>
         <input
           value={seed}
-          onChange={(event) => setSeed(event.target.value)}
+          onChange={(event) => {
+            setSeed(event.target.value);
+            setProposal(null);
+          }}
           type="password"
           autoComplete="off"
           placeholder={t("cards.seedPlaceholder")}
@@ -143,7 +163,10 @@ export function AgentCardsPanel() {
         />
         <input
           value={amount}
-          onChange={(event) => setAmount(event.target.value)}
+          onChange={(event) => {
+            setAmount(event.target.value);
+            setProposal(null);
+          }}
           inputMode="decimal"
           placeholder={t("cards.amountPlaceholder")}
           className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-body-md outline-none"
@@ -161,6 +184,19 @@ export function AgentCardsPanel() {
         >
           {busy ? t("common.loading") : t("cards.submitFunding")}
         </button>
+        {proposal && (
+          <div className="space-y-2 rounded-lg border border-outline-variant bg-surface-container-low p-3">
+            <div className="font-mono text-caption text-on-surface-variant">{proposal.summary}</div>
+            <button
+              type="button"
+              onClick={confirmFunding}
+              disabled={busy}
+              className="w-full rounded-lg bg-primary px-3 py-2 text-on-primary font-label-md disabled:opacity-50"
+            >
+              {busy ? t("common.loading") : t("cards.confirmFunding")}
+            </button>
+          </div>
+        )}
       </div>
 
       {status && (

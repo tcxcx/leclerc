@@ -161,16 +161,16 @@ export const rainCards = {
       seed,
       cardId,
       amount,
-    }).then((proposal) =>
-      post<{
-        ok: true;
-        hash: string;
-        cardId: string;
-        assetId: LeclercAssetId;
-        chainId: LeclercChainId;
-        amount: string;
-      }>("/api/rain-cards", { action: "confirm", confirmId: proposal.proposal.confirmId }),
-    ),
+    }),
+  confirm: (confirmId: string) =>
+    post<{
+      ok: true;
+      hash: string;
+      cardId: string;
+      assetId: LeclercAssetId;
+      chainId: LeclercChainId;
+      amount: string;
+    }>("/api/rain-cards", { action: "confirm", confirmId }),
 };
 
 export const station = {
@@ -210,14 +210,11 @@ export const missionFunding = {
     post<
       | { notification: MissionFundingNotification; peers: number }
       | { status: "requires_confirmation"; proposal: TransferProposal }
-    >("/api/mission-funding", { action: "fund", ...input }).then((res) => {
-      if ("notification" in res) return res;
-      return post<{ notification: MissionFundingNotification; peers: number }>("/api/mission-funding", {
-        action: "confirm",
-        confirmId: res.proposal.confirmId,
-        dropId: input.dropId,
-        secret: input.secret,
-      });
+    >("/api/mission-funding", { action: "fund", ...input }),
+  confirm: (input: { confirmId: string; dropId?: string; secret?: string }) =>
+    post<{ notification: MissionFundingNotification; peers: number }>("/api/mission-funding", {
+      action: "confirm",
+      ...input,
     }),
   events: () => post<{ events: MissionFundingNotification[] }>("/api/mission-funding", { action: "events" }),
 };

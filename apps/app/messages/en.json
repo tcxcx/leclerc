@@ -87,6 +87,9 @@
     "amountPlaceholder": "USDC amount",
     "depositMissing": "Set the Rain funding contract env before live funding:",
     "submitFunding": "Submit card funding",
+    "reviewing": "Preparing funding review...",
+    "reviewReady": "Review the proposal before sending.",
+    "confirmFunding": "Confirm card funding",
     "funding": "Submitting Rain card funding...",
     "funded": "Funding submitted:",
     "fundFailed": "Card funding failed.",
@@ -396,6 +399,8 @@
     "fundingAmount": "Mission amount",
     "fundingRoute": "Event surface",
     "fundMission": "Fund mission",
+    "fundingReviewReady": "Review the mission funding proposal before sending.",
+    "confirmFunding": "Confirm mission funding",
     "pollNotifications": "Poll notifications",
     "peers": "peers",
     "fundingStatus": {

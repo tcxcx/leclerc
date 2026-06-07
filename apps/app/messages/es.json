@@ -87,6 +87,9 @@
     "amountPlaceholder": "Monto USDC",
     "depositMissing": "Configure el contrato de fondeo Rain antes del fondeo real:",
     "submitFunding": "Enviar fondeo de tarjeta",
+    "reviewing": "Preparando revisión de fondeo...",
+    "reviewReady": "Revise la propuesta antes de enviar.",
+    "confirmFunding": "Confirmar fondeo de tarjeta",
     "funding": "Enviando fondeo de tarjeta Rain...",
     "funded": "Fondeo enviado:",
     "fundFailed": "Falló el fondeo de tarjeta.",
@@ -403,6 +406,8 @@
     "fundingAmount": "Monto de misión",
     "fundingRoute": "Superficie de eventos",
     "fundMission": "Fondear misión",
+    "fundingReviewReady": "Revise la propuesta de fondeo de misión antes de enviar.",
+    "confirmFunding": "Confirmar fondeo de misión",
     "pollNotifications": "Revisar notificaciones",
     "peers": "pares",
     "fundingStatus": {

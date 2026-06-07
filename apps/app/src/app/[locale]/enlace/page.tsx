@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useI18n } from "@/locales/client";
 import { OperationsGlobe } from "@/components/operations-globe";
 import { drop, missionFunding, station } from "@/lib/api-client";
-import type { MissionFundingConfig, MissionFundingNotification } from "@leclerc/core";
+import type { MissionFundingConfig, MissionFundingNotification, TransferProposal } from "@leclerc/core";
 
 /**
  * P2P link/pairing. Shows the station's stable peer key for delegation, and a
@@ -25,6 +25,7 @@ export default function LinkPage() {
   const [missionId, setMissionId] = useState("raven");
   const [fundSeed, setFundSeed] = useState("");
   const [fundAmount, setFundAmount] = useState("");
+  const [fundingProposal, setFundingProposal] = useState<TransferProposal | null>(null);
   const [fundingStatus, setFundingStatus] = useState("");
   const [events, setEvents] = useState<MissionFundingNotification[]>([]);
   const [busy, setBusy] = useState(false);
@@ -84,6 +85,7 @@ export default function LinkPage() {
   async function fundMission() {
     setBusy(true);
     try {
+      setFundingProposal(null);
       const res = await missionFunding.fund({
         seed: fundSeed,
         missionId,
@@ -91,6 +93,31 @@ export default function LinkPage() {
         dropId: dropId || undefined,
         secret: secret.trim() || topic.trim() || undefined,
       });
+      if ("proposal" in res) {
+        setFundingProposal(res.proposal);
+        setFundingStatus(t("link.fundingReviewReady"));
+        return;
+      }
+      setFundingStatus(
+        `${t(`link.fundingStatus.${res.notification.status}`)} · ${t("link.peers")} ${res.peers}`,
+      );
+      setEvents((current) => [res.notification, ...current].slice(0, 20));
+    } catch (e) {
+      setFundingStatus(e instanceof Error ? e.message : "mission funding failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function confirmMissionFunding() {
+    if (!fundingProposal) return;
+    setBusy(true);
+    try {
+      const res = await missionFunding.confirm({
+        confirmId: fundingProposal.confirmId,
+        dropId: dropId || undefined,
+        secret: secret.trim() || topic.trim() || undefined,
+      });
+      setFundingProposal(null);
       setFundingStatus(
         `${t(`link.fundingStatus.${res.notification.status}`)} · ${t("link.peers")} ${res.peers}`,
       );
@@ -199,6 +226,7 @@ export default function LinkPage() {
             setMissionId(next);
             const mission = missions.find((entry) => entry.missionId === next);
             setFundAmount(mission?.defaultAmount ?? "");
+            setFundingProposal(null);
           }}
           className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-body-md"
         >
@@ -210,7 +238,10 @@ export default function LinkPage() {
         </select>
         <input
           value={fundSeed}
-          onChange={(event) => setFundSeed(event.target.value)}
+          onChange={(event) => {
+            setFundSeed(event.target.value);
+            setFundingProposal(null);
+          }}
           type="password"
           autoComplete="off"
           placeholder={t("link.fundingSeed")}
@@ -218,7 +249,10 @@ export default function LinkPage() {
         />
         <input
           value={fundAmount}
-          onChange={(event) => setFundAmount(event.target.value)}
+          onChange={(event) => {
+            setFundAmount(event.target.value);
+            setFundingProposal(null);
+          }}
           inputMode="decimal"
           placeholder={t("link.fundingAmount")}
           className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 font-mono text-body-md"
@@ -243,6 +277,19 @@ export default function LinkPage() {
             {t("link.pollNotifications")}
           </button>
         </div>
+        {fundingProposal && (
+          <div className="space-y-2 rounded-xl border border-outline-variant bg-surface p-3">
+            <p className="font-mono text-caption text-on-surface-variant">{fundingProposal.summary}</p>
+            <button
+              type="button"
+              onClick={confirmMissionFunding}
+              disabled={busy}
+              className="w-full rounded-xl bg-primary py-2.5 text-on-primary font-label-md disabled:opacity-50"
+            >
+              {busy ? "..." : t("link.confirmFunding")}
+            </button>
+          </div>
+        )}
         {fundingStatus && <p className="text-label-md text-on-surface-variant">{fundingStatus}</p>}
         {events.length > 0 && (
           <ul className="space-y-1">
