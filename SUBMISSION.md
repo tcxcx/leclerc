@@ -105,5 +105,7 @@ stay representative for a <=32 GiB judging laptop.
 - `LECLERC_MEDPSY_SRC` is not set, so the Our Psy path is partial.
 - Delegated completion failed in self-provider mode with `PEER_CONNECTION_FAILED`;
   proving it needs a second DHT-reachable provider process/device.
-- Desktop and mobile shells are M10/M11 stretch work, not part of the current
-  shippable PWA proof.
+- Desktop and mobile shells are M10/M11 stretch scaffolds: they compile, import
+  `@leclerc/core` and `@leclerc/worklet`, and smoke to the expected
+  `missing-adapter` state, but native runtime dependencies and the QVAC/WDK/
+  Hyperswarm adapter are not vendored yet.

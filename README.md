@@ -3,7 +3,8 @@
 LeClerc is "Cleo for spies": a local-first, voice-first field handler that runs
 intel capture, dossier recall, analyst briefs, dead drops, and testnet wallet
 flows from the operative's machine. The PWA is the required shipping surface; the
-desktop and mobile native shells are planned in `docs/leclerc/14-surfaces-and-shared-core.md`.
+desktop and mobile native shells are scaffolded in this repo and tracked in
+`docs/leclerc/14-surfaces-and-shared-core.md`.
 
 The hard rule is simple: all AI inference and RAG go through `@qvac/sdk`. No
 third-party model API, browser inference fallback, or external vector database is
@@ -91,12 +92,16 @@ It should return no matches.
 ## Repository
 
 ```text
-apps/app/          Next.js 16 PWA, Route Handlers, Cleo UI
-packages/qvacs/    Server-only QVAC SDK wrapper and RAG helpers
-services/voice/    Continuous VAD voice WebSocket service
-scripts/           Runtime smokes and artifact capture
-docs/leclerc/      Product, architecture, design, and overnight build brief
-artifacts/         Smoke logs, screenshots, profiler data, export proof
+apps/app/           Next.js 16 PWA, Route Handlers, Cleo UI
+apps/desktop/       Pear + Electron shell scaffold
+apps/mobile/        Expo + Bare shell scaffold
+packages/core/      Runtime-agnostic LeClerc contracts and pure helpers
+packages/qvacs/     Server-only QVAC SDK wrapper and RAG helpers
+packages/worklet/   Bare worklet RPC scaffold for native surfaces
+services/voice/     Continuous VAD voice WebSocket service
+scripts/            Runtime smokes and artifact capture
+docs/leclerc/       Product, architecture, design, and overnight build brief
+artifacts/          Smoke logs, screenshots, profiler data, export proof
 ```
 
 ## Current Partials
@@ -106,5 +111,6 @@ artifacts/         Smoke logs, screenshots, profiler data, export proof
 - MedPsy requires `LECLERC_MEDPSY_SRC`.
 - P2P delegated completion needs a second DHT-reachable provider process/device;
   the encrypted dead-drop path is proven.
-- Desktop and mobile shells are not yet implemented; the PWA is the shippable
-  surface for M1-M9.
+- Desktop and mobile shells compile as scaffolds and share `@leclerc/core`, but
+  the native QVAC/WDK/Hyperswarm adapter plus Electron/Pear and Expo/Bare
+  runtime dependencies are not vendored yet.
