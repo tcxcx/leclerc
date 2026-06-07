@@ -18,6 +18,7 @@
     "voice:smoke": "bun --filter voice smoke",
     "qvac:artifacts": "bun scripts/qvac-artifacts.mjs",
     "wallet:smoke": "bun scripts/wallet-smoke.mjs",
+    "transfer:smoke": "bun --conditions react-server scripts/transfer-confirmation-smoke.mjs",
     "rain:smoke": "bun scripts/rain-funding-smoke.mjs",
     "build": "turbo build",
     "start": "turbo start",

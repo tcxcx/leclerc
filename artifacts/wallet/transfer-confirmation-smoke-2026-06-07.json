@@ -1,0 +1,13 @@
+{
+  "createdAt": "2026-06-07T20:34:52.497Z",
+  "status": "PASS",
+  "checks": [
+    "proposal remains pending across fresh module import in the same server process",
+    "confirm executes through injected testnet-only executor without live network send",
+    "confirm is single-use",
+    "tampered stored transfer fails HMAC integrity verification",
+    "read-only Arbitrum One proposal is rejected before confirm"
+  ],
+  "seedPrinted": false,
+  "liveTransfer": false
+}
