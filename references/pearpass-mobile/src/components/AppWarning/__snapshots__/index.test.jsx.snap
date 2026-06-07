@@ -1,0 +1,89 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AppWarning renders correctly with custom container and text styles 1`] = `
+<View
+  style={
+    [
+      {
+        "backgroundColor": "rgb(47, 38, 14)",
+        "borderColor": "#FFAE00",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "padding": 10,
+        "width": "100%",
+      },
+      {
+        "marginBottom": 15,
+      },
+    ]
+  }
+>
+  <Text
+    testID="yellow-error-icon"
+  >
+    Icon
+  </Text>
+  <Text
+    style={
+      [
+        {
+          "color": "#F6F6F6",
+          "flex": 1,
+          "fontSize": 14,
+          "fontWeight": "400",
+          "marginLeft": 5,
+        },
+        {
+          "flex": 0,
+        },
+      ]
+    }
+  >
+    Styled warning
+  </Text>
+</View>
+`;
+
+exports[`AppWarning renders correctly with default styles 1`] = `
+<View
+  style={
+    [
+      {
+        "backgroundColor": "rgb(47, 38, 14)",
+        "borderColor": "#FFAE00",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "padding": 10,
+        "width": "100%",
+      },
+      undefined,
+    ]
+  }
+>
+  <Text
+    testID="yellow-error-icon"
+  >
+    Icon
+  </Text>
+  <Text
+    style={
+      [
+        {
+          "color": "#F6F6F6",
+          "flex": 1,
+          "fontSize": 14,
+          "fontWeight": "400",
+          "marginLeft": 5,
+        },
+        undefined,
+      ]
+    }
+  >
+    Test warning
+  </Text>
+</View>
+`;

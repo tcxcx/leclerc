@@ -38,6 +38,18 @@ Exact assets to lift from sibling repos in `~/coding-dojo/`. Copy patterns/files
 |---|---|---|
 | Privacy hook / shielded withdrawal | `contracts/src/hub/FxPrivacy*.sol`, `packages/sdk/src/privacy/*` | **Reference only** — post-v1 stretch if on-chain privacy is wanted beyond Lightning |
 
+## From `references/` (Tether PearPass — vendored benchmark)
+The richest reference for the net-new P2P/Bare/encryption work. Full concern→file map in [12 · reference-apps](./12-reference-apps.md).
+| Asset | Path | Use for |
+|---|---|---|
+| Bare worklet host (RN) | `references/pearpass-mobile/src/worklet/index.js` | How to run `@qvac/sdk`/WDK in Bare on mobile ([05](./05-p2p.md)) |
+| Electron ↔ worklet bridge | `references/pearpass-desktop/src/electron/vaultClientProxy.js`, `src/services/createOrGetPearpassClient.js` | Desktop client-proxy pattern |
+| Identity / session / crypto | `references/pearpass-desktop/src/services/security/{appIdentity,sessionManager}.js` | Seed/dossier at rest, lock/unlock ([03](./03-data-and-rag.md), [06](./06-wallet.md)) |
+| QR pairing + import | `references/pearpass-mobile/src/hooks/useQRScanner.js`, `.../screens/ImportItems` | Dead-drop pairing ([05](./05-p2p.md)) |
+| Offline job queue | `references/pearpass-mobile/src/jobQueue/*` | Deferred sends when offline |
+
+> ⚠️ PearPass's P2P/CRDT engine is in its dep `@tetherto/pearpass-lib-vault-core` (Bare worklet), not these shells. The shells are the bridge benchmark.
+
 ## From `desk-v1`
 | Asset | Path | Use for |
 |---|---|---|

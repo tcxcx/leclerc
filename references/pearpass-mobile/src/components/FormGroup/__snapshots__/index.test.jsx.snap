@@ -1,0 +1,100 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FormGroup component renders children correctly 1`] = `
+<View
+  style={
+    [
+      {
+        "flexDirection": "column",
+        "gap": 10,
+        "width": "100%",
+      },
+      undefined,
+    ]
+  }
+>
+  <View>
+    <View
+      testID="child-0"
+    >
+      <Text>
+        Child 
+        0
+      </Text>
+      <Text
+        testID="first-prop"
+      >
+        first
+      </Text>
+      <Text
+        testID="last-prop"
+      >
+        not-last
+      </Text>
+      <Text
+        testID="focused"
+      >
+        not-focused
+      </Text>
+      <View
+        onFocus={[Function]}
+        testID="focus-trigger"
+      />
+    </View>
+    <View
+      testID="child-1"
+    >
+      <Text>
+        Child 
+        1
+      </Text>
+      <Text
+        testID="first-prop"
+      >
+        not-first
+      </Text>
+      <Text
+        testID="last-prop"
+      >
+        not-last
+      </Text>
+      <Text
+        testID="focused"
+      >
+        not-focused
+      </Text>
+      <View
+        onFocus={[Function]}
+        testID="focus-trigger"
+      />
+    </View>
+    <View
+      testID="child-2"
+    >
+      <Text>
+        Child 
+        2
+      </Text>
+      <Text
+        testID="first-prop"
+      >
+        not-first
+      </Text>
+      <Text
+        testID="last-prop"
+      >
+        last
+      </Text>
+      <Text
+        testID="focused"
+      >
+        not-focused
+      </Text>
+      <View
+        onFocus={[Function]}
+        testID="focus-trigger"
+      />
+    </View>
+  </View>
+</View>
+`;

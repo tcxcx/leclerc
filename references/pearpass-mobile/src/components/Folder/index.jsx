@@ -1,0 +1,103 @@
+import { useLingui } from '@lingui/react/macro'
+import { Check, MoreVert } from '@tetherto/pearpass-lib-ui-kit/icons'
+import { colors } from 'src/utils/colors'
+
+import {
+  FolderContainer,
+  FolderContent,
+  FolderCount,
+  FolderText,
+  FolderWrapper
+} from './styles'
+import { useBottomSheet } from '../../context/BottomSheetContext'
+
+/**
+ *
+ * @param {{
+ *  folder: any
+ *  isLast: boolean
+ *  onFolderSelect: (folder: any) => void
+ *  onCreateNewFolder: () => void
+ *  isFilter: boolean
+ *  isActive: boolean
+ * }} props
+ * @returns
+ */
+export const Folder = ({
+  folder,
+  isLast,
+  onFolderSelect,
+  onLongPress,
+  onCreateNewFolder,
+  isActive
+}) => {
+  const { t } = useLingui()
+  const { collapse } = useBottomSheet()
+
+  const handlePress = () => {
+    collapse()
+
+    if (folder.isCreateNew) {
+      onCreateNewFolder()
+      return
+    }
+
+    onFolderSelect(folder)
+  }
+
+  const getTestID = () => {
+    if (folder.id === 'allFolder') return 'sidebar-all-folders'
+    if (folder.id === 'favorite') return 'sidebar-favorites'
+    if (folder.id === 'authenticator') return 'sidebar-authenticator'
+    if (folder.isCreateNew) return 'sidebar-create-new'
+    return undefined
+  }
+
+  const getCountTestID = () => {
+    if (folder.id === 'allFolder') return 'sidebar-all-folders-count'
+    if (folder.id === 'favorite') return 'sidebar-favorites-count'
+    return undefined
+  }
+
+  const getActiveCheckTestID = () => {
+    if (folder.id === 'allFolder') return 'sidebar-all-folders-active'
+    if (folder.id === 'favorite') return 'sidebar-favorites-active'
+    if (folder.id === 'authenticator') return 'sidebar-authenticator-active'
+    if (folder.isCreateNew) return 'sidebar-create-new-active'
+    return `sidebar-folder-${folder.id}-active`
+  }
+
+  return (
+    <FolderWrapper
+      last={isLast}
+      onLongPress={onLongPress}
+      onPress={handlePress}
+      testID={getTestID()}
+    >
+      <FolderContainer>
+        {folder.icon}
+
+        <FolderContent>
+          <FolderText>{folder.name}</FolderText>
+
+          {!folder.isCreateNew && !folder.isAuthenticator && (
+            <FolderCount testID={getCountTestID()}>
+              {folder.count ?? 0} {t`items`}
+            </FolderCount>
+          )}
+        </FolderContent>
+
+        {isActive && (
+          <Check
+            testID={getActiveCheckTestID()}
+            color={colors.primary400.mode1}
+            width="24"
+            height="24"
+          />
+        )}
+      </FolderContainer>
+
+      <MoreVert width="21" height="21" />
+    </FolderWrapper>
+  )
+}

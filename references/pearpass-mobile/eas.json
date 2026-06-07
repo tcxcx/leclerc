@@ -1,0 +1,62 @@
+{
+  "cli": {
+    "version": ">= 14.3.1",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "credentialsSource": "local",
+      "node": "22.12.0",
+      "ios": {
+        "image": "macos-sequoia-15.6-xcode-26.0"
+      }
+    },
+    "preview": {
+      "autoIncrement": true,
+      "credentialsSource": "local",
+      "node": "22.12.0",
+      "ios": {
+        "image": "macos-sequoia-15.6-xcode-26.0"
+      }
+    },
+    "preview-apk": {
+      "extends": "preview",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "credentialsSource": "local",
+      "node": "22.12.0",
+      "ios": {
+        "scheme": "pearpassappmobile",
+        "image": "macos-sequoia-15.6-xcode-26.0"
+      }
+    },
+    "production-apk": {
+      "extends": "production",
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "completed",
+        "serviceAccountKeyPath": "google-service-account.json"
+      },
+      "ios": {
+        "ascAppId": "6752954830",
+        "ascApiKeyPath": "apple-asc-api-key.p8",
+        "ascApiKeyIssuerId": "2067dae8-140d-4016-9a2b-d6ea80a20708",
+        "ascApiKeyId": "S3AG2UXSC5",
+        "appleTeamId": "43QFHSJ5QR"
+      }
+    }
+  }
+}

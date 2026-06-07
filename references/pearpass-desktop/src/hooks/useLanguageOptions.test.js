@@ -1,0 +1,43 @@
+import { renderHook } from '@testing-library/react'
+
+import { useLanguageOptions } from './useLanguageOptions'
+
+jest.mock('@lingui/react', () => ({
+  useLingui: () => ({
+    i18n: { _: (str) => str }
+  })
+}))
+
+jest.mock('@tetherto/pearpass-lib-constants', () => ({
+  LANGUAGES: [
+    { value: 'en' },
+    { value: 'it' },
+    { value: 'es' },
+    { value: 'fr' }
+  ]
+}))
+
+describe('useLanguageOptions', () => {
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+  it('should return language options with correct labels and values', () => {
+    const { result } = renderHook(() => useLanguageOptions())
+
+    expect(result.current.languageOptions).toEqual([
+      { label: 'English', value: 'en', testId: 'settings-language-en' },
+      { label: 'Italian', value: 'it', testId: 'settings-language-it' },
+      { label: 'Spanish', value: 'es', testId: 'settings-language-es' },
+      { label: 'French', value: 'fr', testId: 'settings-language-fr' }
+    ])
+  })
+
+  it('should memoize the language options', () => {
+    const { result, rerender } = renderHook(() => useLanguageOptions())
+    const firstResult = result.current.languageOptions
+
+    rerender()
+
+    expect(result.current.languageOptions).toStrictEqual(firstResult)
+  })
+})

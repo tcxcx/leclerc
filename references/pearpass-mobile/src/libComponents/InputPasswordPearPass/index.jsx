@@ -1,0 +1,128 @@
+import { useRef, useState } from 'react'
+
+import {
+  ErrorFilled,
+  EyeFilled,
+  EyeOutlined,
+  LockFilled
+} from '@tetherto/pearpass-lib-ui-kit/icons'
+
+import { ButtonLittle } from '../ButtonLittle'
+import {
+  AdditionalItems,
+  ErrorMessage,
+  ErrorMessageWrapper,
+  IconWrapper,
+  Input,
+  InputWrapper,
+  MainWrapper
+} from './styles'
+
+/**
+ * @param {{
+ *  value?: string,
+ *  onChange?: (e?: string) => void,
+ *  error?: string,
+ *  placeholder?: string,
+ *  isDisabled?: boolean,
+ *  isFirst?: boolean,
+ *  isLast?: boolean,
+ *  onClick?: () => void,
+ *  type?: 'text' | 'password',
+ *  isPassword: boolean,
+ *  as?: AsTarget
+ *  testID?: string
+ *  toggleVisibilityTestID?: string
+ *  errorTestID?: string
+ * }} props
+ */
+export const InputPasswordPearPass = ({
+  value,
+  onChange,
+  error,
+  placeholder,
+  isDisabled,
+  isFirst = false,
+  isLast = false,
+  type = 'text',
+  isPassword,
+  onClick,
+  as,
+  testID,
+  toggleVisibilityTestID,
+  errorTestID
+}) => {
+  const inputRef = useRef(null)
+  const [isFocused, setIsFocused] = useState(false)
+  const [isVisible, setIsVisible] = useState(!isPassword)
+
+  const handleChange = (e) => {
+    if (isDisabled) {
+      return
+    }
+    onChange?.(e)
+  }
+
+  const handleClick = () => {
+    inputRef.current?.focus()
+
+    onClick?.()
+  }
+
+  return (
+    <InputWrapper
+      onPress={handleClick}
+      isFirst={isFirst}
+      isLast={isLast}
+      isFocused={isFocused}
+      isPassword={isPassword}
+      testID={testID}
+    >
+      {isPassword && (
+        <IconWrapper>
+          <LockFilled width="21" height="21" />
+        </IconWrapper>
+      )}
+
+      <MainWrapper>
+        <Input
+          ref={inputRef}
+          value={value}
+          onChangeText={handleChange}
+          placeholder={placeholder}
+          editable={!isDisabled}
+          secureTextEntry={!isVisible}
+          isPassword
+          type={type}
+          testID={testID ? `${testID}-field` : undefined}
+          accessibilityLabel={testID ? `${testID}-field` : undefined}
+          onFocus={() => {
+            setIsFocused(true)
+          }}
+          onBlur={() => {
+            setIsFocused(false)
+          }}
+          as={as}
+        />
+
+        {!!error?.length && (
+          <ErrorMessageWrapper testID={errorTestID}>
+            <ErrorFilled width="10" height="10" />
+            <ErrorMessage> {error} </ErrorMessage>
+          </ErrorMessageWrapper>
+        )}
+      </MainWrapper>
+      {isPassword && (
+        <AdditionalItems>
+          <ButtonLittle
+            variant="secondary"
+            borderRadius="md"
+            onPress={() => setIsVisible(!isVisible)}
+            startIcon={isVisible ? EyeFilled : EyeOutlined}
+            testID={toggleVisibilityTestID}
+          />
+        </AdditionalItems>
+      )}
+    </InputWrapper>
+  )
+}

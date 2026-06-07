@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`KeyboardAvoidingWrapper component renders correctly with children 1`] = `
+<div
+  behavior="padding"
+  testID="keyboard-avoid"
+>
+  <View
+    testID="test-child"
+  />
+</div>
+`;

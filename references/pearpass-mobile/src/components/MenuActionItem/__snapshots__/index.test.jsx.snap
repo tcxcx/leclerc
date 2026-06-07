@@ -1,0 +1,72 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MenuActionItem renders correctly with item data 1`] = `
+<View
+  testID="menu-item-wrapper"
+>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "opacity": 1,
+      }
+    }
+    testID="menu-item-container"
+  >
+    <View
+      testID="item-container"
+    >
+      <mockSortIcon
+        height="24"
+        testID="sort-icon"
+        width="24"
+      />
+      <Text
+        testID="record-text"
+      >
+        Name A-Z
+      </Text>
+    </View>
+    <View
+      testID="menu-item-right-side"
+    >
+      <mockCheck
+        height={24}
+        testID="check-icon"
+        width={24}
+      />
+      <mockMoreVert
+        height={24}
+        testID="kebab-menu-icon"
+        width={24}
+      />
+    </View>
+  </View>
+</View>
+`;

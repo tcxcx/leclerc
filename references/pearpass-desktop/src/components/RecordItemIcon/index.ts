@@ -1,0 +1,1 @@
+export { RecordItemIcon } from './RecordItemIcon'

@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ToastCard handles empty text gracefully 1`] = `
+<View
+  testID="toast-container"
+>
+  <Text
+    testID="toast-text"
+  />
+</View>
+`;
+
+exports[`ToastCard handles undefined renderLeadingIcon gracefully 1`] = `
+<View
+  testID="toast-container"
+>
+  <Text
+    testID="toast-text"
+  >
+    Test Toast Message
+  </Text>
+</View>
+`;
+
+exports[`ToastCard renders correctly with text and leading icon 1`] = `
+<View
+  testID="toast-container"
+>
+  <View
+    testID="mock-icon"
+  />
+  <Text
+    testID="toast-text"
+  >
+    Test Toast Message
+  </Text>
+</View>
+`;
+
+exports[`ToastCard renders correctly with text only 1`] = `
+<View
+  testID="toast-container"
+>
+  <Text
+    testID="toast-text"
+  >
+    Test Toast Message
+  </Text>
+</View>
+`;

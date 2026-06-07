@@ -1,0 +1,1 @@
+export { ItemCardIllustration } from './ItemCardIllustration'

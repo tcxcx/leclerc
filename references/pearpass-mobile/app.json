@@ -1,0 +1,161 @@
+{
+  "expo": {
+    "name": "PearPass",
+    "slug": "pearpass",
+    "icon": "./assets/images/appIcons/app-icon.png",
+    "version": "2.2.0",
+    "android": {
+      "package": "com.pears.pass",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/appIcons/adaptive-icon.png",
+        "backgroundColor": "#232323"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.pears.pass",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "This app requires access to your photo library to allow you to select and upload photos.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "supportsTablet": false,
+      "runtimeVersion": {
+        "policy": "sdkVersion"
+      },
+      "usesNonExemptEncryption": false,
+      "scheme": "pearpassappmobile",
+      "appleTeamId": "43QFHSJ5QR",
+      "entitlements": {
+        "com.apple.developer.authentication-services.autofill-credential-provider": true,
+        "com.apple.security.application-groups": ["group.com.pears.pass"]
+      },
+      "privacyManifests": {
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": ["0A2A.1", "3B52.1", "C617.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
+            "NSPrivacyAccessedAPITypeReasons": ["E174.1", "85F4.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
+          }
+        ],
+        "NSPrivacyCollectedDataTypes": [],
+        "NSPrivacyTracking": false
+      }
+    },
+    "plugins": [
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "Allow $(PRODUCT_NAME) to access your camera to scan QR codes for securely pairing your vault with another device.",
+          "enableCodeScanner": false,
+          "enableLocation": false
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "assets/fonts/humble-nostalgia.otf",
+            "assets/fonts/inter.ttf"
+          ],
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "Humble Nostalgia",
+                "fontDefinitions": [
+                  {
+                    "path": "assets/fonts/humble-nostalgia.otf",
+                    "weight": 400,
+                    "style": "normal"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expo-asset",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 29,
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "extraProguardRules": "-keep class com.swmansion.reanimated.** { *; }\n-keep class com.facebook.react.turbomodule.** { *; }\n-keep class to.pear.bare.** { *; }",
+            "usesCleartextTraffic": true
+          },
+          "ios": {
+            "deploymentTarget": "15.1",
+            "extraPods": [
+              {
+                "name": "ZXingObjC",
+                "modular_headers": true
+              }
+            ]
+          }
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID or Touch ID to quickly and securely unlock your vault without entering your master password."
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true,
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID or Touch ID to quickly and securely unlock your vault without entering your master password."
+        }
+      ],
+      "expo-video",
+      "./plugins/withAppConfig",
+      "./plugins/withRiveAssets",
+      "./plugins/withNativeClipboard",
+      "./plugins/withCustomSplashScreen"
+    ],
+    "extra": {
+      "appVersion": "2.2.0",
+      "eas": {
+        "projectId": "28facb62-e2a2-4b6c-bc3f-0f5469e79415",
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "PearPassAutoFillExtension",
+                  "bundleIdentifier": "com.pears.pass.PearPassAutoFillExtension",
+                  "entitlements": {
+                    "com.apple.developer.authentication-services.autofill-credential-provider": true,
+                    "com.apple.security.application-groups": [
+                      "group.com.pears.pass"
+                    ],
+                    "keychain-access-groups": [
+                      "$(AppIdentifierPrefix)com.pears.pass"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

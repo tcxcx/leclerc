@@ -1,0 +1,14 @@
+@layer reset;
+@react-strict-dom;
+
+/*
+ * Hide UI Kit Dialog's built-in backdrop; dimming is provided by <Overlay>.
+ *
+ * TODO: this couples to Dialog's internal DOM (first-div sibling of [role='dialog'])
+ * and silently no-ops if the kit reorders its wrapper. Raise a `hideBackdrop` /
+ * `disableBackdrop` prop with the ui-kit team and replace this override.
+ */
+*:has(> div > [role='dialog']) > div:first-child {
+  background: transparent !important;
+  animation: none !important;
+}

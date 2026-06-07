@@ -1,0 +1,159 @@
+import React, { useState } from 'react'
+
+import { ContentCopy } from '@tetherto/pearpass-lib-ui-kit/icons'
+
+import { useCopyToClipboard } from './useCopyToClipboard.electron'
+import { useTranslation } from './useTranslation'
+import { ExtensionPairingModalContent } from '../containers/Modal/ExtensionPairingModalContent/ExtensionPairingModalContent'
+import { useGlobalLoading } from '../context/LoadingContext.js'
+import { useModal } from '../context/ModalContext'
+import { useToast } from '../context/ToastContext'
+import { getElectronConfig } from '../electron'
+import { createOrGetPearpassClient } from '../services/createOrGetPearpassClient'
+import {
+  isNativeMessagingIPCRunning,
+  startNativeMessagingIPC,
+  stopNativeMessagingIPC
+} from '../services/nativeMessagingIPCServer'
+import {
+  getNativeMessagingEnabled,
+  setNativeMessagingEnabled
+} from '../services/nativeMessagingPreferences'
+import {
+  getFingerprint,
+  getOrCreateIdentity,
+  getPairingToken,
+  resetIdentity
+} from '../services/security/appIdentity'
+import { clearAllSessions } from '../services/security/sessionStore.js'
+import {
+  setupNativeMessaging,
+  killNativeMessagingHostProcesses,
+  cleanupNativeMessaging
+} from '../utils/nativeMessagingSetup'
+
+export const useConnectExtension = () => {
+  const { setModal } = useModal()
+  const { setToast } = useToast()
+  const { t } = useTranslation()
+
+  const { copyToClipboard } = useCopyToClipboard({
+    onCopy: () => setToast({ message: t('Copied!'), icon: ContentCopy })
+  })
+
+  const [isBrowserExtensionEnabled, setIsBrowserExtensionEnabled] = useState(
+    getNativeMessagingEnabled() && isNativeMessagingIPCRunning()
+  )
+
+  const handleSetupExtension = async () => {
+    // Setup native messaging for the extension
+    const config = await getElectronConfig()
+    const result = await setupNativeMessaging({
+      userDataPath: config.userDataPath,
+      execPath: config.execPath,
+      bridgePath: config.bridgePath
+    })
+
+    if (result.success) {
+      // Kill any existing native host so Chrome respawns it and re-reads the manifest
+      await killNativeMessagingHostProcesses()
+      // Start native messaging IPC server
+      const client = createOrGetPearpassClient()
+      await startNativeMessagingIPC(client)
+      setNativeMessagingEnabled(true)
+      setIsBrowserExtensionEnabled(true)
+      setToast({
+        message: t('PearPass ready for extension connection.')
+      })
+    } else {
+      const errorMessage = result.message || t('Setup failed')
+      throw new Error(errorMessage)
+    }
+  }
+
+  const handleStopNativeMessaging = async () => {
+    clearAllSessions()
+    await stopNativeMessagingIPC()
+
+    // Ensure any running native host is terminated so it cannot continue talking
+    await killNativeMessagingHostProcesses()
+
+    // Clean unused manifest file and make sure browser cannot respawn the host while off
+    await cleanupNativeMessaging().catch(() => {})
+
+    resetState()
+
+    setNativeMessagingEnabled(false)
+
+    // Reset identity to force re-pairing
+    // This prevents extensions from reconnecting without a new pairing token
+    const client = createOrGetPearpassClient()
+    await resetIdentity(client)
+  }
+
+  // Pairing info state
+  const [isExtensionConnectionLoading, setIsExtensionConnectionLoading] =
+    useState(false)
+  useGlobalLoading({ isLoading: isExtensionConnectionLoading })
+
+  const resetState = () => {
+    setIsBrowserExtensionEnabled(false)
+    setIsExtensionConnectionLoading(false)
+  }
+
+  const loadPairingInfo = async (reset = false) => {
+    const client = createOrGetPearpassClient()
+
+    const id = reset
+      ? // Reset pairing - generate new identity and clear sessions
+        await resetIdentity(client)
+      : // Just load existing identity
+        await getOrCreateIdentity(client)
+
+    // Mark pairing as approved for this identity so that nmBeginHandshake is allowed
+    await client
+      .encryptionAdd('nm.identity.pairingApproved', 'true')
+      .catch(() => {})
+
+    const pairingToken = await getPairingToken(client, id.ed25519PublicKey)
+    const fingerprint = getFingerprint(id.ed25519PublicKey)
+    const result = {
+      pairingToken,
+      fingerprint,
+      tokenCreationDate: id.creationDate
+    }
+
+    return result
+  }
+
+  const toggleBrowserExtension = async (isOn) => {
+    if (isOn) {
+      setIsExtensionConnectionLoading(true)
+      return handleSetupExtension()
+        .then(loadPairingInfo)
+        .then(({ pairingToken }) => {
+          setModal(
+            <ExtensionPairingModalContent
+              onCopy={() => copyToClipboard(pairingToken)}
+              pairingToken={pairingToken}
+              loadingPairing={isExtensionConnectionLoading}
+            />,
+            { replace: true }
+          )
+        })
+        .catch((error) => {
+          setToast({ message: t('Error: ') + error.message })
+        })
+        .finally(() => {
+          setIsExtensionConnectionLoading(false)
+        })
+    }
+
+    return handleStopNativeMessaging()
+  }
+
+  return {
+    toggleBrowserExtension,
+    isBrowserExtensionEnabled
+  }
+}

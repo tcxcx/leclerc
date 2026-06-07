@@ -1,0 +1,311 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Folder component renders active folder with check icon 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#232323",
+      "borderBottomColor": "#BABABA",
+      "borderBottomWidth": 1,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "marginBottom": 20,
+      "opacity": 1,
+      "paddingBottom": 16,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "width": "100%",
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      testID="folder-icon"
+    />
+    <View
+      style={
+        [
+          {
+            "flex": 1,
+            "paddingLeft": 16,
+          },
+          undefined,
+        ]
+      }
+    >
+      <Text
+        ellipsizeMode="tail"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#fff",
+              "fontFamily": "Inter",
+              "fontSize": 20,
+            },
+            undefined,
+          ]
+        }
+      >
+        Test Folder
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "#BABABA",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+            },
+            undefined,
+          ]
+        }
+      >
+        5
+         
+        items
+      </Text>
+    </View>
+    Check
+  </View>
+  MoreVert
+</View>
+`;
+
+exports[`Folder component renders create new folder option without count 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#232323",
+      "borderBottomColor": "transparent",
+      "borderBottomWidth": 1,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "marginBottom": 20,
+      "opacity": 1,
+      "paddingBottom": 16,
+    }
+  }
+  testID="sidebar-create-new"
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "width": "100%",
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      testID="create-folder-icon"
+    />
+    <View
+      style={
+        [
+          {
+            "flex": 1,
+            "paddingLeft": 16,
+          },
+          undefined,
+        ]
+      }
+    >
+      <Text
+        ellipsizeMode="tail"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#fff",
+              "fontFamily": "Inter",
+              "fontSize": 20,
+            },
+            undefined,
+          ]
+        }
+      >
+        Create New Folder
+      </Text>
+    </View>
+  </View>
+  MoreVert
+</View>
+`;
+
+exports[`Folder component renders folder correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#232323",
+      "borderBottomColor": "#BABABA",
+      "borderBottomWidth": 1,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "marginBottom": 20,
+      "opacity": 1,
+      "paddingBottom": 16,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "width": "100%",
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      testID="folder-icon"
+    />
+    <View
+      style={
+        [
+          {
+            "flex": 1,
+            "paddingLeft": 16,
+          },
+          undefined,
+        ]
+      }
+    >
+      <Text
+        ellipsizeMode="tail"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#fff",
+              "fontFamily": "Inter",
+              "fontSize": 20,
+            },
+            undefined,
+          ]
+        }
+      >
+        Test Folder
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "#BABABA",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+            },
+            undefined,
+          ]
+        }
+      >
+        5
+         
+        items
+      </Text>
+    </View>
+  </View>
+  MoreVert
+</View>
+`;

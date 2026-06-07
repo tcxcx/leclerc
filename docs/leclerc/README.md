@@ -20,6 +20,7 @@
 | 09 | [reuse-map.md](./09-reuse-map.md) | What to port from sibling repos, with exact paths |
 | 10 | [build-plan.md](./10-build-plan.md) | 11-day phased milestones, acceptance criteria, dependency order, risk spikes |
 | 11 | [codex-guide.md](./11-codex-guide.md) | Conventions, definition of done, compliance artifacts, how to work |
+| 12 | [reference-apps.md](./12-reference-apps.md) | Vendored Tether PearPass apps (`references/`) — Bare-worklet/P2P/encryption benchmark, concern→file map |
 
 ## Non-negotiables (read before writing any code)
 

@@ -1,0 +1,44 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "lib": [
+            "ES2022",
+            "DOM",
+            "DOM.Iterable"
+        ],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "noFallthroughCasesInSwitch": true,
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": false,
+        "jsx": "react-jsx",
+        "outDir": "build/dist",
+        "rootDir": ".",
+        "declaration": false,
+        "sourceMap": true,
+        "removeComments": false,
+        "preserveConstEnums": true,
+        "incremental": true,
+        "tsBuildInfoFile": "build/dist/.tsbuildinfo"
+    },
+    "include": [
+        "src/types/**/*",
+        "src/**/*",
+        "app.tsx",
+        "app.electron.tsx",
+        "styles.js"
+    ],
+    "exclude": [
+        "node_modules",
+        "build/dist",
+        "packages",
+        "src/PearPass"
+    ]
+}

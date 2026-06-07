@@ -1,0 +1,67 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonSecondary Component matches snapshot 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": false,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "stretch",
+      "backgroundColor": "#232323",
+      "borderColor": "#BADE5B",
+      "borderRadius": 20,
+      "borderWidth": 2,
+      "flexGrow": 0,
+      "justifyContent": "center",
+      "opacity": 1,
+      "paddingHorizontal": 40,
+      "paddingVertical": 10,
+      "width": "100%",
+    }
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "color": "#F6F6F6",
+          "fontFamily": "Inter",
+        },
+        {
+          "fontSize": 16,
+          "fontWeight": "500",
+        },
+        undefined,
+      ]
+    }
+  >
+    Secondary Button
+  </Text>
+</View>
+`;

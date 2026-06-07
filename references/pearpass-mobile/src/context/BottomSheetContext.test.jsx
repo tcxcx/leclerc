@@ -1,0 +1,92 @@
+import { render, act } from '@testing-library/react-native'
+
+import { BottomSheetProvider, useBottomSheet } from './BottomSheetContext'
+
+jest.mock('@gorhom/bottom-sheet', () => {
+  const React = require('react')
+  const MockBottomSheet = React.forwardRef((props, ref) => {
+    React.useImperativeHandle(ref, () => ({
+      close: () => props.onClose?.()
+    }))
+    return <div testID="bottom-sheet">{props.children}</div>
+  })
+  MockBottomSheet.displayName = 'BottomSheet'
+  return {
+    __esModule: true,
+    default: MockBottomSheet,
+    BottomSheetView: ({ children }) => <div>{children}</div>
+  }
+})
+
+jest.mock('../components/BottomSheetBackdrop', () => ({
+  BackDrop: () => <div testID="backdrop" />
+}))
+
+jest.mock('src/utils/colors', () => ({
+  colors: {
+    grey500: { mode1: '#333333' },
+    primary100: { mode1: '#cccccc' }
+  }
+}))
+
+jest.mock('@tetherto/pearpass-lib-ui-kit', () => ({
+  rawTokens: { spacing16: 16 },
+  useTheme: () => ({
+    theme: {
+      colors: { colorSurfacePrimary: '#fff', colorBorderPrimary: '#ccc' }
+    }
+  })
+}))
+
+describe('BottomSheetContext', () => {
+  const TestComponent = () => {
+    const { expand, collapse } = useBottomSheet()
+
+    return (
+      <div>
+        <button
+          testID="expand-button"
+          onPress={() =>
+            expand({
+              snapPoints: ['25%', '50%'],
+              children: <div testID="content">Test Content</div>
+            })
+          }
+        />
+        <button testID="collapse-button" onPress={collapse} />
+      </div>
+    )
+  }
+
+  it('should not render bottom sheet when options is null', () => {
+    const { queryByTestId } = render(
+      <BottomSheetProvider>
+        <TestComponent />
+      </BottomSheetProvider>
+    )
+
+    expect(queryByTestId('bottom-sheet')).toBeNull()
+  })
+
+  it('should collapse bottom sheet when options is set to null', () => {
+    const { getByTestId, queryByTestId } = render(
+      <BottomSheetProvider>
+        <TestComponent />
+      </BottomSheetProvider>
+    )
+
+    expect(queryByTestId('bottom-sheet')).toBeNull()
+
+    act(() => {
+      getByTestId('expand-button').props.onPress()
+    })
+
+    expect(queryByTestId('content')).not.toBeNull()
+
+    act(() => {
+      getByTestId('collapse-button').props.onPress()
+    })
+
+    expect(queryByTestId('bottom-sheet')).toBeNull()
+  })
+})

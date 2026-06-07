@@ -1,0 +1,92 @@
+import { useMemo } from 'react'
+
+import { useLingui } from '@lingui/react'
+import { useForm } from '@tetherto/pear-apps-lib-ui-react-hooks'
+import { Validator } from '@tetherto/pear-apps-utils-validator'
+import { Button, InputField } from '@tetherto/pearpass-lib-ui-kit'
+import { html } from 'htm/react'
+
+import { Description, Header, Title, UnlockVaultContainer } from './styles'
+import { FormModalHeaderWrapper } from '../../../components/FormModalHeaderWrapper'
+import { useLoadingContext } from '../../../context/LoadingContext'
+import { useModal } from '../../../context/ModalContext'
+import { logger } from '../../../utils/logger'
+import { ModalContent } from '../ModalContent'
+
+/**
+ *
+ * @param {Object} props
+ * @param {Object} props.vault
+ * @param {string} props.vault.id
+ * @param {string} [props.vault.name]
+ * @param {(password: string) => Promise<void> | void} [props.onSubmit]
+ */
+export const VaultPasswordFormModalContent = ({ vault, onSubmit }) => {
+  const { i18n } = useLingui()
+  const { closeModal } = useModal()
+  const { setIsLoading } = useLoadingContext()
+
+  const schema = Validator.object({
+    password: Validator.string().required(i18n._('Password is required'))
+  })
+
+  const { register, handleSubmit, setErrors } = useForm({
+    initialValues: {
+      password: ''
+    },
+    validate: (values) => schema.validate(values)
+  })
+
+  const submit = async (values) => {
+    if (!vault.id) {
+      return
+    }
+
+    try {
+      setIsLoading(true)
+
+      await onSubmit?.(values.password)
+
+      setIsLoading(false)
+    } catch (error) {
+      logger.error('VaultPasswordFormModalContent', error)
+
+      setIsLoading(false)
+
+      setErrors({
+        password: i18n._('Invalid password')
+      })
+    }
+  }
+
+  const titles = useMemo(
+    () => ({
+      title: i18n._('Enter Your Vault Password'),
+      description: i18n._(
+        'Unlock your {vaultName} Vault to access your stored passwords.',
+        {
+          vaultName: vault.name ?? vault.id
+        }
+      )
+    }),
+    []
+  )
+
+  return html` <${ModalContent}
+    onClose=${closeModal}
+    headerChildren=${html`
+      <${FormModalHeaderWrapper}>
+        <${Header}>
+          <${Title}> ${titles.title} <//>
+          <${Description}> ${titles.description}<//>
+        <//>
+      <//>
+    `}
+  >
+    <${UnlockVaultContainer} onSubmit=${handleSubmit(submit)}>
+      <${InputField} type="password" ...${register('password')} />
+
+      <${Button} variant="primary" type="submit"> ${i18n._('Unlock Vault')} <//>
+    <//>
+  <//>`
+}
