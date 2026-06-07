@@ -250,3 +250,86 @@ returned no matches. The dev SSR smoke returned HTTP 200 for `/es`.
 - Port the Rain card flow from `../desk-v1` into typed local card config and WDK funding handlers.
 - Port token/chain/explorer config from `../defi-web-app` into a local typed asset catalog.
 - Add an installed browser/screenshot smoke path so glass/SPY interactions are visually captured after frontend changes.
+
+## STATUS 2026-06-07 pass 2 W5-W10 + W2/W3 completion
+
+Branch: `feat/leclerc-scaffold`
+
+Pushed commits:
+
+- `75660dd feat(wallet): add typed asset chain catalog`
+- `52ce01d feat(wallet): add onboarding and send receive flows`
+- `f1bdc41 feat(wallet): expose agent mcp tools`
+- `9f6f082 feat(cards): add rain agent card funding`
+- `f834062 feat(ops): bridge mission funding notifications`
+- `001c07f feat(p2p): add cobe operations globe`
+- `0010633 feat(pwa): add operations landing page`
+- `daa0997 feat(rag): scope dossier tools by mission`
+
+### Workstream delta
+
+| Item | Status | Smoke-proven | Wired-only / blocker |
+|---|---|---|---|
+| W5 Asset/chain catalog | DONE | Core/app typecheck, lint/build, forbidden greps. Catalog drives wallet balances and token sends. | None for catalog. |
+| W4 Wallet onboarding + send/receive/tx | PARTIAL | WDK smoke, onboarding UI, receive details, tx list, catalog balances, and testnet send path compile/build. | Face ID is a stub; QR is visual-only; live funded EVM transfer needs a funded Arc Testnet wallet. |
+| W6 Local-AI wallet tools/MCP | PARTIAL | `/api/agent/wallet-tools {"action":"list"}` returns balances/send/swap tools; build/grep gates pass. | `@tetherto/wdk-mcp-toolkit@0.0.0` has no JS/d.ts exports, so tools are registered through `@modelcontextprotocol/sdk` directly; swap remains blocked until a verified venue is wired. |
+| W7 Rain agent cards | PARTIAL | `/api/rain-cards {"action":"list"}` returns data-driven RAVEN-07 USDC card and funding readiness. UI opens from the W1 credit-card action. | Live Rain funding requires `LECLERC_RAIN_USDC_DEPOSIT_ADDRESS`; no real Rain deposit address was present. |
+| W8 Operator-to-agent funding bridge | PARTIAL | `/api/mission-funding` list/fund/events smoke proves blocked funding notification reaches the local event log; notification payload kind is supported by dead-drop. | Live mission funding requires `LECLERC_MISSION_RAVEN_USDC_ADDRESS`; separate-device dead-drop delivery still needs a two-peer smoke. |
+| W9 Cobe globe | DONE | `cobe@2.0.1` installed; `/en/enlace` screenshot captured at `artifacts/p2p/w9-cobe-globe-enlace-2026-06-07.png`. | None for web globe. |
+| W10 Landing page | PARTIAL | `/en/landing` screenshot captured at `artifacts/pwa/w10-landing-page-2026-06-07.png`; operation-room and PWA actions render. | Downloadable Expo binary is blocked; repo has `apps/mobile` scaffold but no build artifact. |
+| W2/W3 remaining partials | PARTIAL | Deterministic helper smoke proves mission inference and auto-router; build/grep gates pass. | Full QVAC RAG gadget smoke was not forced because it can require model availability/download. |
+| Anthropic design URLs | BLOCKED | Not retried in this pass per instruction. | Prior pass recorded all three URLs as HTTP 404. |
+
+### Artifacts added
+
+- `artifacts/wallet/w5-asset-chain-catalog-2026-06-07.md`
+- `artifacts/wallet/w4-wallet-onboarding-send-receive-2026-06-07.md`
+- `artifacts/wallet/w6-wallet-agent-tools-mcp-x402-2026-06-07.md`
+- `artifacts/wallet/w7-rain-agent-cards-2026-06-07.md`
+- `artifacts/wallet/w8-mission-funding-notification-bridge-2026-06-07.md`
+- `artifacts/p2p/w9-cobe-globe-2026-06-07.md`
+- `artifacts/p2p/w9-cobe-globe-enlace-2026-06-07.png`
+- `artifacts/pwa/w10-landing-page-2026-06-07.md`
+- `artifacts/pwa/w10-landing-page-2026-06-07.png`
+- `artifacts/rag/w2-w3-mission-rag-router-smoke-2026-06-07.md`
+
+### Exact verification commands used
+
+Repeated after each item as applicable:
+
+```bash
+bun --filter @leclerc/core typecheck
+cd apps/app && bunx tsc --noEmit
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+rm -rf apps/app/.next
+rg -n "from ['\"](@qvac/sdk|@tetherto/|hyperswarm|ws|@modelcontextprotocol/sdk)|require\\(['\"](@qvac/sdk|@tetherto/|hyperswarm|ws|@modelcontextprotocol/sdk)" apps/app/src --glob '!apps/app/src/app/api/**' --glob '!apps/app/src/lib/wallet/**' --glob '!apps/app/src/lib/agents/**' --glob '!apps/app/src/lib/p2p/**' --glob '!apps/app/src/lib/qvac/**'
+rg -n "from ['\"](openai|@anthropic-ai|ollama|@xenova|@mlc-ai|ai|ai/react)|require\\(['\"](openai|@anthropic-ai|ollama|@xenova|@mlc-ai|ai|ai/react)" apps/app/src packages/core/src --glob '!**/.next/**' --glob '!**/node_modules/**'
+```
+
+Focused smokes:
+
+```bash
+bun run wallet:smoke
+curl -sS -X POST http://localhost:7001/api/agent/wallet-tools -H 'Content-Type: application/json' -d '{"action":"list"}'
+curl -sS -X POST http://localhost:7001/api/rain-cards -H 'Content-Type: application/json' -d '{"action":"list"}'
+curl -sS -X POST http://localhost:7001/api/mission-funding -H 'Content-Type: application/json' -d '{"action":"list"}'
+curl -sS -X POST http://localhost:7001/api/mission-funding -H 'Content-Type: application/json' -d '{"action":"fund","missionId":"raven","amount":"25.00"}'
+curl -sS -X POST http://localhost:7001/api/mission-funding -H 'Content-Type: application/json' -d '{"action":"events"}'
+cd apps/app && bunx playwright install chromium
+cd apps/app && bunx playwright screenshot --viewport-size=390,1200 http://localhost:7001/en/enlace ../../artifacts/p2p/w9-cobe-globe-enlace-2026-06-07.png
+cd apps/app && bunx playwright screenshot --viewport-size=390,1200 http://localhost:7001/en/landing ../../artifacts/pwa/w10-landing-page-2026-06-07.png
+cd packages/core && bun -e "import { inferMissionIdsForText, routeOperatorQuery } from './src/index.ts'; console.log(JSON.stringify({ raven: inferMissionIdsForText('Raven funding handler'), medic: inferMissionIdsForText('clinic wound triage'), route: routeOperatorQuery('search Raven funding handler') }, null, 2))"
+```
+
+### Remaining TODO(codex)
+
+- Configure live testnet envs for the wired-only wallet/card/funding paths:
+  `LECLERC_RAIN_USDC_DEPOSIT_ADDRESS`, `LECLERC_MISSION_RAVEN_USDC_ADDRESS`,
+  funded Arc Testnet wallet seed supplied only at runtime.
+- Replace wallet seed component-state demos with encrypted vault-backed unlock
+  flow and/or native secure storage.
+- Run a real two-device/two-process dead-drop notification bridge smoke.
+- Produce an Expo build artifact before enabling the landing page Expo download.
+- Keep replacing deterministic agent orchestration with verified QVAC tool-call
+  loops as SDK examples/types settle.
