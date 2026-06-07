@@ -73,7 +73,7 @@ export default function LinkPage() {
       title: "LeClerc dead-drop test",
       sentAt: Date.now(),
     });
-    setDropStatus(`${t("link.dropSent")} · peers ${res.peers}`);
+    setDropStatus(`${t("link.dropSent")} · ${res.status} · peers ${res.peers}`);
   }
   async function pollDrop() {
     if (!dropId) return;

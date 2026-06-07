@@ -186,7 +186,7 @@ export const drop = {
       label,
     }),
   send: (dropId: string, secret: string, value: unknown, kind: "brief" | "record" | "notification" = "brief") =>
-    post<{ peers: number }>("/api/drop", { action: "send", dropId, secret, kind, value }),
+    post<{ peers: number; status: "sent" | "pending" }>("/api/drop", { action: "send", dropId, secret, kind, value }),
   read: (dropId: string, secret: string) =>
     post<{
       payloads: Array<{ kind: "brief" | "record" | "notification"; value: unknown; ts: number }>;

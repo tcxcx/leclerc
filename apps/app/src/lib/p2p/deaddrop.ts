@@ -9,9 +9,9 @@ import "server-only";
  * Reference: references/pearpass-mobile/src/hooks/useQRScanner.js (pairing) and
  * the Holepunch deps in references/pearpass-desktop/package.json.
  *
- * TODO(codex): this is a Node worker pattern; for production wire it to a
- * long-lived process or Bare. In the Next.js station it runs inside a Route
- * Handler keyed by topic. Verify hyperswarm version API after install.
+ * The registry is stored on globalThis so route-handler reloads in the same
+ * station process reuse the same channels. A native/Bare worker can later host
+ * the same channel API out-of-process.
  */
 import Hyperswarm from "hyperswarm";
 import crypto from "node:crypto";
@@ -30,6 +30,8 @@ export interface DropChannel {
   peerCount(): number;
   close(): Promise<void>;
 }
+
+export type SendDropStatus = "sent" | "pending";
 
 /** Derive a 32-byte topic from a mission passphrase. */
 export function topicFromPassphrase(passphrase: string): Buffer {
@@ -103,7 +105,7 @@ export async function openDrop(topic: Buffer): Promise<DropChannel> {
   const discovery = swarm.join(topic, { server: true, client: true });
   await Promise.race([
     discovery.flushed(),
-    new Promise((resolve) => setTimeout(resolve, 2_000)),
+    new Promise((resolve) => setTimeout(resolve, 5_000)),
   ]);
 
   return {
@@ -129,7 +131,7 @@ interface ManagedDrop {
   topicHash: string;
 }
 
-const drops = new Map<string, Promise<ManagedDrop>>();
+const drops = dropRegistry();
 
 function dropKey(passphrase: string, label: string): string {
   return `${label}:${topicFromPassphrase(passphrase).toString("hex")}`;
@@ -166,11 +168,15 @@ export async function sendDrop(
   kind: DropPayload["kind"],
   value: unknown,
   secret: string,
-): Promise<{ peers: number }> {
+): Promise<{ peers: number; status: SendDropStatus }> {
   const managed = await drops.get(dropId);
   if (!managed) throw new Error("drop not joined");
+  const peers = managed.channel.peerCount();
+  if (peers === 0) {
+    return { peers, status: "pending" };
+  }
   await managed.channel.send(sealPayload(kind, value, secret));
-  return { peers: managed.channel.peerCount() };
+  return { peers: managed.channel.peerCount(), status: "sent" };
 }
 
 export async function readDrop<T = unknown>(
@@ -194,4 +200,12 @@ export async function closeDrop(dropId: string): Promise<void> {
   if (!pending) return;
   drops.delete(dropId);
   await (await pending).channel.close();
+}
+
+function dropRegistry(): Map<string, Promise<ManagedDrop>> {
+  const globalWithDrops = globalThis as typeof globalThis & {
+    __leclercDeadDrops?: Map<string, Promise<ManagedDrop>>;
+  };
+  globalWithDrops.__leclercDeadDrops ??= new Map<string, Promise<ManagedDrop>>();
+  return globalWithDrops.__leclercDeadDrops;
 }
