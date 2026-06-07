@@ -1,0 +1,24 @@
+{
+  "name": "@leclerc/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/App.ts",
+    "./worklet-client": "./src/worklet-client.ts"
+  },
+  "scripts": {
+    "dev": "bun run typecheck",
+    "build": "bun run typecheck",
+    "bundle:android": "bun run typecheck",
+    "bundle:ios": "bun run typecheck",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@leclerc/core": "workspace:*",
+    "@leclerc/worklet": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

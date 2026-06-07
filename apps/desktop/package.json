@@ -1,0 +1,23 @@
+{
+  "name": "@leclerc/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/main.ts",
+    "./bridge": "./src/bridge.ts",
+    "./renderer": "./src/renderer.ts"
+  },
+  "scripts": {
+    "dev": "bun run typecheck",
+    "build": "bun run typecheck",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@leclerc/core": "workspace:*",
+    "@leclerc/worklet": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

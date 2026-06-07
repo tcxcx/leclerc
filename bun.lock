@@ -13,6 +13,7 @@
       "name": "app",
       "version": "0.1.0",
       "dependencies": {
+        "@leclerc/core": "workspace:*",
         "@react-pdf/renderer": "^4.3.0",
         "@repo/qvacs": "workspace:*",
         "@tetherto/wdk": "^1.0.0-beta.10",
@@ -38,6 +39,28 @@
         "eslint-config-next": "16.2.7",
         "react-grab": "^0.1.32",
         "tailwindcss": "^4",
+        "typescript": "^5",
+      },
+    },
+    "apps/desktop": {
+      "name": "@leclerc/desktop",
+      "version": "0.1.0",
+      "dependencies": {
+        "@leclerc/core": "workspace:*",
+        "@leclerc/worklet": "workspace:*",
+      },
+      "devDependencies": {
+        "typescript": "^5",
+      },
+    },
+    "apps/mobile": {
+      "name": "@leclerc/mobile",
+      "version": "0.1.0",
+      "dependencies": {
+        "@leclerc/core": "workspace:*",
+        "@leclerc/worklet": "workspace:*",
+      },
+      "devDependencies": {
         "typescript": "^5",
       },
     },
@@ -400,6 +423,10 @@
     "@js-sdsl/ordered-map": ["@js-sdsl/ordered-map@4.4.2", "", {}, "sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw=="],
 
     "@leclerc/core": ["@leclerc/core@workspace:packages/core"],
+
+    "@leclerc/desktop": ["@leclerc/desktop@workspace:apps/desktop"],
+
+    "@leclerc/mobile": ["@leclerc/mobile@workspace:apps/mobile"],
 
     "@leclerc/worklet": ["@leclerc/worklet@workspace:packages/worklet"],
 
