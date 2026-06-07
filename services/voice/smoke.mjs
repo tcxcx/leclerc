@@ -5,7 +5,11 @@
  *
  * Run: bun run voice:smoke   (downloads ~1.5GB of models on first run)
  */
-import {
+if (!globalThis.Bun) {
+  throw new Error("LeClerc voice smoke is Bun-only; start it with `bun run voice:smoke`.");
+}
+
+const {
   loadModel,
   unloadModel,
   transcribeStream,
@@ -15,8 +19,8 @@ import {
   VAD_SILERO_5_1_2,
   QWEN3_1_7B_INST_Q4,
   TTS_MULTILINGUAL_SUPERTONIC2_Q8_0,
-} from "@qvac/sdk";
-import { persona } from "@leclerc/core";
+} = await import("@qvac/sdk");
+const { persona } = await import("@leclerc/core");
 
 const log = (...a) => console.log("[voice-smoke]", ...a);
 const LOCALE = process.env.VOICE_LOCALE ?? "es";

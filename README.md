@@ -65,7 +65,7 @@ Use two terminals:
 # Terminal 1: PWA + local QVAC station
 bun run dev:qvac
 
-# Terminal 2: voice WS service
+# Terminal 2: voice WS service (Bun-only; plain node cannot load workspace TS exports)
 bun run voice
 ```
 

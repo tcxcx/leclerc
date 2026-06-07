@@ -1,7 +1,7 @@
 /**
  * LeClerc voice service (docs/leclerc/13-cleo-plan.md §voice).
  *
- * Continuous, hands-free voice loop on QVAC, station-side (Node/Bare). The PWA
+ * Continuous, hands-free voice loop on QVAC, station-side (Bun/Bare). The PWA
  * captures mic PCM and plays audio; this service runs the chain and streams
  * over a WebSocket:
  *
@@ -15,8 +15,12 @@
  * Run: bun run voice   (downloads ~1.5GB of models on first run, then offline)
  * Env: VOICE_PORT (7077), VOICE_LOCALE (es|en), VOICE_LLM_LEVEL (media|alta)
  */
-import { WebSocketServer } from "ws";
-import {
+if (!globalThis.Bun) {
+  throw new Error("LeClerc voice service is Bun-only; start it with `bun run voice`.");
+}
+
+const { WebSocketServer } = await import("ws");
+const {
   loadModel,
   transcribeStream,
   completion,
@@ -26,8 +30,8 @@ import {
   QWEN3_1_7B_INST_Q4,
   QWEN3_4B_INST_Q4_K_M,
   TTS_MULTILINGUAL_SUPERTONIC2_Q8_0,
-} from "@qvac/sdk";
-import { persona } from "@leclerc/core";
+} = await import("@qvac/sdk");
+const { persona } = await import("@leclerc/core");
 
 const PORT = Number(process.env.VOICE_PORT ?? 7077);
 const LOCALE = process.env.VOICE_LOCALE ?? "es";
