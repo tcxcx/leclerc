@@ -1,0 +1,28 @@
+# loggingStream id=__sdk__ reason={"error":"SDK is shutting down — in-flight RPC call aborted"} count=18
+2026-06-07T04:48:18.640Z [info] [sdk:server] 🐻 Hello from Bare
+2026-06-07T04:48:18.640Z [info] [sdk:server] Parsed RPC configuration from arguments
+2026-06-07T04:48:18.640Z [info] [sdk:server] Running in desktop mode, connecting to IPC socket: /var/folders/cy/wp_6t4bn1l3g7xs59y1p44n00000gn/T/qvac-worker-66522-mq3ax9lp-3956.sock
+2026-06-07T04:48:18.640Z [info] [sdk:server] Connecting to IPC socket at /var/folders/cy/wp_6t4bn1l3g7xs59y1p44n00000gn/T/qvac-worker-66522-mq3ax9lp-3956.sock
+2026-06-07T04:48:18.640Z [info] [sdk:server] Bare worker started and listening for RPC requests
+2026-06-07T04:48:18.640Z [info] [sdk:server] Connected to IPC server
+2026-06-07T04:48:18.642Z [info] [sdk:server] [request-lifecycle] begin requestId=e21f3ce0-6328-497d-8253-a5d127e03bf7 kind=loadModel modelId=- state=running
+2026-06-07T04:48:18.642Z [info] [sdk:server] Loading from registry: unsloth/Qwen3-0.6B-GGUF/blob/50968a4468ef4233ed78cd7c3de230dd1d61a56b/Qwen3-0.6B-Q4_0.gguf
+2026-06-07T04:48:18.645Z [info] [sdk:server] ✅ Model cached with correct size: /Users/criptopoeta/.qvac/models/5b8aae816570a09d_Qwen3-0.6B-Q4_0.gguf
+2026-06-07T04:48:18.940Z [info] [sdk:server] ✅ Model already cached and validated: /Users/criptopoeta/.qvac/models/5b8aae816570a09d_Qwen3-0.6B-Q4_0.gguf
+2026-06-07T04:48:18.940Z [info] [sdk:server] ✅ Using cached model: /Users/criptopoeta/.qvac/models/5b8aae816570a09d_Qwen3-0.6B-Q4_0.gguf
+2026-06-07T04:48:18.940Z [info] [sdk:server] Loaded Model to /Users/criptopoeta/.qvac/models/5b8aae816570a09d_Qwen3-0.6B-Q4_0.gguf
+2026-06-07T04:48:18.941Z [info] [sdk:server] llamacpp-completion: Loading model cbda813268f1b27d...
+2026-06-07T04:48:19.362Z [info] [sdk:server] llamacpp-completion model cbda813268f1b27d loaded
+2026-06-07T04:48:19.362Z [info] [sdk:server] Local model registered: cbda813268f1b27d (QWEN3_600M_INST_Q4) -> /Users/criptopoeta/.qvac/models/5b8aae816570a09d_Qwen3-0.6B-Q4_0.gguf
+2026-06-07T04:48:19.362Z [info] [sdk:server] [request-lifecycle] end requestId=e21f3ce0-6328-497d-8253-a5d127e03bf7 kind=loadModel modelId=- state=completed durationMs=720
+2026-06-07T04:48:19.371Z [info] [sdk:server] [request-lifecycle] begin requestId=faf97612-e4c7-4736-b9bd-39ecfdde9263 kind=completion modelId=cbda813268f1b27d state=running
+2026-06-07T04:48:19.573Z [info] [sdk:server] [request-lifecycle] end requestId=faf97612-e4c7-4736-b9bd-39ecfdde9263 kind=completion modelId=cbda813268f1b27d state=completed durationMs=202
+
+# loggingStream id=cbda813268f1b27d reason={"error":"SDK is shutting down — in-flight RPC call aborted"} count=7
+2026-06-07T04:48:19.365Z [info] [llamacpp-completion] Starting model load
+2026-06-07T04:48:19.365Z [info] [llamacpp-completion] Creating addon with configuration: {"path":"/Users/criptopoeta/.qvac/models/5b8aae816570a09d_Qwen3-0.6B-Q4_0.gguf","projectionPath":"","config":{"ctx_size":"2048","gpu_layers":"99","device":"gpu"}}
+2026-06-07T04:48:19.365Z [info] [llamacpp-completion] Activating addon
+2026-06-07T04:48:19.365Z [info] [llamacpp-completion] Model load completed successfully
+2026-06-07T04:48:19.371Z [info] [llamacpp-completion] Starting inference with prompt: [{"role":"system","content":"Return exactly the sentence supplied by the user, with no markdown and no extra words. /no_think"},{"role":"user","content":"LeClerc is a local QVAC field station for voice, finance, intel, and P2P."}]
+2026-06-07T04:48:19.371Z [info] [llamacpp-completion] Inference job started successfully
+2026-06-07T04:48:19.507Z [info] [llamacpp-completion] Job completed

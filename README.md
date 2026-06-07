@@ -1,139 +1,110 @@
-# LeClerc — Smart NGO Voice Reports
+# LeClerc
 
-An **offline-first** progressive web app for humanitarian field operators: dictate a
-finding by voice and get a structured field report — **speech-to-text and reasoning run
-on-device** via [QVAC](https://github.com/tetherto/qvac), not in the cloud.
+LeClerc is "Cleo for spies": a local-first, voice-first field handler that runs
+intel capture, dossier recall, analyst briefs, dead drops, and testnet wallet
+flows from the operative's machine. The PWA is the required shipping surface; the
+desktop and mobile native shells are planned in `docs/leclerc/14-surfaces-and-shared-core.md`.
 
-Turborepo monorepo on [Bun](https://bun.sh); the app is a [Next.js 16](https://nextjs.org)
-PWA. Inference is served by QVAC's OpenAI-compatible server (`qvac serve`).
+The hard rule is simple: all AI inference and RAG go through `@qvac/sdk`. No
+third-party model API, browser inference fallback, or external vector database is
+part of the judged path.
 
----
+## What Works
 
-## Why QVAC — why this approach is superior
+- Cleo home: text chat, voice state, finance cards, live dossier recall chips.
+- Voice service: microphone WebSocket loop with ASR -> LLM -> TTS through QVAC.
+- Finance: local encrypted transactions, spend summary, savings goals, request
+  flow into the wallet screen.
+- Wallet: Tether WDK wired for testnet Spark/Lightning and EVM, with a checked-in
+  smoke script that skips live payment unless a testnet invoice is supplied.
+- Intel: capture, encrypted dossier storage, confirm -> QVAC RAG ingest, recall,
+  document attach controls, and panic wipe.
+- Analyst desk: multi-agent brief over seeded dossier records with cited findings
+  and PDF/DOCX export.
+- P2P: encrypted Hyperswarm dead drop proven between two clients; delegated
+  completion is wired but needs a second DHT-reachable provider to prove.
+- MedPsy: medic mode is surfaced and blocked on `LECLERC_MEDPSY_SRC`.
 
-Field work for an NGO means **sensitive data** (beneficiary names, health status, minors)
-captured where there's **no reliable network**. Shipping that to a cloud LLM API is the
-wrong default. QVAC runs the entire pipeline — **Whisper (speech-to-text) + an LLM
-(structured extraction)** — locally on the operator's device.
+See `SUBMISSION.md` and `artifacts/` for the current proof set.
 
-| | Cloud LLM API (OpenAI, etc.) | **LeClerc + QVAC (on-device)** |
-| --- | --- | --- |
-| **Data privacy** | Beneficiary PII/health leaves the device to a third party | **Never leaves the device** |
-| **Connectivity** | Requires the internet; useless in the field | **Works fully offline** |
-| **Cost** | Per-token billing, scales with usage | **$0 per inference** — your hardware |
-| **Latency** | Network round-trip + provider queue | **Sub-2s** on the operator's GPU (Metal) |
-| **Rate limits** | Throttled by the provider | None — local |
-| **Compliance** | Data-processing agreements, residency risk | Data residency by construction |
+## Requirements
 
-Private, free to run, and works where the network doesn't — exactly what humanitarian
-field reporting needs.
+- Bun 1.3.10 (`packageManager` is pinned)
+- Node >= 22.17
+- macOS, Linux, or Windows with a QVAC-supported backend. The current artifact run
+  was captured on an Apple M4 Pro using the local SDK runtime.
+- Enough disk for model cache. The app defaults to small Qwen/Whisper/EmbeddingGemma
+  models suitable for a <=32 GiB laptop; optional OCR, translate, and MedPsy models
+  require additional local model files or registry sources.
 
-## Architecture — device-first, with graceful fallback
-
-Inference resolution is **capability-based** and prioritizes the operator's own hardware,
-falling through only when needed so it **never fails**:
-
-```
-Browser (PWA)  — records WAV @16kHz, 60s cap
-   │
-   ├─ 1. Local device   qvac serve on localhost (Metal/Vulkan GPU)  ← fast · private · offline
-   ├─ 2. Device tunnel   the operator's box via ngrok (qvac:ngrok)   ← borrow the GPU over the net
-   ├─ 3. Railway server  qvac serve in a container (CPU)             ← always-on safety net
-   └─ 4. In-browser      transformers.js (online | offline toggle)   ← last resort, no server
-   │
-   ▼  Whisper → LLM (grammar-constrained JSON) → FieldReport
-   ▼  IndexedDB on-device (offline-first)  ·  export to Word / PDF
-```
-
-- The browser calls an **OpenAI-compatible** API (`/v1/audio/transcriptions`,
-  `/v1/chat/completions`). It probes `localhost:11434` and uses it **only if it actually
-  serves a Whisper + an LLM** (so an unrelated server like Ollama is skipped). In offline
-  mode it **detects an already-downloaded in-browser model and continues straight to the
-  flow** — the download gate appears only when the weights aren't present yet.
-- Vercel hosts only the **static PWA + a thin proxy** (`/api/qvac`) that forwards to the
-  remote QVAC server with the key kept server-side, trying upstreams in order
-  (`QVAC_BASE_URL` then `QVAC_NGROK_URL`). **`@qvac/sdk` is never bundled** — its native
-  `bare` runtime can't run in serverless functions, which is exactly why inference lives
-  on a real device/container.
-- Reports persist in **IndexedDB**, so capture and review work with no backend at all.
-
-## The flow (mobile, Spanish)
-
-1. **Tipo de registro** — individual beneficiary vs group activity
-2. **Datos del beneficiario** — DNI + name
-3. **Grabación** — push-to-talk (60s cap, live countdown); audio stays on-device
-4. **Revisión** — AI report: resumen, prioridad (ALTA/MEDIA/BAJA), entities, pending
-   actions, full transcript, metadata — confirm, retry, or export to **.docx / .pdf**
-
-## Data model (JSON)
-
-`audio → Whisper → LLM` produces two layers.
-
-### 1. LLM extraction (grammar-constrained)
-
-The model gets the transcript and returns **only** these fields, enforced by JSON Schema
-(`responseFormat: json_schema`) in
-[`apps/app/src/lib/reports/schema.ts`](apps/app/src/lib/reports/schema.ts). The prompt
-forces it to summarize **only what was said** (no hallucination):
-
-| Field | Type | Captures |
-|---|---|---|
-| `resumen` | `string` | 1–2 sentence executive summary |
-| `prioridad` | `"ALTA" \| "MEDIA" \| "BAJA"` | Visual triage; `ALTA` only on explicit medical/safety emergency |
-| `entidades.nombres` / `.fechas` | `string[]` | Proper names / dates said literally (`[]` if none) |
-| `accionesPendientes` | `string[]` | Follow-up tasks |
-| `datos` | object | Structured body (demographics, metrics, socioeconomic, intervention, follow-up, narrative) — empty fields left blank |
-
-### 2. Persisted report (`FieldReport`)
-
-Stored **in the browser's IndexedDB** (offline-first). Wraps the extraction and adds the
-verbatim transcript, auto-captured metadata, and record state (`PENDIENTE` → `CONFIRMADO`).
-
-## Run it
+## Setup
 
 ```bash
 bun install
-
-# Full local stack (app + on-device QVAC server) — recommended:
-bun run dev:qvac          # app on :7001, qvac serve on :11434 (Metal GPU)
-
-# Or separately:
-bun run qvac              # just the local QVAC server
-bun run dev               # just the app (uses the deployed QVAC server)
+cp apps/app/.env.example apps/app/.env.local
 ```
 
-The first run downloads the models (~GB) once, then everything works offline.
+Fill only the optional env vars for the features you want to exercise:
 
-### Expose your device to a deployment
+- `LECLERC_OCR_SRC`: QVAC OCR model source for document intel.
+- `LECLERC_TRANSLATE_SRC`: QVAC translation model source.
+- `LECLERC_TRANSLATE_MODEL_TYPE`: `nmt` or `llm`, defaults to `nmt`.
+- `LECLERC_MEDPSY_SRC`: MedPsy GGUF or registry source for Our Psy medic mode.
+- `QVAC_HYPERSWARM_SEED`: 64-hex private seed for a stable station peer key.
+- `LECLERC_TESTNET_LIGHTNING_INVOICE`: optional Spark/Lightning testnet invoice
+  for the wallet smoke.
+
+Never commit a seed phrase, `QVAC_HYPERSWARM_SEED`, API key, or funded invoice.
+
+## Run
+
+Use two terminals:
 
 ```bash
-QVAC_API_KEY=<key> bun run qvac:ngrok   # publishes localhost via ngrok; prints how to set QVAC_NGROK_URL
+# Terminal 1: PWA + local QVAC station
+bun run dev:qvac
+
+# Terminal 2: voice WS service
+bun run voice
 ```
 
-### Always-on fallback (Railway)
+Open `http://localhost:7001/es`.
 
-`infra/qvac/` has a `Dockerfile` (full Vulkan + ffmpeg runtime) and `qvac.config.json`
-(model aliases, preloaded) for running `qvac serve openai` on Railway. On Vercel set
-`QVAC_BASE_URL` + `QVAC_API_KEY` (and optionally `QVAC_NGROK_URL`).
+Useful focused commands:
 
-## Structure
-
-```
-.
-├── apps/app/                 # Next.js 16 PWA (UI + /api/qvac proxy)
-│   └── src/lib/qvac/         # browser QVAC client (target resolution)
-│   └── src/lib/inference/    # online/offline mode + transformers.js engine
-│   └── src/lib/reports/      # prompt/schema, assembly, IndexedDB store, export
-├── packages/qvacs/           # @repo/qvacs — server-only @qvac/sdk wrapper
-└── infra/qvac/               # Railway Dockerfile + qvac.config + local launchers
+```bash
+cd apps/app && bunx tsc --noEmit
+bun run wallet:smoke
+bun run qvac:artifacts
+bun run voice:smoke
 ```
 
-## Models
+The M8 compliance gate is:
 
-| Stage | Model |
-|---|---|
-| ASR | `WHISPER_BASE_Q8_0` (multilingual, `es`) · offline: `Xenova/whisper-base` |
-| LLM | `LLAMA_3_2_1B_INST_Q4_0` / `QWEN3_1_7B_INST_Q4` · offline: `onnx-community/Qwen2.5-0.5B-Instruct` |
+```bash
+rm -rf apps/app/.next
+grep -rE "huggingface|openai|anthropic|@google/gen|langchain|chromadb|pinecone" apps packages services
+```
 
-Built with the [QVAC SDK](https://docs.qvac.tether.io) — on-device AI for private,
-offline, zero-cost inference.
+It should return no matches.
+
+## Repository
+
+```text
+apps/app/          Next.js 16 PWA, Route Handlers, Cleo UI
+packages/qvacs/    Server-only QVAC SDK wrapper and RAG helpers
+services/voice/    Continuous VAD voice WebSocket service
+scripts/           Runtime smokes and artifact capture
+docs/leclerc/      Product, architecture, design, and overnight build brief
+artifacts/         Smoke logs, screenshots, profiler data, export proof
+```
+
+## Current Partials
+
+- Live document OCR requires `LECLERC_OCR_SRC`.
+- Translate requires `LECLERC_TRANSLATE_SRC`.
+- MedPsy requires `LECLERC_MEDPSY_SRC`.
+- P2P delegated completion needs a second DHT-reachable provider process/device;
+  the encrypted dead-drop path is proven.
+- Desktop and mobile shells are not yet implemented; the PWA is the shippable
+  surface for M1-M9.

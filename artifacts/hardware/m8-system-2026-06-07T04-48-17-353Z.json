@@ -1,0 +1,78 @@
+{
+  "capturedAt": "2026-06-07T04:48:17.551Z",
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpus": [
+    "Apple M4 Pro",
+    "Apple M4 Pro",
+    "Apple M4 Pro",
+    "Apple M4 Pro",
+    "Apple M4 Pro",
+    "Apple M4 Pro",
+    "Apple M4 Pro",
+    "Apple M4 Pro",
+    "Apple M4 Pro",
+    "Apple M4 Pro",
+    "Apple M4 Pro",
+    "Apple M4 Pro",
+    "Apple M4 Pro",
+    "Apple M4 Pro"
+  ],
+  "totalMemoryBytes": 51539607552,
+  "node": "v23.11.0",
+  "bun": "1.3.10",
+  "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t15.7.1\nBuildVersion:\t\t24G231",
+  "cpuBrand": "Apple M4 Pro",
+  "logicalCpu": "14",
+  "arm64": "1",
+  "hardwareProfiler": {
+    "SPDisplaysDataType": [
+      {
+        "_name": "Apple M4 Pro",
+        "spdisplays_mtlgpufamilysupport": "spdisplays_metal3",
+        "spdisplays_ndrvs": [
+          {
+            "_name": "Color LCD",
+            "_spdisplays_display-product-id": "a05c",
+            "_spdisplays_display-serial-number": "[redacted]",
+            "_spdisplays_display-vendor-id": "610",
+            "_spdisplays_display-week": "0",
+            "_spdisplays_display-year": "0",
+            "_spdisplays_displayID": "1",
+            "_spdisplays_pixels": "3024 x 1964",
+            "_spdisplays_resolution": "1512 x 982 @ 120.00Hz",
+            "spdisplays_ambient_brightness": "spdisplays_yes",
+            "spdisplays_connection_type": "spdisplays_internal",
+            "spdisplays_display_type": "spdisplays_built-in-liquid-retina-xdr",
+            "spdisplays_main": "spdisplays_yes",
+            "spdisplays_mirror": "spdisplays_off",
+            "spdisplays_online": "spdisplays_yes",
+            "spdisplays_pixelresolution": "spdisplays_3024x1964Retina"
+          }
+        ],
+        "spdisplays_vendor": "sppci_vendor_Apple",
+        "sppci_bus": "spdisplays_builtin",
+        "sppci_cores": "20",
+        "sppci_device_type": "spdisplays_gpu",
+        "sppci_model": "Apple M4 Pro"
+      }
+    ],
+    "SPHardwareDataType": [
+      {
+        "_name": "hardware_overview",
+        "activation_lock_status": "activation_lock_enabled",
+        "boot_rom_version": "13822.1.2",
+        "chip_type": "Apple M4 Pro",
+        "machine_model": "Mac16,8",
+        "machine_name": "MacBook Pro",
+        "model_number": "Z1FE000NKLL/A",
+        "number_processors": "proc 14:10:4",
+        "os_loader_version": "11881.140.96",
+        "physical_memory": "48 GB",
+        "platform_UUID": "[redacted]",
+        "provisioning_UDID": "[redacted]",
+        "serial_number": "[redacted]"
+      }
+    ]
+  }
+}

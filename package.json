@@ -16,6 +16,7 @@
     "dev:qvac": "bash scripts/dev-qvac.sh",
     "voice": "bun --filter voice start",
     "voice:smoke": "bun --filter voice smoke",
+    "qvac:artifacts": "bun scripts/qvac-artifacts.mjs",
     "wallet:smoke": "bun scripts/wallet-smoke.mjs",
     "build": "turbo build",
     "start": "turbo start",

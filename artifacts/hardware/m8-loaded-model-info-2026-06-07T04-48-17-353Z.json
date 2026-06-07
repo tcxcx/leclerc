@@ -1,0 +1,15 @@
+{
+  "modelId": "cbda813268f1b27d",
+  "isDelegated": false,
+  "modelType": "llamacpp-completion",
+  "handlers": [
+    "completionStream",
+    "finetune",
+    "translate"
+  ],
+  "displayName": "LLM (llama.cpp)",
+  "addonPackage": "@qvac/llm-llamacpp",
+  "loadedAt": "2026-06-07T04:48:19.362Z",
+  "name": "QWEN3_600M_INST_Q4",
+  "path": "/Users/criptopoeta/.qvac/models/5b8aae816570a09d_Qwen3-0.6B-Q4_0.gguf"
+}
