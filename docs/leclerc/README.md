@@ -22,7 +22,10 @@
 | 11 | [codex-guide.md](./11-codex-guide.md) | Conventions, definition of done, compliance artifacts, how to work |
 | 12 | [reference-apps.md](./12-reference-apps.md) | Vendored Tether PearPass apps (`references/`) — Bare-worklet/P2P/encryption benchmark, concern→file map |
 | 13 | [cleo-plan.md](./13-cleo-plan.md) | **Product pivot (current direction):** Cleo-style voice-first home (continuous VAD), finance-led + spy-underneath, sassy voice / dark look |
-| — | [DESIGN.md](./DESIGN.md) | **Design system** (`@google/design.md` format, adapted from Linear): tokens, serif/Inter/mono split, two scarce accents, the one soft spy gradient. Mirrored to `.stitch/DESIGN.md`. Synced with `globals.css`. |
+| 14 | [surfaces-and-shared-core.md](./14-surfaces-and-shared-core.md) | **Three surfaces, one core:** PWA + native Desktop (Pear+Electron) + native Mobile (Expo+Bare); `@leclerc/core` + Bare worklet; PearPass as blueprint |
+| — | [DESIGN.md](./DESIGN.md) | **Design system** (`@google/design.md`, adapted from Linear): tokens, serif/Inter/mono split, two scarce accents, the one soft spy gradient. Mirrored to `.stitch/DESIGN.md`; synced with `globals.css` |
+| — | [CODEX_OVERNIGHT.md](./CODEX_OVERNIGHT.md) | **The overnight build order** Codex executes E2E (M1–M11 + Definition of Done) |
+| — | [IMPLEMENTATION_NOTES.md](./IMPLEMENTATION_NOTES.md) | **Live build status** — what's done/proven/stubbed + the `TODO(codex)` list |
 
 ## Non-negotiables (read before writing any code)
 

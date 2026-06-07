@@ -7,10 +7,17 @@ coaching with attitude. LeClerc adds the spy layer underneath (intel, RAG recall
 brief, dead-drop) and runs it all **locally on QVAC**.
 
 ## Locked decisions
-- **Voice:** continuous, hands-free (Silero VAD streaming loop). Station-side.
+- **Voice:** continuous, hands-free (Silero VAD streaming loop). Station-side on the
+  PWA; **on-device in the Bare worklet** on native desktop/mobile (see [14](./14-surfaces-and-shared-core.md)).
 - **Identity:** finance-led shell (looks like Cleo: Spend / Ask / Stash / Request);
   spy gadgets reachable as chips and deep links.
-- **Tone + look:** Cleo's sassy money-coach voice, in our **dark field-console** theme.
+- **Tone + look:** Cleo's sassy money-coach voice, in our **dark field-console** theme
+  (full design system in [DESIGN.md](./DESIGN.md)).
+- **Surfaces:** the Cleo UI is the canonical UX across **three surfaces from one
+  monorepo** — PWA (web), native Desktop (Pear+Electron), native Mobile (Expo+Bare).
+  See [14 · surfaces & shared core](./14-surfaces-and-shared-core.md). (This updates
+  the earlier "single PWA, no Expo" simplification: PWA ships first; desktop + mobile
+  native shells follow, reusing the shared core and the PearPass blueprints.)
 
 ## Home screen (the only screen that matters)
 ```

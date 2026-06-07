@@ -12,6 +12,12 @@ Cleo shell (Spend / Ask / Stash / Request), spy gadgets underneath (intel captur
 RAG recall, multi-agent brief, document intel, P2P dead-drop, private Lightning pay).
 Dark "field-console" look, soft drifting gradient, serif display + mono-for-data.
 
+**One Cleo UX, three surfaces from one monorepo** ([14](./14-surfaces-and-shared-core.md)):
+PWA (web, ships first), native **Desktop** (Pear+Electron), native **Mobile**
+(Expo+Bare). Native shells host QVAC + voice + WDK + Hyperswarm **on-device in a
+Bare worklet** (PearPass pattern, `references/`); the PWA uses the station WS voice
+service or P2P-delegates. The visual spec is [DESIGN.md](./DESIGN.md).
+
 ## Ground rules (do not violate)
 1. **All AI inference + RAG via `@qvac/sdk` only.** No OpenAI/Anthropic/Gemini/
    transformers/langchain/chroma/pinecone. Gate: `grep -rE "huggingface|openai|anthropic|@google/gen|langchain|chromadb|pinecone" apps packages services` → empty.
@@ -23,10 +29,12 @@ Dark "field-console" look, soft drifting gradient, serif display + mono-for-data
    `hyperswarm`, or `ws` runs in Node/Bare only — Route Handlers (`export const
    runtime = "nodejs"`) or `services/*`. Never in a Client Component or the browser bundle.
 4. **Wallet = testnet** (`SPARK_NETWORK=TESTNET`). Never mainnet. Never commit a seed.
-5. **Design:** dark theme tokens in `globals.css`; Fraunces serif for display +
-   assistant answers; Inter body; JetBrains Mono for amounts/ids/coords; soft/tenue
-   spy gradient (`AppBackground`); sassy-but-caring persona (`lib/agents/persona.ts`),
-   Spanish-first, no markdown when spoken; sub-300ms GPU motion; `prefers-reduced-motion` honored.
+5. **Design:** follow **[DESIGN.md](./DESIGN.md)** (the `@google/design.md` system) and
+   the live tokens in `globals.css` — keep them in sync. Fraunces serif for display +
+   assistant answers; Inter body; JetBrains Mono (ember) for amounts/ids/coords; soft
+   tenue spy gradient (`AppBackground`); two scarce accents (steel-blue intel + ember
+   money); sassy-but-caring persona (`lib/agents/persona.ts`), Spanish-first, no
+   markdown when spoken; sub-300ms GPU motion; `prefers-reduced-motion` honored.
 6. **Commit frequently** on `feat/leclerc-scaffold` (or open sub-branches/PRs per
    milestone). After each milestone: `bunx tsc --noEmit` clean + a one-line log to
    `artifacts/`. Keep `docs/leclerc/IMPLEMENTATION_NOTES.md` current.
@@ -117,10 +125,34 @@ it runs on a medical-content record.
   models (incl. MedPsy), one-command run (`bun install && bun run dev:qvac` + `bun run voice`),
   `.env.example` complete. Record the demo per `docs/leclerc/08` → `artifacts/demo/`.
 
-### M9 · Quality pass
+### M9 · Quality pass (PWA)
 Prod `next build` passes on real hardware (`NODE_OPTIONS=--max-old-space-size=8192`).
 Lint clean. Mobile-first responsive (≤480px), es/en parity, empty/error/loading states
 everywhere, WCAG AA contrast, panic-wipe verified. No hardcoded UI strings (all via i18n).
+The PWA is the **must-ship** surface — M1–M9 are required.
+
+### M10 · Shared core + Desktop (Pear+Electron) — General Purpose track
+Read [14](./14-surfaces-and-shared-core.md). Incrementally extract runtime-agnostic
+logic from `apps/app/src/lib` into `packages/core` (`@leclerc/core`) — types + pure
+logic, no React/DOM/node-only. Author `packages/worklet` (`@leclerc/worklet`): a Bare
+worklet hosting `@qvac/sdk` + WDK + Hyperswarm, exposing an RPC mirroring the
+`/api/*` shapes. Scaffold `apps/desktop` (Pear + Electron) reusing `@leclerc/core` +
+`@leclerc/ui`; bridge the renderer to the worklet via the PearPass desktop pattern
+(`references/pearpass-desktop/src/services/createOrGetPearpassClient.js`,
+`src/electron/vaultClientProxy.js`). Goal: the Cleo app runs as a desktop app with
+QVAC + voice **on-device** (no station). Packages build (`pear build` / electron-builder).
+
+### M11 · Mobile (Expo + Bare) — Mobile track
+Scaffold `apps/mobile` (Expo) reusing `@leclerc/core` + the same worklet. Load it via
+`react-native-bare-kit` and `bare-pack` bundling — blueprint:
+`references/pearpass-mobile/src/worklet/index.js`, its `bundle:ios|android` scripts,
+`src/native-modules/`, `src/jobQueue/`. Seed in `@tetherto/wdk-react-native-secure-storage`.
+Render the Cleo UI per [DESIGN.md](./DESIGN.md) (native mirror of the tokens). Goal:
+the app installs on a phone and runs QVAC + voice **on-device**.
+
+> M10/M11 are the ambition; if the night runs short, leave them PARTIAL with the
+> shared-core extraction + shell scaffolds + a STATUS note. Never sacrifice M1–M9
+> (the shippable PWA) for them.
 
 ## Definition of Done (the whole app)
 A judge can, on a ≤32GB laptop:
@@ -134,6 +166,11 @@ A judge can, on a ≤32GB laptop:
 8. **Panic-wipe** clears everything.
 All inference + RAG via QVAC, offline by default. `artifacts/` proves it; `SUBMISSION.md`
 + `README.md` make it reproducible. `bunx tsc --noEmit` and `next build` pass.
+
+**Stretch DoD (M10/M11, three surfaces):** the **Desktop** app launches and runs
+QVAC + voice on-device with no station; the **Mobile** app installs and runs QVAC +
+voice on-device via the Bare worklet; both reuse `@leclerc/core` and render the Cleo
+UI per [DESIGN.md](./DESIGN.md). Partial-but-scaffolded is acceptable if M1–M9 shipped.
 
 ## End-of-run report (always produce)
 Append a STATUS block to `IMPLEMENTATION_NOTES.md`: per-milestone DONE/PARTIAL/BLOCKED,

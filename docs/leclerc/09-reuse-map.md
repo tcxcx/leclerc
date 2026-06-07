@@ -50,6 +50,17 @@ The richest reference for the net-new P2P/Bare/encryption work. Full concern→f
 
 > ⚠️ PearPass's P2P/CRDT engine is in its dep `@tetherto/pearpass-lib-vault-core` (Bare worklet), not these shells. The shells are the bridge benchmark.
 
+**Invitation to build (the native surfaces — see [14](./14-surfaces-and-shared-core.md), Codex M10/M11):**
+PearPass is the canonical example of the exact two shells LeClerc still owes —
+a **Pear+Electron desktop** app and an **Expo+Bare mobile** app, each hosting a
+Bare worklet on-device. Build `apps/desktop` against `references/pearpass-desktop`
+(Pear build config in its `package.json`, the renderer↔worklet bridge in
+`src/services/createOrGetPearpassClient.js` + `src/electron/vaultClientProxy.js`)
+and `apps/mobile` against `references/pearpass-mobile` (`src/worklet/index.js`,
+the `bundle:ios|android` `bare-pack` scripts, `src/native-modules/`, `src/jobQueue/`).
+Our worklet payload is QVAC + WDK + Hyperswarm (not PearPass's vault-core); the
+references show *how to host and bridge* it.
+
 ## From `desk-v1`
 | Asset | Path | Use for |
 |---|---|---|

@@ -1,5 +1,10 @@
 # 01 · Architecture
 
+> Current direction: the Cleo UI ([13](./13-cleo-plan.md)) ships on **three
+> surfaces** — PWA + native Desktop (Pear) + native Mobile (Expo) — over one shared
+> core. The topology below is the PWA + station baseline; the per-surface split and
+> the on-device Bare worklet are defined in **[14 · surfaces & shared core](./14-surfaces-and-shared-core.md)**.
+
 ## 1. Runtime topology
 
 ```

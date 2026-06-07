@@ -25,10 +25,11 @@ the decisions taken, the verified-vs-stubbed surface, and the prioritized
   yet smoke-run with a full LLM download.
 
 ## Architecture decisions taken (deviations / clarifications from the spec)
-1. **Single PWA, no Expo app.** Per the user: mobile-first PWA serving both
-   desktop and mobile from `apps/app`. The Expo client in spec 01/05 is dropped
-   for v1; the P2P/mobile story is the PWA on a phone + delegation. (`apps/mobile`
-   not created.)
+1. **PWA first, then native Desktop + Mobile (UPDATED — see [14](./14-surfaces-and-shared-core.md)).**
+   v1 ships the Cleo **PWA** (`apps/app`); the native **Desktop** (Pear+Electron)
+   and **Mobile** (Expo+Bare) shells follow, reusing a shared `@leclerc/core` +
+   a Bare worklet (PearPass blueprint), running QVAC on-device. Codex M10/M11.
+   (Earlier this said "single PWA, no Expo"; the three-surface ambition is restored.)
 2. **`[locale]` routing** with next-international `urlMappingStrategy: "rewrite"`
    (Next 16 `proxy.ts`, not `middleware.ts`). All pages live under
    `app/[locale]/`. Old NGO pages (grabar/registro/informe) removed.

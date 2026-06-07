@@ -39,11 +39,13 @@ The existing halketon-app baseline already provides the spine for steps 1–2 (v
 
 **Primary: General Purpose.** The laptop is the "safehouse station": Node + `@qvac/sdk` runs `completion`/`embed`/`rag*`/`ocr` with MedPsy-4B / Qwen3-4B fully offloaded to GPU. This is closest to the current baseline → fastest to ship.
 
-**Secondary: Mobile (demo).** A thin **Expo capture client** (or the existing PWA on a phone) captures voice/photos and **delegates** heavy jobs to the station via `startQVACProvider` + `completion({ delegate: { providerPublicKey } })` over the Hyperswarm DHT. This yields a Mobile + Tinkerer + P2P narrative from one build.
+**Secondary: Mobile.** A native **Expo + Bare** app runs QVAC + voice **on-device** (Mobile track), or the PWA-on-a-phone **delegates** heavy jobs to a desktop/laptop via `startQVACProvider` + `completion({ delegate: { providerPublicKey } })` over the Hyperswarm DHT (Tinkerer / phone→laptop story).
 
 **Bonus track: "Our Psy models".** Use **MedPsy-1.7B/4B** for a field-medic intel mode (assessing an asset's medical state / casualty triage notes). Nearly-free second submission. See [02](./02-qvac-integration.md) §model-selection.
 
-Measurement note from rules: with multiple inference devices, the most capable one is "the main." Our main is the laptop → General Purpose. The mobile delegation is additive, not the measured device.
+**One Cleo UX, three surfaces from one monorepo** ([14](./14-surfaces-and-shared-core.md)): **PWA** (web, ships first), native **Desktop** (Pear+Electron → General Purpose), native **Mobile** (Expo+Bare → Mobile track). Native shells host QVAC on-device in a Bare worklet (PearPass blueprint, `references/`); the PWA uses the station voice service or P2P delegation.
+
+Measurement note from rules: with multiple inference devices, the most capable one is "the main." Desktop/laptop is the main → General Purpose; the mobile app and PWA delegation are additive surfaces.
 
 ## 5. Core criteria → where we earn points
 
