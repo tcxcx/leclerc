@@ -1,4 +1,4 @@
-# Halketon — Smart NGO Voice Reports
+# LeClerc — Smart NGO Voice Reports
 
 An **offline-first** progressive web app for humanitarian field operators: dictate a
 finding by voice and get a structured field report — **speech-to-text and reasoning run
@@ -16,7 +16,7 @@ captured where there's **no reliable network**. Shipping that to a cloud LLM API
 wrong default. QVAC runs the entire pipeline — **Whisper (speech-to-text) + an LLM
 (structured extraction)** — locally on the operator's device.
 
-| | Cloud LLM API (OpenAI, etc.) | **Halketon + QVAC (on-device)** |
+| | Cloud LLM API (OpenAI, etc.) | **LeClerc + QVAC (on-device)** |
 | --- | --- | --- |
 | **Data privacy** | Beneficiary PII/health leaves the device to a third party | **Never leaves the device** |
 | **Connectivity** | Requires the internet; useless in the field | **Works fully offline** |

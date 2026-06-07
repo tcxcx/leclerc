@@ -1,8 +1,8 @@
-// Minimal offline-capable service worker for the Halketon PWA.
+// Minimal offline-capable service worker for the LeClerc PWA.
 // App-shell caching only — transcription requests (/api/*) always hit the
 // network so the on-device model on the Node backend does the work.
 
-const CACHE = "halketon-shell-v1";
+const CACHE = "leclerc-shell-v1";
 const SHELL = ["/", "/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", (event) => {

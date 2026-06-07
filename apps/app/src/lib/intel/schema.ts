@@ -4,7 +4,7 @@
  * structured intel card. The verbatim source is always preserved in
  * `transcripcion` — extraction organises, it must never invent.
  *
- * Re-themed from the halketon field-report schema. Enum *values* are stable
+ * Re-themed from the original field-report baseline. Enum *values* are stable
  * (stored in data); their *labels* are translated via i18n (see docs/leclerc/07).
  */
 
