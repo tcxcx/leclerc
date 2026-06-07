@@ -1,0 +1,9 @@
+{
+  "createdAt": "2026-06-07T20:38:40.669Z",
+  "status": "PASS",
+  "checks": [
+    "putRecord succeeds with no passphrase unlock",
+    "IndexedDB row contains sealed ciphertext and no plaintext body",
+    "device-key sealed record reads back after lock() clears passphrase session state"
+  ]
+}

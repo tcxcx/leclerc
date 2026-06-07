@@ -27,9 +27,13 @@ export default function AnalysisPage() {
   async function seed() {
     setErr("");
     setStatus("");
-    const nextRecords = await seedDemoRecords(locale as "es" | "en");
-    setRecords(nextRecords);
-    setStatus(t("brief.seeded"));
+    try {
+      const nextRecords = await seedDemoRecords(locale as "es" | "en");
+      setRecords(nextRecords);
+      setStatus(t("brief.seeded"));
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "demo seed failed");
+    }
   }
 
   async function run() {

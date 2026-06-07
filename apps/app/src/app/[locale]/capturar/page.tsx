@@ -63,23 +63,29 @@ export default function CapturePage() {
 
   async function confirm() {
     if (!draft) return;
-    const confirmed: IntelRecord = { ...draft, estado: "CONFIRMADO" };
-    await putRecord(confirmed);
-    const missionIds = inferMissionIdsForText(ragText(confirmed));
-    // Ingest into the QVAC RAG dossier (best-effort; station may be offline).
-    await ragIngest([
-      {
-        id: confirmed.id,
-        text: ragText(confirmed),
-        meta: {
-          missionIds,
-          amenaza: confirmed.amenaza,
-          kind: confirmed.metadatos.kind,
-          createdAt: confirmed.createdAt,
+    try {
+      setErr("");
+      const confirmed: IntelRecord = { ...draft, estado: "CONFIRMADO" };
+      await putRecord(confirmed);
+      const missionIds = inferMissionIdsForText(ragText(confirmed));
+      // Ingest into the QVAC RAG dossier (best-effort; station may be offline).
+      await ragIngest([
+        {
+          id: confirmed.id,
+          text: ragText(confirmed),
+          meta: {
+            missionIds,
+            amenaza: confirmed.amenaza,
+            kind: confirmed.metadatos.kind,
+            createdAt: confirmed.createdAt,
+          },
         },
-      },
-    ]).catch(() => {});
-    router.push(`/${locale}/expediente/${confirmed.id}`);
+      ]).catch(() => {});
+      router.push(`/${locale}/expediente/${confirmed.id}`);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "vault write failed");
+      setPhase("review");
+    }
   }
 
   const busy = phase === "transcribing" || phase === "extracting";
@@ -142,6 +148,11 @@ export default function CapturePage() {
       {phase === "review" && draft && (
         <div className="space-y-4 anim-enter">
           <ReviewCard record={draft} onChange={setDraft} />
+          {err && (
+            <p className="rounded-xl bg-error-container px-4 py-3 text-on-error-container text-label-md">
+              {err}
+            </p>
+          )}
           <div className="flex gap-2">
             <button
               onClick={() => setPhase("idle")}

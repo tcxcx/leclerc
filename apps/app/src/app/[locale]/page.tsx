@@ -95,7 +95,12 @@ export default function ConsolePage() {
 
   // Seed believable finance demo data once so Spend/insights have something to chew on.
   useEffect(() => {
-    seedDemo(locale).catch(() => {});
+    seedDemo(locale).catch((e) => {
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", content: e instanceof Error ? e.message : "finance seed failed" },
+      ]);
+    });
   }, [locale]);
 
   useEffect(() => {
@@ -155,17 +160,24 @@ export default function ConsolePage() {
   async function createGoal() {
     const target = Number(goalTarget);
     if (!Number.isFinite(target) || target <= 0) return;
-    const goal = await addSavingsGoal({
-      title: goalName.trim() || t("finance.stashTitle"),
-      target,
-      currency: "USDT",
-    });
-    setGoalName("");
-    setGoalTarget("");
-    setFinancePanel((panel) =>
-      panel?.kind === "stash" ? { kind: "stash", goals: [goal, ...panel.goals] } : panel,
-    );
-    setMessages((m) => [...m, { role: "assistant", content: t("finance.goalCreated") }]);
+    try {
+      const goal = await addSavingsGoal({
+        title: goalName.trim() || t("finance.stashTitle"),
+        target,
+        currency: "USDT",
+      });
+      setGoalName("");
+      setGoalTarget("");
+      setFinancePanel((panel) =>
+        panel?.kind === "stash" ? { kind: "stash", goals: [goal, ...panel.goals] } : panel,
+      );
+      setMessages((m) => [...m, { role: "assistant", content: t("finance.goalCreated") }]);
+    } catch (e) {
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", content: e instanceof Error ? e.message : "finance write failed" },
+      ]);
+    }
   }
 
   function openWalletRequest() {

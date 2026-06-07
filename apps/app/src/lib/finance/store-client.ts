@@ -5,9 +5,9 @@ import { fromVaultEnvelope, toVaultEnvelope, type VaultEnvelope } from "@/lib/va
 /**
  * Offline-first, encrypted-at-rest local transaction store (IndexedDB on the
  * operative's device). Mirrors lib/intel/store-client.ts: when the vault is
- * unlocked the transaction body is sealed (AES-GCM); `id` and `ts` stay in
- * clear for indexing. Locked writes are refused; legacy plaintext rows can
- * still be read so old demo data does not strand the UI.
+ * unlocked the transaction body is sealed (AES-GCM); `id` and `createdAt` stay
+ * in clear for indexing. Legacy `ts` envelope rows are still read so old demo
+ * data does not strand the UI.
  *
  * No bank API for v1 (docs/leclerc/13-cleo-plan.md §"Finance data"). Insights
  * are computed locally and narrated by the LLM with attitude.
@@ -29,7 +29,7 @@ export interface Transaction {
 const DB_NAME = "leclerc-finance";
 const TX_STORE = "transactions";
 const GOAL_STORE = "goals";
-const VERSION = 2;
+const VERSION = 3;
 
 export interface SavingsGoal {
   id: string;
@@ -42,7 +42,8 @@ export interface SavingsGoal {
 
 interface Envelope<T = unknown> extends VaultEnvelope<T> {
   id: string;
-  ts: number;
+  createdAt: number;
+  ts?: number;
 }
 
 function openDB(): Promise<IDBDatabase> {
@@ -50,14 +51,8 @@ function openDB(): Promise<IDBDatabase> {
     const req = indexedDB.open(DB_NAME, VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
-      if (!db.objectStoreNames.contains(TX_STORE)) {
-        const store = db.createObjectStore(TX_STORE, { keyPath: "id" });
-        store.createIndex("ts", "ts");
-      }
-      if (!db.objectStoreNames.contains(GOAL_STORE)) {
-        const store = db.createObjectStore(GOAL_STORE, { keyPath: "id" });
-        store.createIndex("ts", "ts");
-      }
+      ensureStore(db, req.transaction, TX_STORE);
+      ensureStore(db, req.transaction, GOAL_STORE);
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -89,8 +84,21 @@ function goalTx<T>(mode: IDBTransactionMode, fn: (store: IDBObjectStore) => IDBR
   return storeTx(GOAL_STORE, mode, fn);
 }
 
-async function toEnvelope<T>(id: string, ts: number, value: T): Promise<Envelope<T>> {
-  return toVaultEnvelope({ id, ts }, value);
+function ensureStore(db: IDBDatabase, transaction: IDBTransaction | null, storeName: string): void {
+  const store = db.objectStoreNames.contains(storeName)
+    ? transaction?.objectStore(storeName)
+    : db.createObjectStore(storeName, { keyPath: "id" });
+  if (store && !store.indexNames.contains("createdAt")) {
+    store.createIndex("createdAt", "createdAt");
+  }
+}
+
+function envelopeCreatedAt(e: Pick<Envelope, "createdAt" | "ts">): number {
+  return e.createdAt ?? e.ts ?? 0;
+}
+
+async function toEnvelope<T>(id: string, createdAt: number, value: T): Promise<Envelope<T>> {
+  return toVaultEnvelope({ id, createdAt }, value);
 }
 
 async function fromEnvelope<T>(e: Envelope<T> | undefined): Promise<T | null> {
@@ -121,7 +129,7 @@ export async function addTransaction(
 /** All transactions, newest first. */
 export async function listTransactions(): Promise<Transaction[]> {
   const envs = await tx<Envelope<Transaction>[]>("readonly", (s) => s.getAll());
-  envs.sort((a, b) => b.ts - a.ts);
+  envs.sort((a, b) => envelopeCreatedAt(b) - envelopeCreatedAt(a));
   const out: Transaction[] = [];
   for (const e of envs) {
     const t = await fromEnvelope<Transaction>(e);
@@ -159,7 +167,7 @@ export async function addSavingsGoal(
 /** All savings goals, newest first. */
 export async function listSavingsGoals(): Promise<SavingsGoal[]> {
   const envs = await goalTx<Envelope<SavingsGoal>[]>("readonly", (s) => s.getAll());
-  envs.sort((a, b) => b.ts - a.ts);
+  envs.sort((a, b) => envelopeCreatedAt(b) - envelopeCreatedAt(a));
   const out: SavingsGoal[] = [];
   for (const e of envs) {
     const goal = await fromEnvelope<SavingsGoal>(e);

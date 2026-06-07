@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useI18n, useCurrentLocale } from "@/locales/client";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { useLlmLevel, LEVEL_LABEL, type LlmLevel } from "@/lib/llm-level";
-import { unlock, lock, isUnlocked } from "@/lib/intel/crypto";
+import { unlock, lock, isUnlocked, forgetDeviceKey } from "@/lib/intel/crypto";
 import { wipeAll } from "@/lib/intel/store-client";
 import { wipeAllFinance } from "@/lib/finance/store-client";
 
@@ -33,6 +33,7 @@ export default function SettingsPage() {
     await wipeAll();
     await wipeAllFinance();
     lock();
+    forgetDeviceKey();
     window.localStorage.removeItem("leclerc-salt");
     setConfirmWipe(false);
     setUnlocked(false);
