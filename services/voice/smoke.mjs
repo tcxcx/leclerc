@@ -16,6 +16,7 @@ import {
   QWEN3_1_7B_INST_Q4,
   TTS_MULTILINGUAL_SUPERTONIC2_Q8_0,
 } from "@qvac/sdk";
+import { persona } from "@leclerc/core";
 
 const log = (...a) => console.log("[voice-smoke]", ...a);
 const LOCALE = process.env.VOICE_LOCALE ?? "es";
@@ -94,14 +95,10 @@ try {
   if (!transcript) throw new Error("ASR produced no transcript from synthesized audio");
 
   log("running completion…");
-  const persona =
-    LOCALE === "es"
-      ? "Eres LeClerc, asistente con voz ingeniosa. Responde en 1 frase, sin markdown. /no_think"
-      : "You are LeClerc, a witty assistant. Reply in 1 sentence, no markdown. /no_think";
   const run = completion({
     modelId: llm,
     history: [
-      { role: "system", content: persona },
+      { role: "system", content: persona(LOCALE === "en" ? "en" : "es", { spoken: true }) },
       { role: "user", content: transcript },
     ],
     stream: true,

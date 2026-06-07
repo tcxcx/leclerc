@@ -8,6 +8,7 @@
     "smoke": "bun run smoke.mjs"
   },
   "dependencies": {
+    "@leclerc/core": "workspace:*",
     "@qvac/sdk": "^0.12.2",
     "ws": "^8.18.0"
   }

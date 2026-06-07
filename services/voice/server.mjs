@@ -27,21 +27,13 @@ import {
   QWEN3_4B_INST_Q4_K_M,
   TTS_MULTILINGUAL_SUPERTONIC2_Q8_0,
 } from "@qvac/sdk";
+import { persona } from "@leclerc/core";
 
 const PORT = Number(process.env.VOICE_PORT ?? 7077);
 const LOCALE = process.env.VOICE_LOCALE ?? "es";
 const TTS_SAMPLE_RATE = 44100; // Supertonic output rate
 
-const PERSONA =
-  (LOCALE === "es"
-    ? "Eres LeClerc: asistente de campo con acceso a las finanzas del operativo. " +
-      "Voz ingeniosa, directa y con algo de sarcasmo cariñoso (estilo Cleo). " +
-      "Respuestas de 1-2 frases. NUNCA uses markdown, listas ni código: tu salida se lee en voz alta. " +
-      "Responde en español."
-    : "You are LeClerc: a field assistant with access to the operative's finances. " +
-      "Witty, direct, a little savage (Cleo-style). Keep replies to 1-2 sentences. " +
-      "NEVER use markdown, lists, or code: your output is spoken aloud.") +
-  " /no_think"; // suppress Qwen3 <think> blocks (they get spoken otherwise)
+const PERSONA = persona(LOCALE === "en" ? "en" : "es", { spoken: true });
 
 /** Strip any <think>…</think> reasoning block (safety net alongside /no_think). */
 function stripThink(s) {
