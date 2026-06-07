@@ -1,4 +1,5 @@
 export * from "./agents";
+export * from "./asset-catalog";
 export * from "./finance";
 export * from "./intel";
 export * from "./p2p";

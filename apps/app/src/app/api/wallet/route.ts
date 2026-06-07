@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { balances, payLightning, paySableEvm, generateSeed } from "@/lib/wallet";
+import type { LeclercAssetId, LeclercChainId } from "@leclerc/core";
 
 export const runtime = "nodejs";
 
@@ -26,7 +27,15 @@ export async function POST(req: Request) {
       case "payLightning":
         return NextResponse.json(await payLightning(body.seed, body.invoice));
       case "payEvm":
-        return NextResponse.json(await paySableEvm(body.seed, body.to, body.amount));
+        return NextResponse.json(
+          await paySableEvm(
+            body.seed,
+            body.to,
+            body.amount,
+            body.assetId as LeclercAssetId | undefined,
+            body.chainId ? (Number(body.chainId) as LeclercChainId) : undefined,
+          ),
+        );
       default:
         return NextResponse.json({ error: "unknown action" }, { status: 400 });
     }

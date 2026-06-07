@@ -3,6 +3,7 @@
 /** Thin client helpers for the station Route Handlers. */
 import type { IntelRecord } from "@/lib/intel/schema";
 import type { IntelBrief, BriefRequest } from "@/lib/agents/orchestrator";
+import type { LeclercAssetId, LeclercChainId, WalletAssetBalance } from "@leclerc/core";
 
 async function post<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
@@ -94,14 +95,19 @@ export async function exportBrief(req: {
 export const wallet = {
   generate: () => post<{ seed: string }>("/api/wallet", { action: "generate" }),
   balances: (seed: string) =>
-    post<{ address: string; usdt: string; sats: string }>("/api/wallet", {
+    post<{ address: string; usdt: string; sats: string; assets: WalletAssetBalance[] }>("/api/wallet", {
       action: "balances",
       seed,
     }),
   payLightning: (seed: string, invoice: string) =>
     post<{ ok: true }>("/api/wallet", { action: "payLightning", seed, invoice }),
-  payEvm: (seed: string, to: string, amount: string) =>
-    post<{ hash: string }>("/api/wallet", { action: "payEvm", seed, to, amount }),
+  payEvm: (
+    seed: string,
+    to: string,
+    amount: string,
+    assetId?: LeclercAssetId,
+    chainId?: LeclercChainId,
+  ) => post<{ hash: string }>("/api/wallet", { action: "payEvm", seed, to, amount, assetId, chainId }),
 };
 
 export const station = {

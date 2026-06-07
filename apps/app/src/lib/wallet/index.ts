@@ -15,31 +15,36 @@ import WDK from "@tetherto/wdk";
 import WalletManagerEvm from "@tetherto/wdk-wallet-evm";
 import WalletManagerSpark from "@tetherto/wdk-wallet-spark";
 import type { NetworkType } from "@tetherto/wdk-wallet-spark";
+import {
+  getLeclercAsset,
+  getLeclercChain,
+  isWritableChain,
+  listLeclercAssets,
+  rpcUrlForChain,
+  tokenAddress,
+  type LeclercAssetId,
+  type LeclercChainId,
+  type WalletAssetBalance,
+} from "@leclerc/core";
 
-const MAINNET_USDT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-const DEFAULT_EVM_CHAIN_ID = 11155111; // Sepolia
+const DEFAULT_EVM_CHAIN_ID: LeclercChainId = 5042002;
+const DEFAULT_SEND_ASSET: LeclercAssetId = "usdc";
 
-function requiredTestnetTokenAddress(): string {
-  const token = process.env.USDT_ADDRESS?.trim();
-  if (!token) throw new Error("USDT_ADDRESS not set; configure a testnet USDT token address");
-  if (token.toLowerCase() === MAINNET_USDT_ADDRESS.toLowerCase()) {
-    throw new Error("USDT_ADDRESS points at Ethereum mainnet USDT; use a testnet token address");
+function requiredTokenAddress(assetId: LeclercAssetId, chainId: LeclercChainId): string {
+  const chain = getLeclercChain(chainId === 5042002 ? "arc-testnet" : "arbitrum-one");
+  if (!isWritableChain(chain)) {
+    throw new Error(`${chain.name} is read-only in LeClerc; writes are testnet-only`);
   }
+  const token = tokenAddress(assetId, chainId);
+  if (!token) throw new Error(`${getLeclercAsset(assetId).displaySymbol} is not configured on ${chain.name}`);
   return token;
 }
 
-function configuredTestnetTokenAddress(): string | null {
-  const token = process.env.USDT_ADDRESS?.trim();
-  if (!token) return null;
-  return requiredTestnetTokenAddress();
-}
-
-function evmChainId(): number {
+function evmChainId(): LeclercChainId {
   const chainId = Number(process.env.EVM_CHAIN_ID ?? DEFAULT_EVM_CHAIN_ID);
-  if (!Number.isInteger(chainId) || chainId <= 0) {
-    throw new Error("EVM_CHAIN_ID must be a positive integer testnet chain id");
+  if (chainId !== 5042002) {
+    throw new Error("EVM_CHAIN_ID must be Arc Testnet (5042002) for writable wallet flows");
   }
-  if (chainId === 1) throw new Error("EVM_CHAIN_ID=1 is mainnet; use a testnet chain id");
   return chainId;
 }
 
@@ -49,8 +54,9 @@ export function generateSeed(): string {
 }
 
 async function evm(seed: string) {
+  const chain = getLeclercChain("arc-testnet");
   return new WalletManagerEvm(seed, {
-    provider: process.env.EVM_RPC_URL || undefined,
+    provider: process.env.EVM_RPC_URL || rpcUrlForChain(chain, process.env),
     chainId: evmChainId(),
   }).getAccount();
 }
@@ -76,19 +82,43 @@ export interface Balances {
   address: string;
   usdt: string;
   sats: string;
+  assets: WalletAssetBalance[];
 }
 
 export async function balances(seed: string): Promise<Balances> {
   const e = await evm(seed);
-  const token = configuredTestnetTokenAddress();
-  const [address, usdt, sats] = await Promise.all([
+  const chainId = evmChainId();
+  const assets = listLeclercAssets();
+  const [address, sats] = await Promise.all([
     e.getAddress(),
-    token ? e.getTokenBalance(token).catch(() => "unavailable") : Promise.resolve("unconfigured"),
     spark(seed)
       .then((s) => s.getBalance())
       .catch(() => "unavailable"),
   ]);
-  return { address, usdt: String(usdt), sats: String(sats) };
+  const evmBalances = await Promise.all(
+    assets.map(async (asset): Promise<WalletAssetBalance> => {
+      if (asset.id === "btc") {
+        return { assetId: asset.id, value: String(sats), status: sats === "unavailable" ? "unavailable" : "ok" };
+      }
+      const token = tokenAddress(asset.id, chainId);
+      if (!token) {
+        return {
+          assetId: asset.id,
+          value: "unconfigured",
+          status: asset.kind === "spark-token" ? "unconfigured" : "unconfigured",
+        };
+      }
+      const value = await e.getTokenBalance(token).catch(() => "unavailable");
+      return {
+        assetId: asset.id,
+        chainId,
+        value: String(value),
+        status: value === "unavailable" ? "unavailable" : "ok",
+      };
+    }),
+  );
+  const usdt = evmBalances.find((asset) => asset.assetId === "usdt")?.value ?? "unconfigured";
+  return { address, usdt, sats: String(sats), assets: evmBalances };
 }
 
 const MAX_LN_FEE_SATS = Number(process.env.LN_MAX_FEE_SATS ?? 50);
@@ -105,8 +135,10 @@ export async function paySableEvm(
   seed: string,
   to: string,
   amount: string,
+  assetId: LeclercAssetId = DEFAULT_SEND_ASSET,
+  chainId: LeclercChainId = DEFAULT_EVM_CHAIN_ID,
 ): Promise<{ hash: string }> {
-  const token = requiredTestnetTokenAddress();
+  const token = requiredTokenAddress(assetId, chainId);
   const e = await evm(seed);
   const res = await e.transfer({
     token,

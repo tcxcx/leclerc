@@ -235,6 +235,9 @@
   "wallet": {
     "title": "Wallet",
     "balances": "Balances",
+    "networks": "Networks",
+    "testnetWrite": "testnet",
+    "readOnly": "read-only",
     "usdt": "USDT",
     "lightning": "Lightning (sats)",
     "pay": "Pay an asset",

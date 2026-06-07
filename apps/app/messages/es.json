@@ -235,6 +235,9 @@
   "wallet": {
     "title": "Billetera",
     "balances": "Saldos",
+    "networks": "Redes",
+    "testnetWrite": "testnet",
+    "readOnly": "solo lectura",
     "usdt": "USDT",
     "lightning": "Lightning (sats)",
     "pay": "Pagar a un contacto",

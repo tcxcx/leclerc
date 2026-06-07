@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import {
+  getLeclercAsset,
+  listLeclercAssets,
+  listLeclercChains,
+  type WalletAssetBalance,
+} from "@leclerc/core";
 import { useI18n } from "@/locales/client";
 import { wallet } from "@/lib/api-client";
 
@@ -14,7 +20,12 @@ export default function WalletPage() {
   const t = useI18n();
   const searchParams = useSearchParams();
   const [seed, setSeed] = useState<string | null>(null);
-  const [bal, setBal] = useState<{ address: string; usdt: string; sats: string } | null>(null);
+  const [bal, setBal] = useState<{
+    address: string;
+    usdt: string;
+    sats: string;
+    assets: WalletAssetBalance[];
+  } | null>(null);
   const [invoice, setInvoice] = useState(() => searchParams.get("invoice") ?? "");
   const [confirming, setConfirming] = useState(false);
   const [status, setStatus] = useState("");
@@ -84,8 +95,43 @@ export default function WalletPage() {
               </button>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <Stat label={t("wallet.usdt")} value={bal?.usdt ?? "—"} />
-              <Stat label={t("wallet.lightning")} value={bal?.sats ?? "—"} />
+              {listLeclercAssets().map((asset) => {
+                const found = bal?.assets?.find((entry) => entry.assetId === asset.id);
+                return (
+                  <AssetStat
+                    key={asset.id}
+                    assetId={asset.id}
+                    value={found?.value ?? t("common.noData")}
+                    status={found?.status}
+                  />
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4">
+            <h2 className="mb-2 font-headline-sm">{t("wallet.networks")}</h2>
+            <div className="space-y-2">
+              {listLeclercChains().map((chain) => (
+                <div
+                  key={chain.key}
+                  className="flex items-center justify-between gap-3 rounded-xl bg-surface-container p-3"
+                >
+                  <div className="flex min-w-0 items-center gap-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={chain.iconPath} alt="" className="h-7 w-7 shrink-0 rounded-full" />
+                    <div className="min-w-0">
+                      <div className="truncate text-label-md">{chain.name}</div>
+                      <div className="truncate font-mono text-caption text-on-surface-variant">
+                        {chain.chainId}
+                      </div>
+                    </div>
+                  </div>
+                  <span className="shrink-0 rounded-full border border-outline-variant px-2 py-0.5 text-caption text-on-surface-variant">
+                    {chain.writePolicy === "allowed-testnet" ? t("wallet.testnetWrite") : t("wallet.readOnly")}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -145,11 +191,30 @@ export default function WalletPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function AssetStat({
+  assetId,
+  value,
+  status,
+}: {
+  assetId: ReturnType<typeof listLeclercAssets>[number]["id"];
+  value: string;
+  status?: WalletAssetBalance["status"];
+}) {
+  const asset = getLeclercAsset(assetId);
   return (
-    <div className="rounded-xl bg-surface-container p-3">
-      <div className="text-caption text-on-surface-variant">{label}</div>
-      <div className="font-mono text-body-lg">{value}</div>
+    <div className="min-w-0 rounded-xl bg-surface-container p-3">
+      <div className="mb-2 flex min-w-0 items-center gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={asset.iconPath} alt="" className="h-7 w-7 shrink-0 rounded-full" />
+        <div className="min-w-0">
+          <div className="truncate text-caption text-on-surface-variant">{asset.displaySymbol}</div>
+          <div className="truncate text-[11px] text-on-surface-variant">{asset.name}</div>
+        </div>
+      </div>
+      <div className="truncate font-mono text-body-lg">{value}</div>
+      {status && status !== "ok" && (
+        <div className="mt-1 truncate text-[11px] text-on-surface-variant">{status}</div>
+      )}
     </div>
   );
 }
