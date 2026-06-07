@@ -97,6 +97,7 @@ export function ragText(r: IntelRecord): string {
     r.entidades.organizaciones.join(", "),
     r.entidades.lugares.join(", "),
     r.transcripcion,
+    r.adjuntos?.map((a) => a.text).filter(Boolean).join("\n"),
   ]
     .filter(Boolean)
     .join("\n");

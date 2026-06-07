@@ -25,6 +25,14 @@ export function chat(
   return post<{ text: string }>("/api/chat", { messages, ...opts });
 }
 
+export function captureExtract(input: {
+  transcript: string;
+  durationMs?: number | null;
+  locale: "es" | "en";
+}) {
+  return post<{ record: IntelRecord }>("/api/capture", input);
+}
+
 export function ragAsk(query: string, k = 6) {
   return post<{ answer: string; sources: { id: string; score?: number }[] }>("/api/rag", {
     action: "query",
@@ -39,6 +47,24 @@ export function ragSearch(query: string, k = 4) {
     query,
     k,
   });
+}
+
+export async function documentIntel(
+  image: File,
+  opts: { translate?: boolean; from?: string; to?: string } = {},
+): Promise<{
+  text: string;
+  translatedText?: string;
+  blocks: { text: string; bbox?: number[]; confidence?: number }[];
+}> {
+  const form = new FormData();
+  form.set("image", image);
+  form.set("translate", opts.translate ? "true" : "false");
+  if (opts.from) form.set("from", opts.from);
+  if (opts.to) form.set("to", opts.to);
+  const res = await fetch("/api/document", { method: "POST", body: form });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `document ${res.status}`);
+  return res.json();
 }
 
 export function runBrief(req: BriefRequest) {

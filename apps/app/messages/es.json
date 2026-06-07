@@ -45,7 +45,8 @@
     "quickCapture": "Captura rápida",
     "recent": "Expediente reciente",
     "stationStatus": "Estado de la estación",
-    "peerStatus": "Estado del enlace"
+    "peerStatus": "Estado del enlace",
+    "intelLayer": "Capa de inteligencia"
   },
   "voice": {
     "connecting": "Abriendo canal de voz seguro",
@@ -99,6 +100,7 @@
     "subject": "Sujeto",
     "location": "Ubicación",
     "assessment": "Evaluación",
+    "narrative": "Narrativa",
     "actions": "Acciones pendientes",
     "source": "Fuente verbatim",
     "attachments": "Adjuntos",
@@ -107,7 +109,12 @@
     "draft": "Borrador",
     "exportPdf": "Exportar PDF",
     "exportDocx": "Exportar DOCX",
-    "deadDrop": "Enviar por buzón"
+    "deadDrop": "Enviar por buzón",
+    "addDocument": "Añadir documento",
+    "translateDocument": "Traducir si es extranjero",
+    "ocrText": "Texto OCR",
+    "documentAdded": "Documento añadido al expediente.",
+    "documentFailed": "Falló el documento."
   },
   "brief": {
     "title": "Mesa de análisis",

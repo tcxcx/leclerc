@@ -45,7 +45,8 @@
     "quickCapture": "Quick capture",
     "recent": "Recent dossier",
     "stationStatus": "Station status",
-    "peerStatus": "Link status"
+    "peerStatus": "Link status",
+    "intelLayer": "Intel layer"
   },
   "voice": {
     "connecting": "Opening secure voice channel",
@@ -99,6 +100,7 @@
     "subject": "Subject",
     "location": "Location",
     "assessment": "Assessment",
+    "narrative": "Narrative",
     "actions": "Pending actions",
     "source": "Verbatim source",
     "attachments": "Attachments",
@@ -107,7 +109,12 @@
     "draft": "Draft",
     "exportPdf": "Export PDF",
     "exportDocx": "Export DOCX",
-    "deadDrop": "Send via dead-drop"
+    "deadDrop": "Send via dead-drop",
+    "addDocument": "Add document",
+    "translateDocument": "Translate if foreign",
+    "ocrText": "OCR text",
+    "documentAdded": "Document added to dossier.",
+    "documentFailed": "Document failed."
   },
   "brief": {
     "title": "Analyst desk",

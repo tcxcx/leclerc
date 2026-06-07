@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useI18n, useCurrentLocale } from "@/locales/client";
-import { getRecord, updateEstado, deleteRecord } from "@/lib/intel/store-client";
+import { getRecord, updateEstado, deleteRecord, putRecord } from "@/lib/intel/store-client";
+import { documentIntel, ragIngest } from "@/lib/api-client";
+import { ragText } from "@/lib/intel/assemble";
 import type { IntelRecord } from "@/lib/intel/schema";
 import { ThreatChip } from "@/components/threat-chip";
 
@@ -13,6 +15,10 @@ export default function RecordPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const [r, setR] = useState<IntelRecord | null>(null);
+  const [docBusy, setDocBusy] = useState(false);
+  const [translateDoc, setTranslateDoc] = useState(false);
+  const [status, setStatus] = useState("");
+  const [err, setErr] = useState("");
 
   useEffect(() => {
     if (id) getRecord(id).then(setR).catch(() => setR(null));
@@ -30,6 +36,64 @@ export default function RecordPage() {
         </ul>
       </Section>
     );
+
+  async function ingestRecord(record: IntelRecord) {
+    await ragIngest([
+      {
+        id: record.id,
+        text: ragText(record),
+        meta: {
+          amenaza: record.amenaza,
+          kind: record.metadatos.kind,
+          createdAt: record.createdAt,
+        },
+      },
+    ]);
+  }
+
+  async function confirmRecord() {
+    if (!r) return;
+    setErr("");
+    const updated = await updateEstado(r.id, "CONFIRMADO");
+    if (!updated) return;
+    setR(updated);
+    await ingestRecord(updated).catch((e) => setErr(e instanceof Error ? e.message : "RAG error"));
+  }
+
+  async function addDocument(file: File | null) {
+    if (!r || !file) return;
+    setDocBusy(true);
+    setErr("");
+    setStatus("");
+    try {
+      const result = await documentIntel(file, {
+        translate: translateDoc,
+        to: locale === "en" ? "en" : "es",
+      });
+      const text = [result.text, result.translatedText].filter(Boolean).join("\n\n");
+      const updated: IntelRecord = {
+        ...r,
+        adjuntos: [
+          ...(r.adjuntos ?? []),
+          {
+            kind: "ocr",
+            text,
+            sha256: `${file.name}:${file.size}:${file.lastModified}`,
+          },
+        ],
+      };
+      await putRecord(updated);
+      setR(updated);
+      if (updated.estado === "CONFIRMADO") {
+        await ingestRecord(updated).catch((e) => setErr(e instanceof Error ? e.message : "RAG error"));
+      }
+      setStatus(t("record.documentAdded"));
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : t("record.documentFailed"));
+    } finally {
+      setDocBusy(false);
+    }
+  }
 
   return (
     <div className="anim-enter space-y-4">
@@ -69,19 +133,65 @@ export default function RecordPage() {
       ])}
 
       {r.datos.narrativa && (
-        <Section label="Narrativa">
+        <Section label={t("record.narrative")}>
           <p className="whitespace-pre-wrap text-body-md">{r.datos.narrativa}</p>
         </Section>
       )}
+
+      <Section label={t("record.attachments")}>
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 text-body-md text-on-surface-variant">
+            <input
+              type="checkbox"
+              checked={translateDoc}
+              onChange={(e) => setTranslateDoc(e.target.checked)}
+            />
+            {t("record.translateDocument")}
+          </label>
+          <label className="block cursor-pointer rounded-xl border border-outline-variant px-4 py-3 text-center text-label-md">
+            <input
+              type="file"
+              accept="image/*"
+              disabled={docBusy}
+              className="sr-only"
+              onChange={(e) => addDocument(e.target.files?.[0] ?? null)}
+            />
+            {docBusy ? t("common.loading") : t("record.addDocument")}
+          </label>
+          {r.adjuntos?.length ? (
+            <ul className="space-y-2">
+              {r.adjuntos.map((attachment, index) => (
+                <li key={`${attachment.sha256 ?? "attachment"}-${index}`} className="rounded-lg bg-surface p-2">
+                  <div className="mb-1 text-caption uppercase tracking-wide text-on-surface-variant">
+                    {attachment.kind}
+                  </div>
+                  <p className="whitespace-pre-wrap text-body-md">{attachment.text ?? attachment.sha256}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-body-md text-on-surface-variant">{t("common.empty")}</p>
+          )}
+        </div>
+      </Section>
 
       <Section label={t("record.source")}>
         <p className="whitespace-pre-wrap text-body-md text-on-surface-variant">{r.transcripcion}</p>
       </Section>
 
+      {status && (
+        <p className="rounded-xl border border-outline-variant bg-surface-container-low px-4 py-3 text-label-md text-on-surface-variant">
+          {status}
+        </p>
+      )}
+      {err && (
+        <p className="rounded-xl bg-error-container px-4 py-3 text-on-error-container text-label-md">{err}</p>
+      )}
+
       <div className="grid grid-cols-2 gap-2 pt-2">
         {r.estado !== "CONFIRMADO" && (
           <button
-            onClick={() => updateEstado(r.id, "CONFIRMADO").then((u) => u && setR(u))}
+            onClick={confirmRecord}
             className="col-span-2 rounded-xl bg-primary py-3 text-on-primary font-label-md"
           >
             {t("record.confirm")}

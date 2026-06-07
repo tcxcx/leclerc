@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useI18n, useCurrentLocale } from "@/locales/client";
 import { ChatBubble } from "@/components/chat-bubble";
@@ -56,6 +57,7 @@ export default function ConsolePage() {
   const [goalName, setGoalName] = useState("");
   const [goalTarget, setGoalTarget] = useState("");
   const [requestInvoice, setRequestInvoice] = useState("");
+  const [intelOpen, setIntelOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Live RAG chips: after a turn, surface related dossier hits as tappable chips.
@@ -176,9 +178,28 @@ export default function ConsolePage() {
   return (
     <div className="flex h-[calc(100dvh-8.5rem)] flex-col">
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto pb-2">
-        <h1 className="anim-enter pt-4 font-display-lg text-[30px] leading-tight">{greeting(locale)}</h1>
+        <div className="flex items-start justify-between gap-3 pt-4">
+          <h1 className="anim-enter font-display-lg text-[30px] leading-tight">{greeting(locale)}</h1>
+          <button
+            type="button"
+            onClick={() => setIntelOpen((open) => !open)}
+            aria-label={t("console.intelLayer")}
+            className="material-symbols-outlined rounded-full border border-outline-variant bg-surface-container-low p-2 text-[22px] text-primary"
+          >
+            shield_person
+          </button>
+        </div>
 
         {empty && <p className="anim-fade text-on-surface-variant text-body-lg">{t("app.tagline")}</p>}
+
+        {intelOpen && (
+          <div className="grid grid-cols-2 gap-2 rounded-lg border border-outline-variant bg-surface-container-low/90 p-3">
+            <IntelLink href={`/${locale}/capturar`} icon="fiber_manual_record" label={t("nav.capture")} />
+            <IntelLink href={`/${locale}/expediente`} icon="folder_open" label={t("nav.dossier")} />
+            <IntelLink href={`/${locale}/analisis`} icon="query_stats" label={t("nav.analysis")} />
+            <IntelLink href={`/${locale}/enlace`} icon="hub" label={t("nav.link")} />
+          </div>
+        )}
 
         {messages.map((m, i) => (
           <ChatBubble key={i} role={m.role} pending={m.pending}>
@@ -366,5 +387,19 @@ export default function ConsolePage() {
 
       <ActionBar voiceState={voice.state} onAsk={onAsk} onAction={onAction} labels={LABELS[locale]} />
     </div>
+  );
+}
+
+function IntelLink({ href, icon, label }: { href: string; icon: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="flex min-h-12 items-center gap-2 rounded-lg bg-surface-container px-3 py-2 text-label-md text-on-surface"
+    >
+      <span className="material-symbols-outlined text-[18px] text-primary" aria-hidden>
+        {icon}
+      </span>
+      <span className="min-w-0 truncate">{label}</span>
+    </Link>
   );
 }

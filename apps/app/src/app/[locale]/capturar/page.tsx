@@ -5,17 +5,13 @@ import { useRouter } from "next/navigation";
 import { useI18n, useCurrentLocale } from "@/locales/client";
 import { useRecorder, type RecordingResult } from "@/lib/use-recorder";
 import { useInferenceMode } from "@/lib/inference/mode";
-import { inferTranscribe, inferExtract } from "@/lib/inference";
+import { inferTranscribe } from "@/lib/inference";
 import {
-  SYSTEM_PROMPT,
   ASR_LANGUAGE,
-  EXTRACTION_JSON_SCHEMA,
-  buildUserMessage,
-  buildRecord,
   isMeaningful,
 } from "@/lib/intel/assemble";
 import { putRecord } from "@/lib/intel/store-client";
-import { ragIngest } from "@/lib/api-client";
+import { captureExtract, ragIngest } from "@/lib/api-client";
 import { ragText } from "@/lib/intel/assemble";
 import type { IntelRecord } from "@/lib/intel/schema";
 
@@ -51,19 +47,8 @@ export default function CapturePage() {
         return;
       }
       setPhase("extracting");
-      const capturedAt = Date.now();
-      const extraction = await inferExtract(
-        mode,
-        [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: buildUserMessage(transcript, capturedAt) },
-        ],
-        EXTRACTION_JSON_SCHEMA,
-      );
-      const record = buildRecord(transcript, extraction, {
-        kind: "observacion",
-        sector: null,
-        capturedAt,
+      const { record } = await captureExtract({
+        transcript,
         durationMs,
         locale: locale as "es" | "en",
       });
@@ -80,9 +65,17 @@ export default function CapturePage() {
     const confirmed: IntelRecord = { ...draft, estado: "CONFIRMADO" };
     await putRecord(confirmed);
     // Ingest into the QVAC RAG dossier (best-effort; station may be offline).
-    ragIngest([{ id: confirmed.id, text: ragText(confirmed), meta: { amenaza: confirmed.amenaza } }]).catch(
-      () => {},
-    );
+    await ragIngest([
+      {
+        id: confirmed.id,
+        text: ragText(confirmed),
+        meta: {
+          amenaza: confirmed.amenaza,
+          kind: confirmed.metadatos.kind,
+          createdAt: confirmed.createdAt,
+        },
+      },
+    ]).catch(() => {});
     router.push(`/${locale}/expediente/${confirmed.id}`);
   }
 

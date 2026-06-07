@@ -1,0 +1,78 @@
+{
+  "request": {
+    "transcript": "Operativo observa a Condor Azul en el Taller Norte. Condor Azul entrega una caja marcada Kestrel a Nina y menciona que la reunion sigue en Darsena 4 antes de medianoche. Riesgo elevado por material cifrado.",
+    "query": "que sabemos sobre Condor Azul y Darsena 4"
+  },
+  "record": {
+    "id": "202d3e6b-0e89-4c9a-8250-efcd27d814b4",
+    "transcripcion": "Operativo observa a Condor Azul en el Taller Norte. Condor Azul entrega una caja marcada Kestrel a Nina y menciona que la reunion sigue en Darsena 4 antes de medianoche. Riesgo elevado por material cifrado.",
+    "resumen": "El operativo observa a Condor Azul entregando una caja Kestrel a Nina, con una reunión prevista en Darsena 4 antes de medianoche, aunque el riesgo está elevado por material cifrado.",
+    "amenaza": "ELEVADO",
+    "entidades": {
+      "personas": [
+        "Nina"
+      ],
+      "organizaciones": [
+        "Condor Azul"
+      ],
+      "lugares": [
+        "Taller Norte",
+        "Darsena 4"
+      ],
+      "fechas": [
+        "7 de junio de 2026"
+      ]
+    },
+    "accionesPendientes": [
+      "Entrega de caja Kestrel a Nina",
+      "Reunión prevista en Darsena 4 antes de medianoche"
+    ],
+    "datos": {
+      "sujeto": {
+        "alias": "",
+        "descripcion": "Condor Azul",
+        "afiliacion": "Taller Norte"
+      },
+      "ubicacion": {
+        "lugar": "Taller Norte",
+        "coordenadas": "",
+        "contexto": "Ubicación del operativo, donde se realiza la entrega y la reunión"
+      },
+      "evaluacion": {
+        "fiabilidad": "media",
+        "corroboracion": "media",
+        "riesgos": [
+          "Material cifrado"
+        ]
+      },
+      "narrativa": "El operativo registra una entrega de caja Kestrel a Nina, con una reunión prevista en Darsena 4 antes de medianoche, aunque el riesgo de material cifrado es elevado."
+    },
+    "metadatos": {
+      "kind": "observacion",
+      "sector": null,
+      "capturedAt": 1780806245203,
+      "durationMs": null,
+      "locale": "es"
+    },
+    "estado": "CONFIRMADO",
+    "createdAt": 1780806251665
+  },
+  "ingest": {
+    "ok": true,
+    "count": 1
+  },
+  "recall": {
+    "answer": "<think>\n\n</think>\n\nCondor Azul entrega una caja Kestrel a Nina en el Taller Norte, con una reunión prevista en Darsena 4 antes de medianoche. El riesgo de material cifrado es elevado.",
+    "sources": [
+      {
+        "id": "202d3e6b-0e89-4c9a-8250-efcd27d814b4",
+        "score": 0.5978967468654458
+      }
+    ]
+  },
+  "documentProbe": {
+    "error": "LECLERC_OCR_SRC not set (document-intel feature).",
+    "status": 500
+  },
+  "pass": true
+}
