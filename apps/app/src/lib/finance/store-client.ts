@@ -26,15 +26,25 @@ export interface Transaction {
 }
 
 const DB_NAME = "leclerc-finance";
-const STORE = "transactions";
-const VERSION = 1;
+const TX_STORE = "transactions";
+const GOAL_STORE = "goals";
+const VERSION = 2;
 
-interface Envelope {
+export interface SavingsGoal {
+  id: string;
+  createdAt: number;
+  title: string;
+  target: number;
+  current: number;
+  currency: string;
+}
+
+interface Envelope<T = unknown> {
   id: string;
   ts: number;
   sealed?: Sealed;
   /** Fallback when the vault is not configured (dev only). */
-  plain?: Transaction;
+  plain?: T;
 }
 
 function openDB(): Promise<IDBDatabase> {
@@ -42,8 +52,12 @@ function openDB(): Promise<IDBDatabase> {
     const req = indexedDB.open(DB_NAME, VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
-      if (!db.objectStoreNames.contains(STORE)) {
-        const store = db.createObjectStore(STORE, { keyPath: "id" });
+      if (!db.objectStoreNames.contains(TX_STORE)) {
+        const store = db.createObjectStore(TX_STORE, { keyPath: "id" });
+        store.createIndex("ts", "ts");
+      }
+      if (!db.objectStoreNames.contains(GOAL_STORE)) {
+        const store = db.createObjectStore(GOAL_STORE, { keyPath: "id" });
         store.createIndex("ts", "ts");
       }
     };
@@ -52,15 +66,16 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-function tx<T>(
+function storeTx<T>(
+  storeName: string,
   mode: IDBTransactionMode,
   fn: (store: IDBObjectStore) => IDBRequest<T>,
 ): Promise<T> {
   return openDB().then(
     (db) =>
       new Promise<T>((resolve, reject) => {
-        const transaction = db.transaction(STORE, mode);
-        const req = fn(transaction.objectStore(STORE));
+        const transaction = db.transaction(storeName, mode);
+        const req = fn(transaction.objectStore(storeName));
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
         transaction.oncomplete = () => db.close();
@@ -68,16 +83,24 @@ function tx<T>(
   );
 }
 
-async function toEnvelope(t: Transaction): Promise<Envelope> {
-  if (isUnlocked()) {
-    return { id: t.id, ts: t.ts, sealed: await seal(t) };
-  }
-  return { id: t.id, ts: t.ts, plain: t };
+function tx<T>(mode: IDBTransactionMode, fn: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+  return storeTx(TX_STORE, mode, fn);
 }
 
-async function fromEnvelope(e: Envelope | undefined): Promise<Transaction | null> {
+function goalTx<T>(mode: IDBTransactionMode, fn: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+  return storeTx(GOAL_STORE, mode, fn);
+}
+
+async function toEnvelope<T>(id: string, ts: number, value: T): Promise<Envelope<T>> {
+  if (isUnlocked()) {
+    return { id, ts, sealed: await seal(value) };
+  }
+  return { id, ts, plain: value };
+}
+
+async function fromEnvelope<T>(e: Envelope<T> | undefined): Promise<T | null> {
   if (!e) return null;
-  if (e.sealed) return open<Transaction>(e.sealed);
+  if (e.sealed) return open<T>(e.sealed);
   return e.plain ?? null;
 }
 
@@ -97,18 +120,18 @@ export async function addTransaction(
     id: input.id ?? newId(),
     ts: input.ts ?? Date.now(),
   };
-  const env = await toEnvelope(t);
+  const env = await toEnvelope(t.id, t.ts, t);
   await tx("readwrite", (s) => s.put(env));
   return t;
 }
 
 /** All transactions, newest first. */
 export async function listTransactions(): Promise<Transaction[]> {
-  const envs = await tx<Envelope[]>("readonly", (s) => s.getAll());
+  const envs = await tx<Envelope<Transaction>[]>("readonly", (s) => s.getAll());
   envs.sort((a, b) => b.ts - a.ts);
   const out: Transaction[] = [];
   for (const e of envs) {
-    const t = await fromEnvelope(e);
+    const t = await fromEnvelope<Transaction>(e);
     if (t) out.push(t);
   }
   return out;
@@ -121,6 +144,35 @@ export async function deleteTransaction(id: string): Promise<void> {
 /** Panic-wipe: clear the entire finance store. */
 export async function wipeAllFinance(): Promise<void> {
   await tx("readwrite", (s) => s.clear());
+  await goalTx("readwrite", (s) => s.clear());
+}
+
+/** Add a local savings goal. */
+export async function addSavingsGoal(
+  input: Omit<SavingsGoal, "id" | "createdAt" | "current"> &
+    Partial<Pick<SavingsGoal, "id" | "createdAt" | "current">>,
+): Promise<SavingsGoal> {
+  const goal: SavingsGoal = {
+    ...input,
+    id: input.id ?? newId(),
+    createdAt: input.createdAt ?? Date.now(),
+    current: input.current ?? 0,
+  };
+  const env = await toEnvelope(goal.id, goal.createdAt, goal);
+  await goalTx("readwrite", (s) => s.put(env));
+  return goal;
+}
+
+/** All savings goals, newest first. */
+export async function listSavingsGoals(): Promise<SavingsGoal[]> {
+  const envs = await goalTx<Envelope<SavingsGoal>[]>("readonly", (s) => s.getAll());
+  envs.sort((a, b) => b.ts - a.ts);
+  const out: SavingsGoal[] = [];
+  for (const e of envs) {
+    const goal = await fromEnvelope<SavingsGoal>(e);
+    if (goal) out.push(goal);
+  }
+  return out;
 }
 
 const DAY = 86_400_000;

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useI18n } from "@/locales/client";
 import { wallet } from "@/lib/api-client";
 
@@ -11,11 +12,17 @@ import { wallet } from "@/lib/api-client";
  */
 export default function WalletPage() {
   const t = useI18n();
+  const searchParams = useSearchParams();
   const [seed, setSeed] = useState<string | null>(null);
   const [bal, setBal] = useState<{ address: string; usdt: string; sats: string } | null>(null);
   const [invoice, setInvoice] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    const nextInvoice = searchParams.get("invoice");
+    if (nextInvoice) setInvoice(nextInvoice);
+  }, [searchParams]);
 
   async function gen() {
     const { seed: s } = await wallet.generate();

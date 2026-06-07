@@ -54,6 +54,24 @@
     "speaking": "Speaking",
     "error": "Voice error"
   },
+  "finance": {
+    "spendTitle": "Spend breakdown",
+    "weekTotal": "Week total",
+    "topCategory": "Top leak",
+    "transactions": "Recent moves",
+    "stashTitle": "Stash goal",
+    "goalName": "Goal name",
+    "goalTarget": "Target amount",
+    "createGoal": "Create goal",
+    "currentGoals": "Current goals",
+    "noGoals": "No stash goals yet",
+    "goalCreated": "Goal saved in the vault.",
+    "requestTitle": "Lightning request",
+    "requestBody": "Paste a BOLT11 invoice and hand it to the wallet confirm flow.",
+    "payInWallet": "Pay in wallet",
+    "narrating": "Cleo is reading the numbers",
+    "askSpend": "Roast my weekly spend using the local finance context."
+  },
   "capture": {
     "title": "Capture intelligence",
     "record": "Record",

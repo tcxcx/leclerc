@@ -71,7 +71,7 @@ export function summarize(txs: Transaction[], now: number = Date.now()): SpendSu
 }
 
 /** Format an amount with its currency, sats as whole numbers. */
-function fmt(amount: number, currency: string): string {
+export function formatAmount(amount: number, currency: string): string {
   if (currency === "sats") return `${Math.round(amount).toLocaleString("en-US")} sats`;
   return `${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
 }
@@ -83,9 +83,9 @@ export function sassySummary(s: SpendSummary, locale: "es" | "en"): string {
       ? "Semana limpia: ni un gasto registrado. Sospechosamente disciplinado."
       : "Clean week — not a single spend logged. Suspiciously disciplined.";
   }
-  const spend = fmt(s.weekSpend, s.currency);
+  const spend = formatAmount(s.weekSpend, s.currency);
   if (s.topCategory) {
-    const top = fmt(s.topCategory.amount, s.currency);
+    const top = formatAmount(s.topCategory.amount, s.currency);
     return locale === "es"
       ? `Llevas ${spend} esta semana y "${s.topCategory.category}" se come ${top}. ¿Seguimos así o intervenimos?`
       : `${spend} this week, and "${s.topCategory.category}" is eating ${top} of it. Keep going or do we intervene?`;
@@ -101,13 +101,13 @@ export function financeContext(txs: Transaction[], now: number = Date.now()): st
   const lines: string[] = [];
   lines.push("FINANCE CONTEXT (local, last 7 days):");
   lines.push(`- currency: ${s.currency}`);
-  lines.push(`- total spend: ${fmt(s.weekSpend, s.currency)} across ${s.txCount} tx`);
+  lines.push(`- total spend: ${formatAmount(s.weekSpend, s.currency)} across ${s.txCount} tx`);
   if (s.topCategory) {
-    lines.push(`- top category: ${s.topCategory.category} (${fmt(s.topCategory.amount, s.currency)})`);
+    lines.push(`- top category: ${s.topCategory.category} (${formatAmount(s.topCategory.amount, s.currency)})`);
   }
   if (s.weekByCategory.length) {
     const cats = s.weekByCategory
-      .map((c) => `${c.category} ${fmt(c.amount, s.currency)}`)
+      .map((c) => `${c.category} ${formatAmount(c.amount, s.currency)}`)
       .join("; ");
     lines.push(`- by category: ${cats}`);
   }
@@ -120,7 +120,7 @@ export function financeContext(txs: Transaction[], now: number = Date.now()): st
       const sign = t.kind === "income" ? "+" : t.kind === "spend" ? "-" : "~";
       const date = new Date(t.ts).toISOString().slice(0, 10);
       const note = t.note ? ` (${t.note})` : "";
-      lines.push(`  ${date} ${sign}${fmt(t.amount, t.currency)} ${t.category} @ ${t.merchant}${note}`);
+      lines.push(`  ${date} ${sign}${formatAmount(t.amount, t.currency)} ${t.category} @ ${t.merchant}${note}`);
     }
   }
   return lines.join("\n");

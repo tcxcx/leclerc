@@ -54,6 +54,24 @@
     "speaking": "Hablando",
     "error": "Error de voz"
   },
+  "finance": {
+    "spendTitle": "Desglose de gasto",
+    "weekTotal": "Total semanal",
+    "topCategory": "Fuga principal",
+    "transactions": "Movimientos recientes",
+    "stashTitle": "Meta de guardado",
+    "goalName": "Nombre de la meta",
+    "goalTarget": "Monto objetivo",
+    "createGoal": "Crear meta",
+    "currentGoals": "Metas activas",
+    "noGoals": "Aún no hay metas",
+    "goalCreated": "Meta guardada en la bóveda.",
+    "requestTitle": "Solicitud Lightning",
+    "requestBody": "Pegue una factura BOLT11 y pásela al flujo de confirmación de la billetera.",
+    "payInWallet": "Pagar en billetera",
+    "narrating": "Cleo está leyendo los números",
+    "askSpend": "Rostiza mi gasto semanal usando el contexto financiero local."
+  },
   "capture": {
     "title": "Capturar inteligencia",
     "record": "Grabar",
