@@ -422,3 +422,44 @@ Results: all typecheck/lint/build commands exited 0. The forbidden-inference
 grep returned no source matches. The browser-surface `server-only` grep returned
 no matches (exit 1 expected). The QVAC smoke loaded cached EmbeddingGemma,
 completed embed/RAG round-trip, and passed the mission metadata filter check.
+
+## STATUS 2026-06-07 pass 5 regression fixes
+
+Branch: `feat/leclerc-scaffold`
+
+### Findings
+
+| # | Status | Commit | Verification |
+|---|---|---|---|
+| 1. Transfer confirmation store + HMAC | FIXED | `4deccd5` | Pending transfer registry and boot key moved to `globalThis`; confirm validates HMAC, TTL, and single-use delete before executing. `bun run transfer:smoke` passed across fresh module imports with no live send, verified tamper rejection and single-use behavior. |
+| 2. Vault locked default breaks capture/finance writes | FIXED | `b4f1fcf` | Vault now auto-initializes a persisted random device key for encrypted local writes/reads; passphrase unlock remains optional. Capture, analysis seed, home finance seed, and savings-goal writes now surface errors. `bun run vault:smoke` passed: locked write persisted ciphertext only and read back. |
+| 3. Rain card + mission funding auto-confirm | FIXED | `724c2d2` | `rainCards.fund()` and `missionFunding.fund()` now return proposals only; explicit `confirm()` helpers and UI confirm buttons are required before `confirmTransfer()` runs. Grep found no remaining auto-chain `.then(confirm)` pattern. |
+| 4. Atomic amount truncation/display mismatch | FIXED | `f810f46` | `parseAtomicAmount()` now rejects excess fractional precision and formats `decimal` from the exact atomic value. Focused parser smoke passed for valid, zero-decimal, smallest-unit, and over-precision cases. |
+| 5. Plaintext vault read path while locked | FIXED | `b4f1fcf` | `fromVaultEnvelope()` requires a vault key before returning legacy plaintext fallback; sealed reads use device/passphrase key routing. Covered by `bun run vault:smoke`. |
+| 6. RAG metadata cwd sidecar | FIXED | `8853757` | QVACS metadata sidecar now defaults to repo-root `.leclerc-rag-meta/` or an absolute workspace/meta env path, not `process.cwd()`. `bunx tsc -p packages/qvacs/tsconfig.json --noEmit` passed. |
+| 7. Read-only chain proposals | FIXED | `4deccd5` | `proposeTransfer()` rejects non-writable chains before showing a confirmable proposal. `bun run transfer:smoke` verified Arbitrum One proposal rejection. |
+| 8. Voice service plain Node failure | FIXED | `9dab51d` | Voice server/smoke now guard for Bun before dynamic imports and README documents Bun-only startup. `node services/voice/server.mjs` exits with the intended Bun-only error. |
+| 9. Finance/intel envelope clear-field drift | FIXED | `b4f1fcf` | Finance envelopes now use shared `createdAt` clear index metadata with compatibility for legacy `ts` rows; DB version bumped to add the index when stores already exist. App typecheck/lint passed. |
+
+### Final verification
+
+```bash
+bun run transfer:smoke
+bun run vault:smoke
+cd apps/app && bunx tsc --noEmit
+bun --filter @leclerc/core typecheck
+bun --filter app lint
+bunx tsc -p packages/qvacs/tsconfig.json --noEmit
+rg -n "from ['\"](@qvac/sdk|@tetherto/|hyperswarm|ws|@modelcontextprotocol/sdk)|require\(['\"](@qvac/sdk|@tetherto/|hyperswarm|ws|@modelcontextprotocol/sdk)" apps/app/src --glob '!apps/app/src/app/api/**' --glob '!apps/app/src/lib/wallet/**' --glob '!apps/app/src/lib/agents/**' --glob '!apps/app/src/lib/p2p/**' --glob '!apps/app/src/lib/qvac/**'
+rg -n "from ['\"](openai|@anthropic-ai|ollama|@xenova|@mlc-ai|ai|ai/react)|require\(['\"](openai|@anthropic-ai|ollama|@xenova|@mlc-ai|ai|ai/react)" apps/app/src packages/core/src --glob '!**/.next/**' --glob '!**/node_modules/**'
+rg -n "server-only" apps/app/src/components 'apps/app/src/app/[locale]' --glob '*.tsx' --glob '*.ts'
+node services/voice/server.mjs
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+```
+
+Results: transfer and vault smokes exited 0 and wrote artifacts under
+`artifacts/wallet/` and `artifacts/vault/`. App typecheck, core typecheck,
+app lint, QVACS typecheck, and final app build exited 0. Both forbidden import
+greps and the browser-surface `server-only` grep returned no matches (exit 1
+expected). Plain Node voice startup exited 1 with the intended Bun-only error
+before importing `@leclerc/core`.
