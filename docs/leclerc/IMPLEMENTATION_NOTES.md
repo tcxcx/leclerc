@@ -14,9 +14,15 @@ the decisions taken, the verified-vs-stubbed surface, and the prioritized
   If a real failure surfaces, it'll most likely be a server-only module pulled
   into a client bundle — keep `@qvac/sdk` / `@tetherto/*` / `hyperswarm` behind
   Route Handlers only.
-- ⚠️ Runtime against real QVAC/WDK is **not yet exercised** — that's the core of
-  the overnight task. The code compiles against the installed `.d.ts`; the
-  `TODO(codex)` markers flag where the call shapes still need runtime confirmation.
+- ✅ **QVAC inference + RAG proven end-to-end** via `packages/qvacs/smoke.mjs`
+  (`cd packages/qvacs && bun run smoke.mjs`): downloads EmbeddingGemma-300M,
+  `embed` → `ragSaveEmbeddings` → `ragSearch` returns semantically-correct hits
+  with stable record ids. The wired shapes (loadModel/embed/rag) are verified
+  against real runtime, not just `.d.ts`.
+- ⚠️ WDK wallet + P2P delegate/dead-drop runtime **not yet exercised** (next).
+  LLM `completion` shape is the same `loadModel`/`completion` path the smoke +
+  examples use (modelType:"llm"), so the brief path is high-confidence but not
+  yet smoke-run with a full LLM download.
 
 ## Architecture decisions taken (deviations / clarifications from the spec)
 1. **Single PWA, no Expo app.** Per the user: mobile-first PWA serving both
@@ -43,7 +49,7 @@ the decisions taken, the verified-vs-stubbed surface, and the prioritized
 | Inference routing (QVAC-only) | `apps/app/src/lib/inference/{index,mode}.ts` | done |
 | Intel data model + AES-GCM at rest + wipe | `apps/app/src/lib/intel/{schema,crypto,store-client,assemble}.ts` | done |
 | Server QVAC model loader | `apps/app/src/lib/qvac/server.ts` | `loadModel` descriptor needs real shape |
-| RAG (ingest + grounded answer) | `apps/app/src/lib/rag/server.ts`, `api/rag/route.ts` | done; embed model env required |
+| RAG (ingest + grounded answer) | `apps/app/src/lib/rag/server.ts`, `api/rag/route.ts` | ✅ done + smoke-proven; bundled embed model, no env needed |
 | Multi-agent desk + tools | `apps/app/src/lib/agents/{tools,orchestrator}.ts`, `api/brief/route.ts` | done; deterministic orchestration + QVAC completions |
 | P2P delegate + dead-drop | `apps/app/src/lib/p2p/{delegate,deaddrop}.ts`, `api/station/route.ts` | delegate option + swarm wiring need confirm |
 | Wallet (WDK Lightning + EVM) | `apps/app/src/lib/wallet/index.ts`, `api/wallet/route.ts` | WDK method shapes need confirm |
@@ -51,15 +57,18 @@ the decisions taken, the verified-vs-stubbed surface, and the prioritized
 | PWA UI (8 screens + nav) | `apps/app/src/app/[locale]/**`, `components/**` | done; exports/TTS/QR are buttons-only stubs |
 
 ## Prioritized TODO(codex) — runtime verification (grep `TODO(codex)`)
-**P0 — make inference actually run (verify against installed .d.ts):**
-1. `lib/qvac/server.ts` — `loadModel` real descriptor per model (the docs'
-   `{modelSrc}` is wrong; types want `{modelId, modelType, modelConfig}`). Set
-   embed/OCR/translate/MedPsy model ids in `infra/qvac/qvac.config.json` + env.
-2. `packages/qvacs/src/index.ts` — confirm `embed`, `ragIngest` (documents is
-   `string|string[]`; **id/metadata association is currently lost** — use
-   `ragSaveEmbeddings` with explicit ids or a metadata overload), `ragSearch`,
-   `ocr`, `translate` (needs `{modelType,to,stream}`), and `completeWithTools`
-   (tool param shape + how `toolCalls` surface on `CompletionFinal`).
+**P0 — make inference actually run — ✅ DONE (verified against runtime, not just .d.ts):**
+1. ✅ `lib/qvac/server.ts` — `loadModel({modelSrc:<registry constant>, modelType:"llm"|"embeddings", modelConfig:{tools:true}})`.
+   Embed defaults to bundled `EMBEDDINGGEMMA_300M_Q8_0` (no env). `getModel` no
+   longer calls `startQVACProvider` (local inference loads directly).
+2. ✅ `packages/qvacs/src/index.ts` — `embed`, segregated-flow RAG
+   (`embed`→`ragSaveEmbeddings({id,content,embedding,embeddingModelId})`→`ragSearch({topK})→{id,content,score}`,
+   stable record ids preserved), `completeWithTools` returns `{text,toolCalls}`.
+   Proven by `packages/qvacs/smoke.mjs` (semantically-correct retrieval).
+   Remaining: `ocr`/`translate` shapes still TODO (not on the core path).
+**P0.1 — remaining inference to smoke-run:** full-LLM `completion`/`completeJSON`
+   for the brief (same loadModel pattern, modelType:"llm" — high confidence), and
+   the `:11434` capture path (transcribe + chatJSON) with `bun run qvac` up.
 **P1 — P2P:**
 3. `lib/p2p/delegate.ts` — confirm `startQVACProvider` ProvideParams + the
    `completion({ delegate })` option shape. Wire `QVAC_HYPERSWARM_SEED` for a
