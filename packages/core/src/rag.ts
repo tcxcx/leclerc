@@ -18,8 +18,8 @@ export interface RagAnswer {
 
 export type RagRequest =
   | { action: "ingest"; docs: RagDocument[] }
-  | { action: "query"; query: string; k?: number }
-  | { action: "search"; query: string; k?: number };
+  | { action: "query"; query: string; k?: number; missionId?: string }
+  | { action: "search"; query: string; k?: number; missionId?: string };
 
 export type RagResponse =
   | { ok: true; count: number }

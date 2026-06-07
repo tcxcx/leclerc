@@ -11,7 +11,8 @@ import { AgentCardsPanel } from "@/components/agent-cards-panel";
 import { GlassIcon } from "@/components/glass-icon";
 import { SpyConsole } from "@/components/spy-console";
 import { useVoice } from "@/lib/voice/use-voice";
-import { chat, ragAsk, ragSearch } from "@/lib/api-client";
+import { chat, ragAskScoped, ragSearch } from "@/lib/api-client";
+import { routeOperatorQuery } from "@leclerc/core";
 import { greeting, starterChips } from "@/lib/agents/persona";
 import {
   seedDemo,
@@ -451,18 +452,26 @@ function ToolCall({ name, result }: { name: string; result: string }) {
 }
 
 async function maybeAutoInvoke(query: string, locale: "es" | "en") {
-  const lowered = query.toLowerCase();
-  const asksDossier =
-    lowered.includes("raven") ||
-    lowered.includes("cuervo") ||
-    lowered.includes("fund") ||
-    lowered.includes("financia") ||
-    lowered.includes("expediente") ||
-    lowered.includes("dossier");
-  if (!asksDossier) return null;
-  const output = await ragAsk(query).catch(async () => ragSearch(query, 4));
+  const route = routeOperatorQuery(query);
+  if (route.intent === "chat") return null;
+  if (route.intent === "dossier.answer") {
+    const output = await ragAskScoped(query, 6, route.missionId).catch(async () =>
+      ragSearch(query, 4, route.missionId),
+    );
+    return {
+      name: locale === "es" ? "Herramienta: RAG del expediente" : "Tool: dossier RAG",
+      result: JSON.stringify(output, null, 2),
+    };
+  }
+  if (route.intent === "dossier.search") {
+    const output = await ragSearch(query, 6, route.missionId);
+    return {
+      name: locale === "es" ? "Herramienta: búsqueda del expediente" : "Tool: dossier search",
+      result: JSON.stringify(output, null, 2),
+    };
+  }
   return {
-    name: locale === "es" ? "Herramienta: RAG del expediente" : "Tool: dossier RAG",
-    result: JSON.stringify(output, null, 2),
+    name: locale === "es" ? "Ruta automática" : "Automatic route",
+    result: JSON.stringify(route, null, 2),
   };
 }

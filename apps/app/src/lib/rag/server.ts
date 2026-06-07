@@ -7,6 +7,7 @@ import "server-only";
  */
 import { ragIngestDocs, ragQuery, completeText, type RagHit } from "@repo/qvacs";
 import { RAG_WORKSPACE, loadEmbed, loadLLM } from "@/lib/qvac/server";
+import { missionMatchesMeta } from "@leclerc/core";
 
 export interface IngestDoc {
   id: string;
@@ -20,9 +21,10 @@ export async function ingest(docs: IngestDoc[]): Promise<void> {
 }
 
 /** Raw top-k dossier hits (for contextual chips under answers). */
-export async function search(query: string, k = 4): Promise<RagHit[]> {
+export async function search(query: string, k = 4, missionId?: string): Promise<RagHit[]> {
   const embed = await loadEmbed();
-  return ragQuery(RAG_WORKSPACE, embed, query, k);
+  const hits = await ragQuery(RAG_WORKSPACE, embed, query, missionId ? Math.max(k * 3, 12) : k);
+  return hits.filter((hit) => missionMatchesMeta(hit.meta, missionId)).slice(0, k);
 }
 
 export interface GroundedAnswer {
@@ -31,9 +33,10 @@ export interface GroundedAnswer {
 }
 
 /** Retrieve from the dossier and answer in prose, grounded with cited ids. */
-export async function answer(query: string, k = 6): Promise<GroundedAnswer> {
+export async function answer(query: string, k = 6, missionId?: string): Promise<GroundedAnswer> {
   const embed = await loadEmbed();
-  const hits: RagHit[] = await ragQuery(RAG_WORKSPACE, embed, query, k);
+  const rawHits: RagHit[] = await ragQuery(RAG_WORKSPACE, embed, query, missionId ? Math.max(k * 3, 12) : k);
+  const hits = rawHits.filter((hit) => missionMatchesMeta(hit.meta, missionId)).slice(0, k);
 
   if (hits.length === 0) {
     return { answer: "Sin datos en el expediente.", sources: [] };

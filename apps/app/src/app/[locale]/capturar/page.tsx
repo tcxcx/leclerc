@@ -14,6 +14,7 @@ import { putRecord } from "@/lib/intel/store-client";
 import { captureExtract, ragIngest } from "@/lib/api-client";
 import { ragText } from "@/lib/intel/assemble";
 import type { IntelRecord } from "@/lib/intel/schema";
+import { inferMissionIdsForText } from "@leclerc/core";
 
 type Phase = "idle" | "transcribing" | "extracting" | "review" | "error";
 
@@ -64,12 +65,14 @@ export default function CapturePage() {
     if (!draft) return;
     const confirmed: IntelRecord = { ...draft, estado: "CONFIRMADO" };
     await putRecord(confirmed);
+    const missionIds = inferMissionIdsForText(ragText(confirmed));
     // Ingest into the QVAC RAG dossier (best-effort; station may be offline).
     await ragIngest([
       {
         id: confirmed.id,
         text: ragText(confirmed),
         meta: {
+          missionIds,
           amenaza: confirmed.amenaza,
           kind: confirmed.metadatos.kind,
           createdAt: confirmed.createdAt,

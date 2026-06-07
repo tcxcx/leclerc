@@ -51,11 +51,21 @@ export function ragAsk(query: string, k = 6) {
   });
 }
 
-export function ragSearch(query: string, k = 4) {
+export function ragAskScoped(query: string, k = 6, missionId?: string) {
+  return post<{ answer: string; sources: { id: string; score?: number }[] }>("/api/rag", {
+    action: "query",
+    query,
+    k,
+    missionId,
+  });
+}
+
+export function ragSearch(query: string, k = 4, missionId?: string) {
   return post<{ hits: { id: string; text: string; score?: number }[] }>("/api/rag", {
     action: "search",
     query,
     k,
+    missionId,
   });
 }
 

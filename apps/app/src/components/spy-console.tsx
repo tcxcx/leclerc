@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type JSX } from "react";
 import { useI18n } from "@/locales/client";
-import { captureExtract, chat, ragAsk, ragSearch, runBrief, station, wallet } from "@/lib/api-client";
+import { captureExtract, chat, ragAskScoped, ragSearch, runBrief, station, wallet } from "@/lib/api-client";
 import { GADGETS, MISSIONS, type Gadget, type GadgetId, type MissionId } from "@/lib/spy/catalog";
 import { GlassIcon } from "./glass-icon";
 
@@ -48,7 +48,7 @@ export function SpyConsole({ locale, onClose }: { locale: "es" | "en"; onClose: 
     setRunning(gadget.id);
     setResult(null);
     try {
-      const output = await executeGadget(gadget.id, input, locale);
+      const output = await executeGadget(gadget.id, input, locale, mission.id);
       setResult({ gadget: gadget.id, text: output });
     } catch (error) {
       setResult({
@@ -227,7 +227,12 @@ function GadgetTile({
   );
 }
 
-async function executeGadget(id: GadgetId, input: Record<string, string>, locale: "es" | "en") {
+async function executeGadget(
+  id: GadgetId,
+  input: Record<string, string>,
+  locale: "es" | "en",
+  missionId: MissionId,
+) {
   switch (id) {
     case "transcribe":
       return locale === "es"
@@ -238,13 +243,13 @@ async function executeGadget(id: GadgetId, input: Record<string, string>, locale
     case "chat":
       return (await chat([{ role: "user", content: input.prompt ?? "" }], { locale })).text;
     case "ragAsk":
-      return JSON.stringify(await ragAsk(input.query ?? ""), null, 2);
+      return JSON.stringify(await ragAskScoped(input.query ?? "", 6, missionId), null, 2);
     case "ragSearch":
-      return JSON.stringify(await ragSearch(input.query ?? ""), null, 2);
+      return JSON.stringify(await ragSearch(input.query ?? "", 4, missionId), null, 2);
     case "brief":
       return JSON.stringify(await runBrief({ records: [], focus: input.focus, locale }), null, 2);
     case "geo":
-      return JSON.stringify(await ragSearch(input.query ?? "location", 8), null, 2);
+      return JSON.stringify(await ragSearch(input.query ?? "location", 8, missionId), null, 2);
     case "reasoning":
       return JSON.stringify({ level: input.level || "medio", mode: "configured in settings/model level" }, null, 2);
     case "wallet":
