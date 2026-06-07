@@ -14,9 +14,11 @@
       "version": "0.1.0",
       "dependencies": {
         "@leclerc/core": "workspace:*",
+        "@modelcontextprotocol/sdk": "^1.29.0",
         "@react-pdf/renderer": "^4.3.0",
         "@repo/qvacs": "workspace:*",
         "@tetherto/wdk": "^1.0.0-beta.10",
+        "@tetherto/wdk-mcp-toolkit": "^0.0.0",
         "@tetherto/wdk-wallet-evm": "^1.0.0-beta.13",
         "@tetherto/wdk-wallet-spark": "^1.0.0-beta.19",
         "b4a": "^1.6.7",
@@ -647,6 +649,8 @@
     "@tetherto/wdk": ["@tetherto/wdk@1.0.0-beta.10", "", { "dependencies": { "@tetherto/wdk-wallet": "^1.0.0-beta.9", "bare-node-runtime": "^1.4.0" } }, "sha512-GhziNgwwQ7QZJzhmhbE8IVFs8FXlsu14rmDjalrx90fuR5jUa8VFsugZKC1gS/obz7G5t39OpxFQTckdoj1cnw=="],
 
     "@tetherto/wdk-failover-provider": ["@tetherto/wdk-failover-provider@1.0.0-beta.2", "", {}, "sha512-G1KNpw11Hql7Q6Xy5oqO+8P+AkJi4QBTK4JZtZvcXmx8ze+d/lzSQSufWLE/k5YAvwJ+xDx7mRzy/teG4zaiOw=="],
+
+    "@tetherto/wdk-mcp-toolkit": ["@tetherto/wdk-mcp-toolkit@0.0.0", "", {}, "sha512-8jQJbMA1NiyB2ULx3S77fhORaHQZvUaR+43XP0ItZnJ8FRjjHiA3tZ/I0mD/zaIF7+hakdz+ldMtpwKUj1ROQg=="],
 
     "@tetherto/wdk-wallet": ["@tetherto/wdk-wallet@1.0.0-beta.9", "", { "dependencies": { "bare-node-runtime": "^1.1.4", "bip39": "3.1.0" } }, "sha512-sycU5+3fcgnJNR2vftGYykwrcqIzy9WKef6Yzwn7luS4S+MHDz+nfhhI0t9Qh3GMC+1m52LSMGBro3BPSHszNg=="],
 

@@ -10,10 +10,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@react-pdf/renderer": "^4.3.0",
     "@leclerc/core": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@react-pdf/renderer": "^4.3.0",
     "@repo/qvacs": "workspace:*",
     "@tetherto/wdk": "^1.0.0-beta.10",
+    "@tetherto/wdk-mcp-toolkit": "^0.0.0",
     "@tetherto/wdk-wallet-evm": "^1.0.0-beta.13",
     "@tetherto/wdk-wallet-spark": "^1.0.0-beta.19",
     "b4a": "^1.6.7",
