@@ -14,9 +14,34 @@ import "server-only";
 import WDK from "@tetherto/wdk";
 import WalletManagerEvm from "@tetherto/wdk-wallet-evm";
 import WalletManagerSpark from "@tetherto/wdk-wallet-spark";
+import type { NetworkType } from "@tetherto/wdk-wallet-spark";
 
-const USDT_ADDRESS =
-  process.env.USDT_ADDRESS ?? "0xdAC17F958D2ee523a2206206994597C13D831ec7"; // ETH mainnet USDT
+const MAINNET_USDT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+const DEFAULT_EVM_CHAIN_ID = 11155111; // Sepolia
+
+function requiredTestnetTokenAddress(): string {
+  const token = process.env.USDT_ADDRESS?.trim();
+  if (!token) throw new Error("USDT_ADDRESS not set; configure a testnet USDT token address");
+  if (token.toLowerCase() === MAINNET_USDT_ADDRESS.toLowerCase()) {
+    throw new Error("USDT_ADDRESS points at Ethereum mainnet USDT; use a testnet token address");
+  }
+  return token;
+}
+
+function configuredTestnetTokenAddress(): string | null {
+  const token = process.env.USDT_ADDRESS?.trim();
+  if (!token) return null;
+  return requiredTestnetTokenAddress();
+}
+
+function evmChainId(): number {
+  const chainId = Number(process.env.EVM_CHAIN_ID ?? DEFAULT_EVM_CHAIN_ID);
+  if (!Number.isInteger(chainId) || chainId <= 0) {
+    throw new Error("EVM_CHAIN_ID must be a positive integer testnet chain id");
+  }
+  if (chainId === 1) throw new Error("EVM_CHAIN_ID=1 is mainnet; use a testnet chain id");
+  return chainId;
+}
 
 /** Generate a fresh 24-word seed (caller must store it encrypted / secure). */
 export function generateSeed(): string {
@@ -24,14 +49,26 @@ export function generateSeed(): string {
 }
 
 async function evm(seed: string) {
-  return new WalletManagerEvm(seed, { provider: process.env.EVM_RPC_URL }).getAccount();
+  return new WalletManagerEvm(seed, {
+    provider: process.env.EVM_RPC_URL || undefined,
+    chainId: evmChainId(),
+  }).getAccount();
 }
 
-type SparkNetwork = "MAINNET" | "TESTNET" | "SIGNET" | "REGTEST" | "LOCAL";
+type DemoSparkNetwork = Extract<NetworkType, "TESTNET">;
+
+function sparkNetwork(): DemoSparkNetwork {
+  const network = (process.env.SPARK_NETWORK ?? "TESTNET").trim().toUpperCase();
+  if (network !== "TESTNET") {
+    throw new Error("SPARK_NETWORK must be TESTNET for the LeClerc demo");
+  }
+  return network;
+}
 
 async function spark(seed: string) {
   return new WalletManagerSpark(seed, {
-    network: ((process.env.SPARK_NETWORK as SparkNetwork) ?? "TESTNET"),
+    network: sparkNetwork(),
+    syncAndRetry: true,
   }).getAccount();
 }
 
@@ -43,11 +80,13 @@ export interface Balances {
 
 export async function balances(seed: string): Promise<Balances> {
   const e = await evm(seed);
-  const s = await spark(seed);
+  const token = configuredTestnetTokenAddress();
   const [address, usdt, sats] = await Promise.all([
     e.getAddress(),
-    e.getTokenBalance(USDT_ADDRESS).catch(() => "0"),
-    s.getBalance().catch(() => 0),
+    token ? e.getTokenBalance(token).catch(() => "unavailable") : Promise.resolve("unconfigured"),
+    spark(seed)
+      .then((s) => s.getBalance())
+      .catch(() => "unavailable"),
   ]);
   return { address, usdt: String(usdt), sats: String(sats) };
 }
@@ -67,9 +106,10 @@ export async function paySableEvm(
   to: string,
   amount: string,
 ): Promise<{ hash: string }> {
+  const token = requiredTestnetTokenAddress();
   const e = await evm(seed);
   const res = await e.transfer({
-    token: USDT_ADDRESS,
+    token,
     recipient: to,
     amount: BigInt(amount),
   });
