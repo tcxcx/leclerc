@@ -129,6 +129,7 @@ import {
   translate,
 } from "@qvac/sdk";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 /** Generate an embedding for one or many texts with a loaded embedding model. */
@@ -237,9 +238,22 @@ async function loadRagMeta(workspace: string): Promise<Record<string, Record<str
 }
 
 function ragMetaPath(workspace: string): string {
-  const root = process.env.LECLERC_RAG_META_DIR || path.join(process.cwd(), ".leclerc-rag-meta");
+  const root = ragMetaRoot();
   const safe = workspace.replace(/[^a-zA-Z0-9._-]/g, "_");
   return path.join(root, `${safe}.json`);
+}
+
+function ragMetaRoot(): string {
+  if (process.env.LECLERC_RAG_META_DIR?.trim()) return process.env.LECLERC_RAG_META_DIR.trim();
+  const configuredWorkspace = process.env.LECLERC_RAG_WORKSPACE?.trim();
+  if (configuredWorkspace && path.isAbsolute(configuredWorkspace)) {
+    return path.join(configuredWorkspace, ".leclerc-rag-meta");
+  }
+  return path.join(repoRoot(), ".leclerc-rag-meta");
+}
+
+function repoRoot(): string {
+  return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 }
 
 /** Run OCR on an image buffer/base64 with a loaded OCR model. */
