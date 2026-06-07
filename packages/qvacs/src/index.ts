@@ -1,5 +1,3 @@
-import "server-only";
-
 import {
   startQVACProvider,
   stopQVACProvider,
@@ -130,6 +128,8 @@ import {
   ocr,
   translate,
 } from "@qvac/sdk";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
 
 /** Generate an embedding for one or many texts with a loaded embedding model. */
 export async function embedText(
@@ -178,8 +178,10 @@ export async function ragIngestDocs(
       content: d.text,
       embedding: embedding[i],
       embeddingModelId,
+      meta: d.meta,
     })),
   } as unknown as Parameters<typeof ragSaveEmbeddings>[0]);
+  await saveRagMeta(workspace, docs);
 }
 
 export interface RagHit {
@@ -205,12 +207,39 @@ export async function ragQuery(
     id?: string;
     content?: string;
     score?: number;
+    meta?: Record<string, unknown>;
   }>;
+  const meta = await loadRagMeta(workspace);
   return results.map((r) => ({
     id: r.id ?? "",
     text: r.content ?? "",
     score: r.score,
+    meta: r.meta ?? (r.id ? meta[r.id] : undefined),
   }));
+}
+
+async function saveRagMeta(workspace: string, docs: RagDoc[]): Promise<void> {
+  const next = await loadRagMeta(workspace);
+  for (const doc of docs) {
+    if (doc.meta) next[doc.id] = doc.meta;
+  }
+  const file = ragMetaPath(workspace);
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, JSON.stringify(next, null, 2), "utf8");
+}
+
+async function loadRagMeta(workspace: string): Promise<Record<string, Record<string, unknown>>> {
+  try {
+    return JSON.parse(await readFile(ragMetaPath(workspace), "utf8")) as Record<string, Record<string, unknown>>;
+  } catch {
+    return {};
+  }
+}
+
+function ragMetaPath(workspace: string): string {
+  const root = process.env.LECLERC_RAG_META_DIR || path.join(process.cwd(), ".leclerc-rag-meta");
+  const safe = workspace.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return path.join(root, `${safe}.json`);
 }
 
 /** Run OCR on an image buffer/base64 with a loaded OCR model. */

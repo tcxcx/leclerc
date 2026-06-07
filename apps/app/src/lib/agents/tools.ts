@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { IntelRecord } from "@/lib/intel/schema";
 import { ragQuery, type RagHit } from "@repo/qvacs";
 import { RAG_WORKSPACE, loadEmbed } from "@/lib/qvac/server";
+import { missionMatchesMeta } from "@leclerc/core";
 
 /**
  * Tool registry for the analyst desk (docs/leclerc/04). Single source of truth.
@@ -17,6 +18,7 @@ import { RAG_WORKSPACE, loadEmbed } from "@/lib/qvac/server";
 
 export interface ToolContext {
   records: IntelRecord[];
+  missionId?: string;
 }
 
 export interface ToolDef<A = unknown, R = unknown> {
@@ -59,9 +61,11 @@ export const ragSearchTool: ToolDef<{ query: string; k?: number }, RagHit[]> = {
   name: "rag_search",
   description: "Semantic search across the dossier. Returns excerpts + record ids.",
   schema: z.object({ query: z.string(), k: z.number().default(6) }),
-  handler: async (a) => {
+  handler: async (a, ctx) => {
     const embed = await loadEmbed();
-    return ragQuery(RAG_WORKSPACE, embed, a.query, a.k ?? 6);
+    const k = a.k ?? 6;
+    const hits = await ragQuery(RAG_WORKSPACE, embed, a.query, ctx.missionId ? Math.max(k * 3, 12) : k);
+    return hits.filter((hit) => missionMatchesMeta(hit.meta, ctx.missionId)).slice(0, k);
   },
 };
 

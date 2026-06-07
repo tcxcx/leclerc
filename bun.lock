@@ -82,6 +82,7 @@
         "server-only": "^0.0.1",
       },
       "devDependencies": {
+        "@types/node": "^20",
         "typescript": "^5",
       },
     },

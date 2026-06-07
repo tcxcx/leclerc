@@ -29,6 +29,7 @@ export interface BriefRequest {
   focus?: string;
   locale: "es" | "en";
   includeMedic?: boolean;
+  missionId?: string;
 }
 
 export interface IntelBrief {
@@ -84,7 +85,7 @@ export async function runAnalystDesk(
   req: BriefRequest,
   onProgress?: BriefProgress,
 ): Promise<IntelBrief> {
-  const ctx: ToolContext = { records: req.records };
+  const ctx: ToolContext = { records: req.records, missionId: req.missionId };
   const llm = await loadLLM("alta");
   const ran: string[] = [];
   const toolLog: BriefToolEvent[] = [];

@@ -12,6 +12,7 @@ import {
   ragCloseWorkspace,
   EMBEDDINGGEMMA_300M_Q8_0,
 } from "@qvac/sdk";
+import { ragIngestDocs, ragQuery } from "./src/index.ts";
 
 const log = (...a) => console.log("[smoke]", ...a);
 
@@ -50,7 +51,31 @@ try {
   const results = await ragSearch({ workspace, modelId, query: "¿dónde se vio a Halcón?", topK: 2 });
   for (const r of results) log(`  hit id=${r.id} score=${r.score?.toFixed?.(3)} :: ${r.content.slice(0, 60)}`);
 
+  const scopedWorkspace = "smoke-mission-dossier";
+  await ragIngestDocs(scopedWorkspace, modelId, [
+    {
+      id: "raven-funding",
+      text: "Raven handler moved funds through the south pier escrow.",
+      meta: { missionIds: ["raven"] },
+    },
+    {
+      id: "glasshouse-funding",
+      text: "Glasshouse handler moved funds through the warehouse escrow.",
+      meta: { missionIds: ["glasshouse"] },
+    },
+  ]);
+  const scoped = await ragQuery(scopedWorkspace, modelId, "handler moved funds escrow", 4);
+  const ravenOnly = scoped.filter((hit) => {
+    const ids = hit.meta?.missionIds;
+    return Array.isArray(ids) && ids.map(String).includes("raven");
+  });
+  if (ravenOnly.length !== 1 || ravenOnly[0].id !== "raven-funding") {
+    throw new Error(`mission RAG filter failed: ${JSON.stringify(scoped)}`);
+  }
+  log("mission metadata filter OK");
+
   await ragCloseWorkspace({ workspace, deleteOnClose: true });
+  await ragCloseWorkspace({ workspace: scopedWorkspace, deleteOnClose: true });
   await unloadModel({ modelId });
   log("✅ embed + RAG round-trip OK");
   process.exit(0);
