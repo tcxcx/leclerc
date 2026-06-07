@@ -463,3 +463,82 @@ app lint, QVACS typecheck, and final app build exited 0. Both forbidden import
 greps and the browser-surface `server-only` grep returned no matches (exit 1
 expected). Plain Node voice startup exited 1 with the intended Bun-only error
 before importing `@leclerc/core`.
+
+## STATUS 2026-06-07 pass 6 money/transfer package family
+
+Branch: `feat/leclerc-scaffold`
+
+Pushed commit:
+
+- `fd4d7fc feat(transfers): add package family`
+
+### Package layout
+
+| Package | Status | Owns |
+|---|---|---|
+| `@leclerc/transfer-core` | DONE | Single chain/asset catalog, Arc Testnet `5042002`, Arbitrum read-only metadata, token addresses, RPC URL resolution, chain lookup, writable-testnet guard. |
+| `@leclerc/transfer-utils` | DONE | Single decimal to atomic converter (`smallestUnit`/`toAtomic`), `fromAtomic`, currency display, transaction state/type/category enums, explorer URL builders. |
+| `@leclerc/wallet` | DONE | WDK EVM/Spark account creation, seed generation, multi-asset balances, receive details, Spark transactions, Lightning TESTNET payment, EVM catalog-token transfer execution. |
+| `@leclerc/transfers` | DONE | Proposal/confirmation primitive, HMAC MAC, global cross-import registry, TTL, single-use delete, testnet-only validation at propose time, execution wrapper, transaction record shape, mission-funding config/propose/confirm. |
+| `@leclerc/cards` | DONE | Rain agent card catalog, Rain funding target resolution, Rain funding propose/confirm via `@leclerc/transfers`. |
+| `@leclerc/transfer-icons` | SKIPPED | Existing catalog icon paths remain data-driven; no new icon package was needed for this pass. |
+| `@leclerc/transfer-fiat` | SKIPPED | Fiat ramps/ACH/FX remain out of scope; package family leaves room for it. |
+
+### App thinning / ownership guarantees
+
+- `@leclerc/core` no longer owns money logic. It keeps compatibility subpath re-exports for old imports, but the root export intentionally does not export money packages so WDK/Spark cannot enter client bundles through unrelated core helpers.
+- Route handlers now import package APIs directly:
+  `/api/wallet` -> `@leclerc/wallet` + `@leclerc/transfers`;
+  `/api/rain-cards` -> `@leclerc/cards`;
+  `/api/mission-funding` -> `@leclerc/transfers`;
+  `/api/agent/wallet-tools` -> `@leclerc/wallet`, `@leclerc/transfers`, `@leclerc/transfer-core`.
+- App wallet lib files are server-only compatibility adapters that re-export package APIs.
+- Components import catalog/display helpers from `@leclerc/transfer-core` and `@leclerc/transfer-utils`; the wallet page local atomic parser/formatter was removed.
+- Smoke scripts now target the new packages directly.
+
+Single sources of truth:
+
+- ONE chain/asset catalog: `packages/transfer-core/src/asset-catalog.ts`.
+- ONE decimal/atomic converter: `packages/transfer-utils/src/smallest-unit.ts`.
+- ONE propose -> confirm primitive: `packages/transfers/src/confirmation.ts`.
+- ONE explorer URL builder: `packages/transfer-utils/src/explorer.ts`.
+- ONE balances function: `packages/wallet/src/index.ts`.
+
+### Verification
+
+```bash
+bun install
+bun --filter @leclerc/transfer-core typecheck
+bun --filter @leclerc/transfer-utils typecheck
+bun --filter @leclerc/wallet typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/cards typecheck
+bun --filter @leclerc/core typecheck
+cd apps/app && bunx tsc --noEmit
+bun --filter @leclerc/worklet typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+bun run transfer:smoke
+bun run vault:smoke
+bun run rain:smoke
+bun run wallet:smoke
+bun --filter app lint
+rg -n "from ['\"](@qvac/sdk|@tetherto/|hyperswarm|ws|@modelcontextprotocol/sdk)|require\(['\"](@qvac/sdk|@tetherto/|hyperswarm|ws|@modelcontextprotocol/sdk)" apps/app/src --glob '!apps/app/src/app/api/**' --glob '!apps/app/src/lib/wallet/**' --glob '!apps/app/src/lib/agents/**' --glob '!apps/app/src/lib/p2p/**' --glob '!apps/app/src/lib/qvac/**'
+rg -n "from ['\"](openai|@anthropic-ai|ollama|@xenova|@mlc-ai|ai|ai/react)|require\(['\"](openai|@anthropic-ai|ollama|@xenova|@mlc-ai|ai|ai/react)" apps/app/src packages services --glob '!**/.next/**' --glob '!**/node_modules/**'
+rg -n "server-only" apps/app/src/components 'apps/app/src/app/[locale]' --glob '*.tsx' --glob '*.ts'
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+rm -rf apps/app/.next
+```
+
+Results: all typecheck, lint, smoke, and production build commands exited 0.
+The forbidden import greps and browser-surface `server-only` grep returned no
+matches. `bun run transfer:smoke` passed against `@leclerc/transfers`, including
+cross-import proposal persistence, HMAC tamper rejection, single-use confirm,
+and Arbitrum read-only rejection. `bun run rain:smoke` remained SKIPPED for live
+funding because `LECLERC_SMOKE_SEED` is absent; no seed was printed or committed.
+
+The first production build in this pass correctly failed when the `@leclerc/core`
+root re-export pulled `@leclerc/cards -> @leclerc/transfers -> @leclerc/wallet`
+into a client bundle. The final commit fixes that by removing money package
+exports from the `@leclerc/core` root while preserving explicit package/subpath
+imports.
