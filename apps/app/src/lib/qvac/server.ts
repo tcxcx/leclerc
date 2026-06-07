@@ -7,7 +7,7 @@ import "server-only";
  *
  * Wired against @qvac/sdk@0.12.2 examples (dist/examples/quickstart.js,
  * rag/rag-hyperdb/pipeline.js, llamacpp-dynamic-tools.js):
- *   loadModel({ modelSrc: <CONSTANT>, modelType: "llm"|"embeddings", modelConfig })
+ *   loadModel({ modelSrc: <CONSTANT>, modelType: "llamacpp-completion"|"llamacpp-embedding", modelConfig })
  * The registry constants (QWEN3_*, EMBEDDINGGEMMA_*) are rich descriptor objects
  * passed directly as `modelSrc`. Returns the loaded modelId (string).
  */
@@ -20,7 +20,12 @@ import {
   WHISPER_BASE_Q8_0,
 } from "@repo/qvacs";
 
-type ModelType = "llm" | "embeddings" | "whisper" | "ocr" | "nmt";
+type ModelType =
+  | "llamacpp-completion"
+  | "llamacpp-embedding"
+  | "whispercpp-transcription"
+  | "onnx-ocr"
+  | "nmtcpp-translation";
 
 interface LoadOpts {
   /** Enable native tool-calling (required before completion({tools})). */
@@ -43,41 +48,46 @@ export const RAG_WORKSPACE = process.env.LECLERC_RAG_WORKSPACE ?? "dossier";
  */
 export function loadLLM(level: "media" | "alta" | "medico" = "media"): Promise<string> {
   if (level === "alta") {
-    return getModel("llm-alta", () => load(QWEN3_4B_INST_Q4_K_M, "llm", { tools: true }));
+    return getModel("llm-alta", () =>
+      load(QWEN3_4B_INST_Q4_K_M, "llamacpp-completion", { tools: true }),
+    );
   }
   if (level === "medico") {
     // MedPsy is not a bundled registry constant. Set LECLERC_MEDPSY_SRC to a
     // registry:// or file path for the MedPsy GGUF; falls back to Qwen3-4B.
     const src = process.env.LECLERC_MEDPSY_SRC;
     return getModel("llm-medico", () =>
-      load(src ?? QWEN3_4B_INST_Q4_K_M, "llm", { tools: true }),
+      load(src ?? QWEN3_4B_INST_Q4_K_M, "llamacpp-completion", { tools: true }),
     );
   }
-  return getModel("llm-media", () => load(QWEN3_1_7B_INST_Q4, "llm", { tools: true }));
+  return getModel("llm-media", () =>
+    load(QWEN3_1_7B_INST_Q4, "llamacpp-completion", { tools: true }),
+  );
 }
 
 export function loadWhisper(): Promise<string> {
-  return getModel("whisper", () => load(WHISPER_BASE_Q8_0, "whisper"));
+  return getModel("whisper", () => load(WHISPER_BASE_Q8_0, "whispercpp-transcription"));
 }
 
 /** Embedding model for RAG (bundled EmbeddingGemma-300M by default). */
 export function loadEmbed(): Promise<string> {
   // Override with a registry:// or file src via LECLERC_EMBED_SRC if desired.
   const src = process.env.LECLERC_EMBED_SRC;
-  return getModel("embed", () => load(src ?? EMBEDDINGGEMMA_300M_Q8_0, "embeddings"));
+  return getModel("embed", () => load(src ?? EMBEDDINGGEMMA_300M_Q8_0, "llamacpp-embedding"));
 }
 
 /** OCR model (document intel). Set LECLERC_OCR_SRC to a QVAC OCR model. */
 export function loadOcr(): Promise<string> {
   const src = process.env.LECLERC_OCR_SRC;
   if (!src) throw new Error("LECLERC_OCR_SRC not set (document-intel feature).");
-  return getModel("ocr", () => load(src, "ocr"));
+  return getModel("ocr", () => load(src, "onnx-ocr"));
 }
 
 /** Translate model. Set LECLERC_TRANSLATE_SRC to a QVAC NMT model. */
 export function loadTranslate(): Promise<string> {
   const src = process.env.LECLERC_TRANSLATE_SRC;
   if (!src) throw new Error("LECLERC_TRANSLATE_SRC not set (translate feature).");
-  const type = process.env.LECLERC_TRANSLATE_MODEL_TYPE === "llm" ? "llm" : "nmt";
-  return getModel(`translate-${type}`, () => load(src, type));
+  const kind = process.env.LECLERC_TRANSLATE_MODEL_TYPE === "llm" ? "llm" : "nmt";
+  const type = kind === "llm" ? "llamacpp-completion" : "nmtcpp-translation";
+  return getModel(`translate-${kind}`, () => load(src, type));
 }

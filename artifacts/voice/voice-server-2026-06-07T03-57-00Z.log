@@ -1,0 +1,107 @@
+$ bun --filter voice start
+voice start: [voice] loading models (locale=es)…
+voice start: [sdk:server] 🐻 Hello from Bare
+voice start: [sdk:server] Parsed RPC configuration from arguments
+voice start: [sdk:server] Running in desktop mode, connecting to IPC socket: /var/folders/cy/wp_6t4bn1l3g7xs59y1p44n00000gn/T/qvac-worker-70371-mq38t527-cf70.sock
+voice start: [sdk:server] Connecting to IPC socket at /var/folders/cy/wp_6t4bn1l3g7xs59y1p44n00000gn/T/qvac-worker-70371-mq38t527-cf70.sock
+voice start: [sdk:server] Bare worker started and listening for RPC requests
+voice start: [sdk:server] Connected to IPC server
+voice start: [sdk:client] ℹ️ No config file found, using SDK defaults
+voice start: [sdk:client] 📱 Runtime context: {
+voice start:   runtime: "node",
+voice start:   platform: "darwin",
+voice start: }
+voice start: [sdk:client] ✅ Initialization complete
+voice start: [sdk:server] [request-lifecycle] begin requestId=bb6080b2-9040-4d94-977e-c068bf5b8775 kind=loadModel modelId=- state=running
+voice start: [sdk:server] Loading from registry: ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-base-q8_0.bin
+voice start: [sdk:server] Loading from registry: ggml-org/whisper-vad/resolve/9ffd54a1e1ee413ddf265af9913beaf518d1639b/ggml-silero-v5.1.2.bin
+voice start: [sdk:server] ✅ Model cached with correct size: /Users/criptopoeta/.qvac/models/349b783b1e1a0ebc_ggml-base-q8_0.bin
+voice start: [sdk:server] ✅ Model cached with correct size: /Users/criptopoeta/.qvac/models/dd850e3b81539045_ggml-silero-v5.1.2.bin
+voice start: [sdk:server] ✅ Model already cached and validated: /Users/criptopoeta/.qvac/models/dd850e3b81539045_ggml-silero-v5.1.2.bin
+voice start: [sdk:server] ✅ Using cached model: /Users/criptopoeta/.qvac/models/dd850e3b81539045_ggml-silero-v5.1.2.bin
+voice start: [sdk:server] Loaded Model to /Users/criptopoeta/.qvac/models/dd850e3b81539045_ggml-silero-v5.1.2.bin
+voice start: [voice]   asr 100%
+voice start: [sdk:server] ✅ Model already cached and validated: /Users/criptopoeta/.qvac/models/349b783b1e1a0ebc_ggml-base-q8_0.bin
+voice start: [sdk:server] ✅ Using cached model: /Users/criptopoeta/.qvac/models/349b783b1e1a0ebc_ggml-base-q8_0.bin
+voice start: [sdk:server] Loaded Model to /Users/criptopoeta/.qvac/models/349b783b1e1a0ebc_ggml-base-q8_0.bin
+voice start: [sdk:server] whispercpp-transcription: Loading model eac73fa8182d9d91...
+voice start: [sdk:server] whispercpp-transcription model eac73fa8182d9d91 loaded
+voice start: [sdk:server] Local model registered: eac73fa8182d9d91 (WHISPER_BASE_Q8_0) -> /Users/criptopoeta/.qvac/models/349b783b1e1a0ebc_ggml-base-q8_0.bin
+voice start: [sdk:server] [request-lifecycle] end requestId=bb6080b2-9040-4d94-977e-c068bf5b8775 kind=loadModel modelId=- state=completed durationMs=226
+voice start: [voice]   asr 100%
+voice start: [sdk:server] [request-lifecycle] begin requestId=c4bd3c7e-7925-45e2-8029-d20cdcefa1ef kind=loadModel modelId=- state=running
+voice start: [sdk:server] Loading from registry: unsloth/Qwen3-1.7B-GGUF/resolve/d7f544eead698dbd1f15126ef60b45a1e1933222/Qwen3-1.7B-Q4_0.gguf
+voice start: [sdk:server] ✅ Model cached with correct size: /Users/criptopoeta/.qvac/models/f7cce66406dee646_Qwen3-1.7B-Q4_0.gguf
+voice start: [sdk:server] ✅ Model already cached and validated: /Users/criptopoeta/.qvac/models/f7cce66406dee646_Qwen3-1.7B-Q4_0.gguf
+voice start: [sdk:server] ✅ Using cached model: /Users/criptopoeta/.qvac/models/f7cce66406dee646_Qwen3-1.7B-Q4_0.gguf
+voice start: [sdk:server] Loaded Model to /Users/criptopoeta/.qvac/models/f7cce66406dee646_Qwen3-1.7B-Q4_0.gguf
+voice start: [voice]   llm 100%
+voice start: [sdk:server] llamacpp-completion: Loading model bcfba1a2617da624...
+voice start: parse: load the model metadata from disk file.
+voice start: initFromConfig: load the model from disk file and apply lora adapter, if any.
+voice start: common_init_result: fitting params to device memory, for bugs during this step try to reproduce them with -fit off, or provide --verbose logs if the bug only occurs with -fit on
+voice start: common_init_result: added </s> logit bias = -inf
+voice start: common_init_result: added <|endoftext|> logit bias = -inf
+voice start: common_init_result: added <|im_end|> logit bias = -inf
+voice start: common_init_result: added <|fim_pad|> logit bias = -inf
+voice start: common_init_result: added <|repo_name|> logit bias = -inf
+voice start: common_init_result: added <|file_sep|> logit bias = -inf
+voice start: [sdk:server] llamacpp-completion model bcfba1a2617da624 loaded
+voice start: [sdk:server] Local model registered: bcfba1a2617da624 (QWEN3_1_7B_INST_Q4) -> /Users/criptopoeta/.qvac/models/f7cce66406dee646_Qwen3-1.7B-Q4_0.gguf
+voice start: [sdk:server] [request-lifecycle] end requestId=c4bd3c7e-7925-45e2-8029-d20cdcefa1ef kind=loadModel modelId=- state=completed durationMs=1440
+voice start: [sdk:server] [request-lifecycle] begin requestId=3f3372e0-0411-4cf2-8f87-8e6ae30d63d9 kind=loadModel modelId=- state=running
+voice start: [sdk:server] Loading from registry: qvac_models_compiled/ggml/supertonic/2026-05-18/supertonic2-q8_0.gguf
+voice start: [sdk:server] ✅ Model cached with correct size: /Users/criptopoeta/.qvac/models/aa7782f8d880af07_supertonic2-q8_0.gguf
+voice start: [sdk:server] ✅ Model already cached and validated: /Users/criptopoeta/.qvac/models/aa7782f8d880af07_supertonic2-q8_0.gguf
+voice start: [sdk:server] ✅ Using cached model: /Users/criptopoeta/.qvac/models/aa7782f8d880af07_supertonic2-q8_0.gguf
+voice start: [sdk:server] Loaded Model to /Users/criptopoeta/.qvac/models/aa7782f8d880af07_supertonic2-q8_0.gguf
+voice start: [voice]   tts 100%
+voice start: [sdk:server] tts-ggml: Loading model 76f25ec7c4f2ab7d...
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: ggml_metal_device_init: tensor API disabled for pre-M5 and pre-A19 devices
+voice start: ggml_metal_library_init: using embedded metal library
+voice start: ggml_metal_library_init: loaded in 0.091 sec
+voice start: ggml_metal_rsets_init: creating a residency set collection (keep_alive = 180 s)
+voice start: ggml_metal_device_init: GPU name:   MTL0
+voice start: ggml_metal_device_init: GPU family: MTLGPUFamilyApple9  (1009)
+voice start: ggml_metal_device_init: GPU family: MTLGPUFamilyCommon3 (3003)
+voice start: ggml_metal_device_init: GPU family: MTLGPUFamilyMetal3  (5001)
+voice start: ggml_metal_device_init: simdgroup reduction   = true
+voice start: ggml_metal_device_init: simdgroup matrix mul. = true
+voice start: ggml_metal_device_init: has unified memory    = true
+voice start: ggml_metal_device_init: has bfloat            = true
+voice start: ggml_metal_device_init: has tensor            = false
+voice start: ggml_metal_device_init: use residency sets    = true
+voice start: ggml_metal_device_init: use shared buffers    = true
+voice start: ggml_metal_device_init: recommendedMaxWorkingSetSize  = 38654.71 MB
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice start: [sdk:server] tts-ggml model 76f25ec7c4f2ab7d loaded
+voice start: [sdk:server] Local model registered: 76f25ec7c4f2ab7d (TTS_MULTILINGUAL_SUPERTONIC2_Q8_0) -> /Users/criptopoeta/.qvac/models/aa7782f8d880af07_supertonic2-q8_0.gguf
+voice start: [sdk:server] [request-lifecycle] end requestId=3f3372e0-0411-4cf2-8f87-8e6ae30d63d9 kind=loadModel modelId=- state=completed durationMs=451
+voice start: [voice] all models loaded. listening on ws://localhost:7077
+voice start: [voice] client connected
+voice start: [sdk:server] [request-lifecycle] begin requestId=812cd12e-7c14-476a-99ec-70d153b0dac5 kind=transcribe modelId=eac73fa8182d9d91 state=running
+voice start: [voice] client disconnected
+voice start: [sdk:server] [request-lifecycle] end requestId=812cd12e-7c14-476a-99ec-70d153b0dac5 kind=transcribe modelId=eac73fa8182d9d91 state=completed durationMs=206
+voice start: [voice] client connected
+voice start: [sdk:server] [request-lifecycle] begin requestId=1679ced5-ebd8-4f30-a4e1-cf562c9c09c9 kind=transcribe modelId=eac73fa8182d9d91 state=running
+voice start: [voice] client disconnected
+voice start: [sdk:server] [request-lifecycle] end requestId=1679ced5-ebd8-4f30-a4e1-cf562c9c09c9 kind=transcribe modelId=eac73fa8182d9d91 state=completed durationMs=304
+voice start: [voice] client connected
+voice start: [sdk:server] [request-lifecycle] begin requestId=1aa52789-2d98-4021-8384-a4a3cb2cc521 kind=transcribe modelId=eac73fa8182d9d91 state=running
+voice start: [voice] client disconnected
+voice start: [sdk:server] [request-lifecycle] end requestId=1aa52789-2d98-4021-8384-a4a3cb2cc521 kind=transcribe modelId=eac73fa8182d9d91 state=completed durationMs=15143
+error: script "voice" was terminated by signal SIGTERM (Polite quit request)

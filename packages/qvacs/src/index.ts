@@ -117,7 +117,7 @@ export async function completeJSON<T = unknown>(
  * (dist/examples/**). See docs/leclerc/02-qvac-integration.md.
  *
  * Model loading (verified, examples/quickstart.js + rag/pipeline.js):
- *   loadModel({ modelSrc: <REGISTRY_CONSTANT>, modelType: "llm"|"embeddings", ... })
+ *   loadModel({ modelSrc: <REGISTRY_CONSTANT>, modelType: "llamacpp-completion"|"llamacpp-embedding", ... })
  * RAG segregated flow (examples/rag/rag-hyperdb/pipeline.js) — keeps stable ids:
  *   embed({modelId,text}) → ragSaveEmbeddings({workspace,documents:[{id,content,embedding,embeddingModelId}]})
  *   ragSearch({workspace,modelId,query,topK}) → [{id,content,score}]

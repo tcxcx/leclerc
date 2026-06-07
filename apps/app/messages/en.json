@@ -47,6 +47,13 @@
     "stationStatus": "Station status",
     "peerStatus": "Link status"
   },
+  "voice": {
+    "connecting": "Opening secure voice channel",
+    "listening": "Listening",
+    "thinking": "Drafting the reply",
+    "speaking": "Speaking",
+    "error": "Voice error"
+  },
   "capture": {
     "title": "Capture intelligence",
     "record": "Record",

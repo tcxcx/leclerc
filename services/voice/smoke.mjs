@@ -22,11 +22,15 @@ const LOCALE = process.env.VOICE_LOCALE ?? "es";
 const TTS_RATE = 44100;
 const ASR_RATE = 16000;
 
+function stripThink(s) {
+  return (s ?? "").replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+}
+
 try {
   log("loading tts…");
   const tts = await loadModel({
     modelSrc: TTS_MULTILINGUAL_SUPERTONIC2_Q8_0,
-    modelType: "tts",
+    modelType: "tts-ggml",
     modelConfig: { ttsEngine: "supertonic", language: LOCALE, voice: "F1", ttsNumInferenceSteps: 5 },
     onProgress: (p) => p?.percentage != null && log(`  tts ${p.percentage.toFixed(0)}%`),
   });
@@ -50,7 +54,7 @@ try {
   log("loading llm…");
   const llm = await loadModel({
     modelSrc: QWEN3_1_7B_INST_Q4,
-    modelType: "llm",
+    modelType: "llamacpp-completion",
     modelConfig: { ctx_size: 4096 },
     onProgress: (p) => p?.percentage != null && log(`  llm ${p.percentage.toFixed(0)}%`),
   });
@@ -92,8 +96,8 @@ try {
   log("running completion…");
   const persona =
     LOCALE === "es"
-      ? "Eres LeClerc, asistente con voz ingeniosa. Responde en 1 frase, sin markdown."
-      : "You are LeClerc, a witty assistant. Reply in 1 sentence, no markdown.";
+      ? "Eres LeClerc, asistente con voz ingeniosa. Responde en 1 frase, sin markdown. /no_think"
+      : "You are LeClerc, a witty assistant. Reply in 1 sentence, no markdown. /no_think";
   const run = completion({
     modelId: llm,
     history: [
@@ -104,10 +108,11 @@ try {
   });
   let answer = "";
   for await (const t of run.tokenStream) answer += t;
-  log(`  answer: "${answer.trim()}"`);
+  const cleanAnswer = stripThink(answer);
+  log(`  answer: "${cleanAnswer}"`);
 
   log("synthesizing reply…");
-  const rTts = textToSpeech({ modelId: tts, text: answer.trim() || "Listo.", inputType: "text", stream: false });
+  const rTts = textToSpeech({ modelId: tts, text: cleanAnswer || "Listo.", inputType: "text", stream: false });
   const rSamples = await rTts.buffer;
   log(`  reply audio: ${rSamples.length} samples (${(rSamples.length / TTS_RATE).toFixed(1)}s)`);
 

@@ -19,7 +19,7 @@ try {
   log("loading embedding model (EmbeddingGemma-300M)…");
   const modelId = await loadModel({
     modelSrc: EMBEDDINGGEMMA_300M_Q8_0,
-    modelType: "embeddings",
+    modelType: "llamacpp-embedding",
     onProgress: (p) => p?.percentage != null && log(`  ${p.percentage.toFixed(0)}%`),
   });
   log("loaded modelId =", modelId);

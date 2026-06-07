@@ -57,7 +57,7 @@ export async function delegateCompletion(
 ): Promise<string> {
   const modelId = await loadModel({
     modelSrc,
-    modelType: "llm",
+    modelType: "llamacpp-completion",
     delegate: {
       providerPublicKey: peerPublicKey,
       timeout: 60_000,

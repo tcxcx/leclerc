@@ -1,0 +1,120 @@
+$ bun --filter voice smoke
+voice smoke: [voice-smoke] loading tts…
+voice smoke: [sdk:server] 🐻 Hello from Bare
+voice smoke: [sdk:server] Parsed RPC configuration from arguments
+voice smoke: [sdk:server] Running in desktop mode, connecting to IPC socket: /var/folders/cy/wp_6t4bn1l3g7xs59y1p44n00000gn/T/qvac-worker-56989-mq38ri36-ebc5.sock
+voice smoke: [sdk:server] Connecting to IPC socket at /var/folders/cy/wp_6t4bn1l3g7xs59y1p44n00000gn/T/qvac-worker-56989-mq38ri36-ebc5.sock
+voice smoke: [sdk:server] Bare worker started and listening for RPC requests
+voice smoke: [sdk:server] Connected to IPC server
+voice smoke: [sdk:client] ℹ️ No config file found, using SDK defaults
+voice smoke: [sdk:client] 📱 Runtime context: {
+voice smoke:   runtime: "node",
+voice smoke:   platform: "darwin",
+voice smoke: }
+voice smoke: [sdk:client] ✅ Initialization complete
+voice smoke: [sdk:server] [request-lifecycle] begin requestId=3005a841-faff-4f88-9457-03942abc6d34 kind=loadModel modelId=- state=running
+voice smoke: [sdk:server] Loading from registry: qvac_models_compiled/ggml/supertonic/2026-05-18/supertonic2-q8_0.gguf
+voice smoke: [sdk:server] ✅ Model cached with correct size: /Users/criptopoeta/.qvac/models/aa7782f8d880af07_supertonic2-q8_0.gguf
+voice smoke: [sdk:server] ✅ Model already cached and validated: /Users/criptopoeta/.qvac/models/aa7782f8d880af07_supertonic2-q8_0.gguf
+voice smoke: [sdk:server] ✅ Using cached model: /Users/criptopoeta/.qvac/models/aa7782f8d880af07_supertonic2-q8_0.gguf
+voice smoke: [sdk:server] Loaded Model to /Users/criptopoeta/.qvac/models/aa7782f8d880af07_supertonic2-q8_0.gguf
+voice smoke: [sdk:server] tts-ggml: Loading model f9b2eb86d634bdab...
+voice smoke: [voice-smoke]   tts 100%
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: ggml_metal_device_init: tensor API disabled for pre-M5 and pre-A19 devices
+voice smoke: ggml_metal_library_init: using embedded metal library
+voice smoke: ggml_metal_library_init: loaded in 0.011 sec
+voice smoke: ggml_metal_rsets_init: creating a residency set collection (keep_alive = 180 s)
+voice smoke: ggml_metal_device_init: GPU name:   MTL0
+voice smoke: ggml_metal_device_init: GPU family: MTLGPUFamilyApple9  (1009)
+voice smoke: ggml_metal_device_init: GPU family: MTLGPUFamilyCommon3 (3003)
+voice smoke: ggml_metal_device_init: GPU family: MTLGPUFamilyMetal3  (5001)
+voice smoke: ggml_metal_device_init: simdgroup reduction   = true
+voice smoke: ggml_metal_device_init: simdgroup matrix mul. = true
+voice smoke: ggml_metal_device_init: has unified memory    = true
+voice smoke: ggml_metal_device_init: has bfloat            = true
+voice smoke: ggml_metal_device_init: has tensor            = false
+voice smoke: ggml_metal_device_init: use residency sets    = true
+voice smoke: ggml_metal_device_init: use shared buffers    = true
+voice smoke: ggml_metal_device_init: recommendedMaxWorkingSetSize  = 38654.71 MB
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: ggml_backend_load_best: search path /Users/criptopoeta/coding-dojo/leclerc/node_modules/.bun/@qvac+tts-ggml@0.1.4+af74bd738aeaf25a/node_modules/@qvac/tts-ggml/prebuilds/darwin-arm64/qvac__tts-ggml does not exist
+voice smoke: [sdk:server] tts-ggml model f9b2eb86d634bdab loaded
+voice smoke: [sdk:server] Local model registered: f9b2eb86d634bdab (TTS_MULTILINGUAL_SUPERTONIC2_Q8_0) -> /Users/criptopoeta/.qvac/models/aa7782f8d880af07_supertonic2-q8_0.gguf
+voice smoke: [sdk:server] [request-lifecycle] end requestId=3005a841-faff-4f88-9457-03942abc6d34 kind=loadModel modelId=- state=completed durationMs=372
+voice smoke: [voice-smoke] loading asr (whisper+vad)…
+voice smoke: [sdk:server] [request-lifecycle] begin requestId=c42f3cda-ebd3-403d-b626-efdfebbd5d43 kind=loadModel modelId=- state=running
+voice smoke: [sdk:server] Loading from registry: ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-base-q8_0.bin
+voice smoke: [sdk:server] Loading from registry: ggml-org/whisper-vad/resolve/9ffd54a1e1ee413ddf265af9913beaf518d1639b/ggml-silero-v5.1.2.bin
+voice smoke: [sdk:server] ✅ Model cached with correct size: /Users/criptopoeta/.qvac/models/349b783b1e1a0ebc_ggml-base-q8_0.bin
+voice smoke: [sdk:server] ✅ Model cached with correct size: /Users/criptopoeta/.qvac/models/dd850e3b81539045_ggml-silero-v5.1.2.bin
+voice smoke: [sdk:server] ✅ Model already cached and validated: /Users/criptopoeta/.qvac/models/dd850e3b81539045_ggml-silero-v5.1.2.bin
+voice smoke: [sdk:server] ✅ Using cached model: /Users/criptopoeta/.qvac/models/dd850e3b81539045_ggml-silero-v5.1.2.bin
+voice smoke: [sdk:server] Loaded Model to /Users/criptopoeta/.qvac/models/dd850e3b81539045_ggml-silero-v5.1.2.bin
+voice smoke: [voice-smoke]   asr 100%
+voice smoke: [sdk:server] ✅ Model already cached and validated: /Users/criptopoeta/.qvac/models/349b783b1e1a0ebc_ggml-base-q8_0.bin
+voice smoke: [sdk:server] ✅ Using cached model: /Users/criptopoeta/.qvac/models/349b783b1e1a0ebc_ggml-base-q8_0.bin
+voice smoke: [sdk:server] Loaded Model to /Users/criptopoeta/.qvac/models/349b783b1e1a0ebc_ggml-base-q8_0.bin
+voice smoke: [sdk:server] whispercpp-transcription: Loading model 288e9827a11149a7...
+voice smoke: [sdk:server] whispercpp-transcription model 288e9827a11149a7 loaded
+voice smoke: [sdk:server] Local model registered: 288e9827a11149a7 (WHISPER_BASE_Q8_0) -> /Users/criptopoeta/.qvac/models/349b783b1e1a0ebc_ggml-base-q8_0.bin
+voice smoke: [sdk:server] [request-lifecycle] end requestId=c42f3cda-ebd3-403d-b626-efdfebbd5d43 kind=loadModel modelId=- state=completed durationMs=173
+voice smoke: [voice-smoke]   asr 100%
+voice smoke: [voice-smoke] loading llm…
+voice smoke: [sdk:server] [request-lifecycle] begin requestId=fe182bc1-3483-49fb-a483-779358d265db kind=loadModel modelId=- state=running
+voice smoke: [sdk:server] Loading from registry: unsloth/Qwen3-1.7B-GGUF/resolve/d7f544eead698dbd1f15126ef60b45a1e1933222/Qwen3-1.7B-Q4_0.gguf
+voice smoke: [sdk:server] ✅ Model cached with correct size: /Users/criptopoeta/.qvac/models/f7cce66406dee646_Qwen3-1.7B-Q4_0.gguf
+voice smoke: [sdk:server] ✅ Model already cached and validated: /Users/criptopoeta/.qvac/models/f7cce66406dee646_Qwen3-1.7B-Q4_0.gguf
+voice smoke: [sdk:server] ✅ Using cached model: /Users/criptopoeta/.qvac/models/f7cce66406dee646_Qwen3-1.7B-Q4_0.gguf
+voice smoke: [sdk:server] Loaded Model to /Users/criptopoeta/.qvac/models/f7cce66406dee646_Qwen3-1.7B-Q4_0.gguf
+voice smoke: [voice-smoke]   llm 100%
+voice smoke: [sdk:server] llamacpp-completion: Loading model bcfba1a2617da624...
+voice smoke: parse: load the model metadata from disk file.
+voice smoke: initFromConfig: load the model from disk file and apply lora adapter, if any.
+voice smoke: common_init_result: fitting params to device memory, for bugs during this step try to reproduce them with -fit off, or provide --verbose logs if the bug only occurs with -fit on
+voice smoke: common_init_result: added </s> logit bias = -inf
+voice smoke: common_init_result: added <|endoftext|> logit bias = -inf
+voice smoke: common_init_result: added <|im_end|> logit bias = -inf
+voice smoke: common_init_result: added <|fim_pad|> logit bias = -inf
+voice smoke: common_init_result: added <|repo_name|> logit bias = -inf
+voice smoke: common_init_result: added <|file_sep|> logit bias = -inf
+voice smoke: [sdk:server] llamacpp-completion model bcfba1a2617da624 loaded
+voice smoke: [sdk:server] Local model registered: bcfba1a2617da624 (QWEN3_1_7B_INST_Q4) -> /Users/criptopoeta/.qvac/models/f7cce66406dee646_Qwen3-1.7B-Q4_0.gguf
+voice smoke: [sdk:server] [request-lifecycle] end requestId=fe182bc1-3483-49fb-a483-779358d265db kind=loadModel modelId=- state=completed durationMs=1662
+voice smoke: [voice-smoke] synthesizing question: "Hola, ¿cuánto gasté esta semana?"
+voice smoke: [voice-smoke]   synthesized 110410 samples (2.5s)
+voice smoke: [voice-smoke] feeding audio into transcribeStream…
+voice smoke: [sdk:server] [request-lifecycle] begin requestId=872c1230-eb66-48cc-9f7b-f77f3740c17f kind=transcribe modelId=288e9827a11149a7 state=running
+voice smoke: [voice-smoke]   transcript: "Hola, ¿cuánto gasté esta semana?"
+voice smoke: [voice-smoke] running completion…
+voice smoke: [sdk:server] [request-lifecycle] begin requestId=eeed48f7-e285-478a-84fb-6a7e602bacf7 kind=completion modelId=bcfba1a2617da624 state=running
+voice smoke: [sdk:server] [request-lifecycle] end requestId=872c1230-eb66-48cc-9f7b-f77f3740c17f kind=transcribe modelId=288e9827a11149a7 state=completed durationMs=605
+voice smoke: [sdk:server] [request-lifecycle] end requestId=eeed48f7-e285-478a-84fb-6a7e602bacf7 kind=completion modelId=bcfba1a2617da624 state=completed durationMs=306
+voice smoke: [voice-smoke]   answer: "El monto que gastaste esta semana es... (espera a que tu cliente proporcione la información necesaria para calcularlo)."
+voice smoke: [voice-smoke] synthesizing reply…
+voice smoke: [voice-smoke]   reply audio: 392470 samples (8.9s)
+voice smoke: [sdk:server] Model f9b2eb86d634bdab unloaded
+voice smoke: [sdk:server] Model 288e9827a11149a7 unloaded
+voice smoke: [sdk:server] Model bcfba1a2617da624 unloaded
+voice smoke: [sdk:client] 🧹 No models or providers active, automatically closing RPC connection...
+voice smoke: [sdk:client] 🧹 Closing RPC client
+voice smoke: [sdk:client] 🐻🔫 Killing bare worker process
+voice smoke: [sdk:client] 🔌 Closing IPC server
+voice smoke: [sdk:server] 🐻 Bare worker shutdown signal received, cleaning up...
+voice smoke: [sdk:server] 🧹 Cancelling 0 active downloads
+voice smoke: [sdk:server] Unloaded 0 models
+voice smoke: [sdk:server] ✅ Cleanup completed successfully
+voice smoke: [voice-smoke] ✅ ASR → LLM → TTS chain OK
+voice smoke: Exited with code 0

@@ -19,6 +19,13 @@ const LABELS = {
   en: { spend: "Spend", ask: "Ask", stash: "Stash", request: "Request" },
 } as const;
 
+const VOICE_ICON = {
+  connecting: "sync",
+  listening: "hearing",
+  thinking: "neurology",
+  speaking: "graphic_eq",
+} as const;
+
 export default function ConsolePage() {
   const t = useI18n();
   const locale = useCurrentLocale() as "es" | "en";
@@ -115,6 +122,13 @@ export default function ConsolePage() {
 
   const empty = messages.length === 0 && !voice.tokens;
   const chips = starterChips(locale).map((c) => ({ label: c.label, onClick: () => sendText(c.label) }));
+  const voiceStatus =
+    voice.error != null
+      ? `${t("voice.error")}: ${voice.error}`
+      : voice.state === "idle"
+        ? null
+        : t(`voice.${voice.state}`);
+  const voiceIcon = voice.error != null ? "error" : voice.state === "idle" ? null : VOICE_ICON[voice.state];
 
   return (
     <div className="flex h-[calc(100dvh-8.5rem)] flex-col">
@@ -149,6 +163,19 @@ export default function ConsolePage() {
       {ragChips.length > 0 && (
         <div className="pb-2">
           <Chips items={ragChips} />
+        </div>
+      )}
+
+      {voiceStatus && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mb-2 inline-flex w-fit max-w-full items-center gap-2 rounded-full border border-outline-variant bg-surface-container-high/90 px-3 py-1.5 text-label-md text-on-surface-variant"
+        >
+          <span className="material-symbols-outlined text-[18px] text-primary" aria-hidden>
+            {voiceIcon}
+          </span>
+          <span className="truncate">{voiceStatus}</span>
         </div>
       )}
 

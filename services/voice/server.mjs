@@ -89,14 +89,14 @@ const asrModelId = await loadModel({
 const llmSrc = process.env.VOICE_LLM_LEVEL === "alta" ? QWEN3_4B_INST_Q4_K_M : QWEN3_1_7B_INST_Q4;
 const llmModelId = await loadModel({
   modelSrc: llmSrc,
-  modelType: "llm",
+  modelType: "llamacpp-completion",
   modelConfig: { ctx_size: 4096 },
   onProgress: (p) => p?.percentage != null && log(`  llm ${p.percentage.toFixed(0)}%`),
 });
 
 const ttsModelId = await loadModel({
   modelSrc: TTS_MULTILINGUAL_SUPERTONIC2_Q8_0,
-  modelType: "tts",
+  modelType: "tts-ggml",
   modelConfig: {
     ttsEngine: "supertonic",
     language: LOCALE,

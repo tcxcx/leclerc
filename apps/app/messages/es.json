@@ -47,6 +47,13 @@
     "stationStatus": "Estado de la estación",
     "peerStatus": "Estado del enlace"
   },
+  "voice": {
+    "connecting": "Abriendo canal de voz seguro",
+    "listening": "Escuchando",
+    "thinking": "Redactando respuesta",
+    "speaking": "Hablando",
+    "error": "Error de voz"
+  },
   "capture": {
     "title": "Capturar inteligencia",
     "record": "Grabar",

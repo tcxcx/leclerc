@@ -73,6 +73,8 @@ export function useVoice(opts: UseVoiceOptions = {}): UseVoice {
           pendingUserRef.current = null;
           onTurnRef.current?.({ user, assistant: text });
         }
+        setTranscript("");
+        setTokens("");
       },
     });
     clientRef.current = client;
