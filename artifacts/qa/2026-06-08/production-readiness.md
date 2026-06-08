@@ -34,6 +34,7 @@ Screenshots captured under `artifacts/qa/2026-06-08/`:
 - `26-en-chat-auto-tool.png` - in-chat query auto-renders `Tool: dossier RAG` with grounded JSON output.
 - `27-en-spy-mission-gating.png` - Glasshouse mission gating enables only its 4 assigned gadgets and disables 6 locked gadgets/inputs.
 - `28-en-mission-funding-guard.png` - Enlace requires a seed before funding and blocks live proposal while `LECLERC_MISSION_RAVEN_USDC_ADDRESS` is absent.
+- `agent-wallet-tools-redacted.json` - protected wallet-agent route check with token/seed redacted.
 
 ## Gates
 
@@ -68,6 +69,7 @@ Results:
 - In-chat auto-invocation: query `Raven funding Kestrel dossier` rendered the assistant auto-invocation copy plus `Tool: dossier RAG` and grounded JSON output with no `<think>` tags. Evidence: `26-en-chat-auto-tool.png`.
 - Mission gating: triple-tap opened SPY console; selecting Glasshouse enabled Extract, Intel Brief, Geo Extract, and Station while disabling Transcribe, Chat, RAG Ask, RAG Search, Reasoning, and Wallet. Locked gadget inputs were disabled. Evidence: `27-en-spy-mission-gating.png`; the visible voice permission banner is the separate browser mic permission blocker noted below.
 - Mission funding: empty seed keeps `Fund mission` disabled; a dummy non-secret seed with the current env returns a blocked notification because `LECLERC_MISSION_RAVEN_USDC_ADDRESS` is not configured. No confirm button appears in the blocked state. Evidence: `28-en-mission-funding-guard.png`.
+- Agent wallet tools: with an ephemeral dummy QA token, `/api/agent/wallet-tools` rejected unauthenticated calls with 401, listed `wallet_balances`, `wallet_send`, and `wallet_swap`, returned `requires_confirmation` for `wallet_send` with purpose `agent-wallet`, and returned no hash before confirmation. Real `LECLERC_AGENT_WALLET_TOOLS_TOKEN` is absent from `.env.local`. Evidence: `agent-wallet-tools-redacted.json`.
 
 ## Defects Fixed
 
@@ -124,6 +126,8 @@ Results:
 ## Residual Notes
 
 - Browser mic ended at `NotAllowedError: Permission denied`; this is an in-app browser permission/environment blocker, not a voice service boot failure. Voice service models loaded and listened on `ws://localhost:7077`.
+- Computer Use cannot operate the Codex app (`com.openai.codex`) and the Browser runtime exposes no microphone permission capability, so this QA environment cannot grant the missing mic permission from automation.
 - Live Rain funding remains intentionally unexecuted without `LECLERC_SMOKE_SEED`.
 - Live mission funding remains intentionally blocked until `LECLERC_MISSION_RAVEN_USDC_ADDRESS` is configured.
+- Real protected wallet-agent route calls need `LECLERC_AGENT_WALLET_TOOLS_TOKEN`; the route was exercised with an ephemeral dummy QA token only.
 - Spark passive reads are disabled by default; set `LECLERC_ENABLE_LIVE_SPARK_READS=1` only when live TESTNET Spark auth is available.

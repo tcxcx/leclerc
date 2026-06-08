@@ -584,6 +584,12 @@ Verified in the in-app browser:
 - Enlace mission funding now requires a seed before propose; with current env it
   blocks safely because `LECLERC_MISSION_RAVEN_USDC_ADDRESS` is absent, so no
   confirm button is exposed.
+- `/api/agent/wallet-tools` was exercised with an ephemeral dummy QA token:
+  unauthorized calls returned 401, list returned `wallet_balances`,
+  `wallet_send`, and `wallet_swap`, `wallet_send` returned
+  `requires_confirmation` with purpose `agent-wallet` and no hash, and swap
+  remained blocked. Real `LECLERC_AGENT_WALLET_TOOLS_TOKEN` is absent from
+  `.env.local`; token/seed were not printed.
 
 ### Fixes landed in this pass
 
@@ -626,8 +632,13 @@ or committed.
 - Browser microphone capture still depends on the browser permission prompt; the
   in-app browser returned `NotAllowedError: Permission denied` after the voice
   service had booted successfully.
+- Computer Use cannot operate the Codex app (`com.openai.codex`) and the Browser
+  runtime exposes no microphone permission capability, so this QA environment
+  cannot grant the missing mic permission from automation.
 - Live Rain funding is intentionally untested without `LECLERC_SMOKE_SEED`.
 - Live mission funding remains blocked until `LECLERC_MISSION_RAVEN_USDC_ADDRESS`
   is configured.
+- Real protected wallet-agent calls require `LECLERC_AGENT_WALLET_TOOLS_TOKEN`;
+  the route check used an ephemeral dummy QA token only.
 - Live passive Spark reads require `LECLERC_ENABLE_LIVE_SPARK_READS=1` and a
   working TESTNET Spark auth environment.

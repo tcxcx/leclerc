@@ -1,0 +1,25 @@
+{
+  "createdAt": "2026-06-08T16:36:46Z",
+  "route": "/api/agent/wallet-tools",
+  "runtimeToken": "ephemeral dummy QA token; real LECLERC_AGENT_WALLET_TOOLS_TOKEN absent from apps/app/.env.local",
+  "seedPrinted": false,
+  "tokenPrinted": false,
+  "checks": {
+    "unauthorizedListStatus": 401,
+    "authorizedListStatus": 200,
+    "tools": ["wallet_balances", "wallet_send", "wallet_swap"],
+    "walletSend": {
+      "status": 200,
+      "requiresConfirmation": true,
+      "purpose": "agent-wallet",
+      "chainId": 5042002,
+      "assetId": "usdc",
+      "hasConfirmId": true,
+      "hasHash": false
+    },
+    "walletSwap": {
+      "status": 200,
+      "blocked": true
+    }
+  }
+}
