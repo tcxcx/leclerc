@@ -10,3 +10,4 @@ export * from "./rpc";
 export * from "./surfaces";
 export * from "./tool-router";
 export * from "./voice";
+export * from "./wallet-networks";

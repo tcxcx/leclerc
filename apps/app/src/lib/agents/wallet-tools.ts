@@ -4,8 +4,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import {
   ARC_TESTNET_CHAIN_ID,
-  listLeclercAssets,
-  tokenAddress,
+  listLeclercTransferAssetsForChain,
   type LeclercAssetId,
 } from "@leclerc/transfer-core";
 import { balances } from "@leclerc/wallet";
@@ -141,9 +140,7 @@ export async function callWalletAgentTool(name: WalletAgentToolName, args: unkno
           amount: parsed.amount,
           chainId: TESTNET_CHAIN_ID,
         },
-        availableAssets: listLeclercAssets()
-          .filter((asset) => tokenAddress(asset.id, TESTNET_CHAIN_ID))
-          .map((asset) => asset.id),
+        availableAssets: listLeclercTransferAssetsForChain(TESTNET_CHAIN_ID).map((asset) => asset.id),
       };
     }
   }

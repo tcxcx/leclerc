@@ -2,8 +2,10 @@ import {
   DESKTOP_CAPABILITIES,
   greeting,
   starterChips,
+  walletNetworkOptions,
   type Locale,
   type SurfaceCapabilities,
+  type WalletNetworkOption,
 } from "@leclerc/core";
 import { createLeclercWorkletHost, type WorkletEnvironment } from "@leclerc/worklet";
 import { createDesktopBridge, type DesktopBridge } from "./bridge";
@@ -16,6 +18,7 @@ export interface DesktopShellConfig {
 export interface DesktopShell {
   surface: "desktop";
   capabilities: SurfaceCapabilities;
+  walletNetworks: WalletNetworkOption[];
   bridge: DesktopBridge;
   boot: {
     greeting: string;
@@ -30,6 +33,7 @@ export function createDesktopShell(config: DesktopShellConfig = {}): DesktopShel
   return {
     surface: "desktop",
     capabilities: DESKTOP_CAPABILITIES,
+    walletNetworks: walletNetworkOptions(),
     bridge: createDesktopBridge(host),
     boot: {
       greeting: greeting(locale),

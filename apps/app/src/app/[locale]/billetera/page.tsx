@@ -4,11 +4,15 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ARC_TESTNET_CHAIN_ID,
+  chainById,
   getLeclercAsset,
-  getLeclercChain,
-  listLeclercAssets,
-  tokenAddress,
+  isWritableChain,
+  listLeclercAssetsForChain,
+  listLeclercChains,
+  type AssetCatalogEntry,
+  type ChainCatalogEntry,
   type LeclercAssetId,
+  type LeclercChainId,
 } from "@leclerc/transfer-core";
 import { explorerTxUrl, fromAtomic, toAtomic } from "@leclerc/transfer-utils";
 import type {
@@ -24,7 +28,7 @@ type OnboardingStep = "create" | "handle" | "biometric" | "recovery" | "ready";
 type WalletView = "balances" | "send" | "receive" | "transactions";
 type SendStage = "form" | "review" | "submitted";
 
-const TESTNET_CHAIN_ID = ARC_TESTNET_CHAIN_ID;
+const DEFAULT_CHAIN_ID = ARC_TESTNET_CHAIN_ID;
 
 export default function WalletPage() {
   const t = useI18n();
@@ -44,17 +48,22 @@ export default function WalletPage() {
   const [submitted, setSubmitted] = useState<WalletTransaction[]>([]);
   const [sendStage, setSendStage] = useState<SendStage>("form");
   const [assetId, setAssetId] = useState<LeclercAssetId>("usdc");
+  const [chainId, setChainId] = useState<LeclercChainId>(DEFAULT_CHAIN_ID);
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
   const [status, setStatus] = useState("");
 
-  const sendableAssets = useMemo(
-    () =>
-      listLeclercAssets().filter(
-        (asset) => asset.transferPolicy === "testnet-only" && tokenAddress(asset.id, TESTNET_CHAIN_ID),
-      ),
-    [],
-  );
+  const chains = useMemo(() => listLeclercChains(), []);
+  const availableAssets = useMemo(() => listLeclercAssetsForChain(chainId), [chainId]);
+
+  function selectChain(nextChainId: LeclercChainId) {
+    const nextAssets = listLeclercAssetsForChain(nextChainId);
+    setChainId(nextChainId);
+    setAssetId((current) => (
+      nextAssets.some((asset) => asset.id === current) ? current : nextAssets[0]?.id ?? current
+    ));
+    setSendStage("form");
+  }
 
   async function createWallet() {
     setStatus(t("common.loading"));
@@ -110,14 +119,33 @@ export default function WalletPage() {
 
   function reviewSend() {
     if (!recipient.trim() || !amount.trim()) return;
+    const chain = chainById(chainId);
+    if (!chain) {
+      setStatus(t("wallet.noTokensForNetwork"));
+      return;
+    }
+    if (!availableAssets.some((asset) => asset.id === assetId)) {
+      setStatus(t("wallet.noTokensForNetwork"));
+      return;
+    }
+    if (!isWritableChain(chain)) {
+      setStatus(t("wallet.readOnlyNetwork"));
+      return;
+    }
     setSendStage("review");
   }
 
   async function submitSend() {
     if (!seed) return;
+    const chain = chainById(chainId);
+    if (!chain || !isWritableChain(chain)) {
+      setStatus(t("wallet.readOnlyNetwork"));
+      setSendStage("form");
+      return;
+    }
     setStatus(t("wallet.submitting"));
     try {
-      const proposal = await wallet.payEvm(seed, recipient.trim(), amount.trim(), assetId, TESTNET_CHAIN_ID);
+      const proposal = await wallet.payEvm(seed, recipient.trim(), amount.trim(), assetId, chain.chainId);
       const res = await wallet.confirmTransfer(proposal.confirmId);
       const tx: WalletTransaction = {
         id: res.hash,
@@ -127,7 +155,7 @@ export default function WalletPage() {
         counterparty: recipient.trim(),
         status: "submitted",
         createdAt: new Date().toISOString(),
-        chainId: TESTNET_CHAIN_ID,
+        chainId: chain.chainId,
         hash: res.hash,
       };
       setSubmitted((rows) => [tx, ...rows]);
@@ -195,15 +223,25 @@ export default function WalletPage() {
             </div>
           </div>
 
-          {view === "balances" && <BalancesPanel balances={bal?.assets ?? []} />}
+          {view === "balances" && (
+            <BalancesPanel
+              balances={bal?.assets ?? []}
+              chains={chains}
+              chainId={chainId}
+              onChainSelect={selectChain}
+            />
+          )}
 
           {view === "send" && (
             <SendPanel
               stage={sendStage}
               assetId={assetId}
+              chainId={chainId}
               amount={amount}
               recipient={recipient}
-              sendableAssets={sendableAssets}
+              chains={chains}
+              availableAssets={availableAssets}
+              onChainSelect={selectChain}
               setAssetId={setAssetId}
               setAmount={setAmount}
               setRecipient={setRecipient}
@@ -326,14 +364,38 @@ function Onboarding({
   );
 }
 
-function BalancesPanel({ balances }: { balances: WalletAssetBalance[] }) {
+function BalancesPanel({
+  balances,
+  chains,
+  chainId,
+  onChainSelect,
+}: {
+  balances: WalletAssetBalance[];
+  chains: ChainCatalogEntry[];
+  chainId: LeclercChainId;
+  onChainSelect: (value: LeclercChainId) => void;
+}) {
   const t = useI18n();
+  const chain = chainById(chainId) ?? chains[0];
+  const assets = listLeclercAssetsForChain(chainId);
   return (
     <div className="space-y-3 rounded-2xl border border-outline-variant bg-surface-container-low p-4">
-      <h2 className="font-headline-sm">{t("wallet.balances")}</h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-headline-sm">{t("wallet.balances")}</h2>
+        <span className="rounded-full border border-outline-variant px-2 py-0.5 text-caption text-on-surface-variant">
+          {assets.length} {t("wallet.availableTokens")}
+        </span>
+      </div>
+      <NetworkSelector
+        chains={chains}
+        chainId={chainId}
+        onChainSelect={onChainSelect}
+      />
       <div className="grid grid-cols-2 gap-2">
-        {listLeclercAssets().map((asset) => {
-          const found = balances.find((entry) => entry.assetId === asset.id);
+        {assets.map((asset) => {
+          const found = balances.find(
+            (entry) => entry.assetId === asset.id && (!entry.chainId || entry.chainId === chainId),
+          );
           return (
             <AssetStat
               key={asset.id}
@@ -344,15 +406,20 @@ function BalancesPanel({ balances }: { balances: WalletAssetBalance[] }) {
           );
         })}
       </div>
+      {assets.length === 0 && (
+        <p className="rounded-xl bg-surface p-3 text-body-md text-on-surface-variant">
+          {t("wallet.noTokensForNetwork")}
+        </p>
+      )}
       <div className="rounded-xl bg-surface p-3">
         <h3 className="mb-2 text-label-md">{t("wallet.networks")}</h3>
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <div className="truncate text-label-md">{getLeclercChain("arc-testnet").name}</div>
-            <div className="font-mono text-caption text-on-surface-variant">{TESTNET_CHAIN_ID}</div>
+            <div className="truncate text-label-md">{chain?.name ?? t("common.noData")}</div>
+            <div className="font-mono text-caption text-on-surface-variant">{chainId}</div>
           </div>
           <span className="rounded-full border border-outline-variant px-2 py-0.5 text-caption text-on-surface-variant">
-            {t("wallet.testnetWrite")}
+            {chain && isWritableChain(chain) ? t("wallet.testnetWrite") : t("wallet.readOnly")}
           </span>
         </div>
       </div>
@@ -360,12 +427,65 @@ function BalancesPanel({ balances }: { balances: WalletAssetBalance[] }) {
   );
 }
 
+function NetworkSelector({
+  chains,
+  chainId,
+  onChainSelect,
+}: {
+  chains: ChainCatalogEntry[];
+  chainId: LeclercChainId;
+  onChainSelect: (value: LeclercChainId) => void;
+}) {
+  const t = useI18n();
+  return (
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      {chains.map((chain) => {
+        const selected = chain.chainId === chainId;
+        const tokenCount = listLeclercAssetsForChain(chain.chainId).length;
+        return (
+          <button
+            key={chain.key}
+            type="button"
+            onClick={() => onChainSelect(chain.chainId)}
+            className={`min-w-0 rounded-xl border p-3 text-left transition ${
+              selected
+                ? "border-ignyte bg-ignyte/10 text-on-surface"
+                : "border-outline-variant bg-surface text-on-surface-variant"
+            }`}
+            aria-pressed={selected}
+          >
+            <div className="flex min-w-0 items-center gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={chain.iconPath} alt="" className="h-6 w-6 shrink-0 rounded-full" />
+              <div className="min-w-0">
+                <div className="truncate text-label-md">{chain.shortName}</div>
+                <div className="truncate font-mono text-[11px]">{chain.chainId}</div>
+              </div>
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <span className="truncate text-caption">
+                {tokenCount} {t("wallet.availableTokens")}
+              </span>
+              <span className="shrink-0 rounded-full border border-outline-variant px-2 py-0.5 text-[10px]">
+                {isWritableChain(chain) ? t("wallet.testnetWrite") : t("wallet.readOnly")}
+              </span>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function SendPanel({
   stage,
   assetId,
+  chainId,
   amount,
   recipient,
-  sendableAssets,
+  chains,
+  availableAssets,
+  onChainSelect,
   setAssetId,
   setAmount,
   setRecipient,
@@ -375,9 +495,12 @@ function SendPanel({
 }: {
   stage: SendStage;
   assetId: LeclercAssetId;
+  chainId: LeclercChainId;
   amount: string;
   recipient: string;
-  sendableAssets: ReturnType<typeof listLeclercAssets>;
+  chains: ChainCatalogEntry[];
+  availableAssets: AssetCatalogEntry[];
+  onChainSelect: (value: LeclercChainId) => void;
   setAssetId: (value: LeclercAssetId) => void;
   setAmount: (value: string) => void;
   setRecipient: (value: string) => void;
@@ -386,8 +509,10 @@ function SendPanel({
   onSubmit: () => void;
 }) {
   const t = useI18n();
-  const asset = getLeclercAsset(assetId);
+  const chain = chainById(chainId);
+  const asset = availableAssets.find((item) => item.id === assetId) ?? getLeclercAsset(assetId);
   const atomic = amount.trim() ? previewAtomic(amount, asset.decimals) : "";
+  const canSend = Boolean(chain && isWritableChain(chain) && availableAssets.length > 0);
   if (stage === "submitted") {
     return (
       <div className="space-y-3 rounded-2xl border border-outline-variant bg-surface-container-low p-4">
@@ -405,14 +530,28 @@ function SendPanel({
       <h2 className="font-headline-sm">{stage === "review" ? t("wallet.reviewTitle") : t("wallet.sendTitle")}</h2>
       {stage === "form" ? (
         <>
+          <div className="space-y-1">
+            <span className="text-caption text-on-surface-variant">{t("wallet.network")}</span>
+            <NetworkSelector
+              chains={chains}
+              chainId={chainId}
+              onChainSelect={onChainSelect}
+            />
+          </div>
+          {!canSend && (
+            <p className="rounded-xl bg-surface p-3 text-body-md text-on-surface-variant">
+              {chain ? t("wallet.readOnlyNetwork") : t("wallet.noTokensForNetwork")}
+            </p>
+          )}
           <label className="space-y-1">
             <span className="text-caption text-on-surface-variant">{t("wallet.asset")}</span>
             <select
               value={assetId}
               onChange={(e) => setAssetId(e.target.value as LeclercAssetId)}
+              disabled={availableAssets.length === 0}
               className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-label-md outline-none"
             >
-              {sendableAssets.map((item) => (
+              {availableAssets.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.displaySymbol}
                 </option>
@@ -440,7 +579,7 @@ function SendPanel({
           </label>
           <button
             onClick={onReview}
-            disabled={!recipient.trim() || !amount.trim()}
+            disabled={!canSend || !recipient.trim() || !amount.trim()}
             className="w-full rounded-xl bg-ignyte py-3 text-on-ignyte font-label-md disabled:opacity-50"
           >
             {t("wallet.review")}
@@ -452,12 +591,16 @@ function SendPanel({
           <ReviewRow label={t("wallet.recipient")} value={recipient} />
           <ReviewRow label={t("wallet.amount")} value={`${amount} ${asset.displaySymbol}`} />
           <ReviewRow label={t("wallet.atomicAmount")} value={atomic} />
-          <ReviewRow label={t("wallet.network")} value={getLeclercChain("arc-testnet").name} />
+          <ReviewRow label={t("wallet.network")} value={chain?.name ?? t("common.noData")} />
           <div className="flex gap-2">
             <button onClick={onBack} className="flex-1 rounded-xl border border-outline-variant py-3 text-label-md">
               {t("common.back")}
             </button>
-            <button onClick={onSubmit} className="flex-1 rounded-xl bg-ignyte py-3 text-on-ignyte font-label-md">
+            <button
+              onClick={onSubmit}
+              disabled={!canSend}
+              className="flex-1 rounded-xl bg-ignyte py-3 text-on-ignyte font-label-md disabled:opacity-50"
+            >
               {t("common.confirm")}
             </button>
           </div>
@@ -496,7 +639,6 @@ function ReceivePanel({
 
 function TransactionsPanel({ transactions }: { transactions: WalletTransaction[] }) {
   const t = useI18n();
-  const chain = getLeclercChain("arc-testnet");
   return (
     <div className="space-y-3 rounded-2xl border border-outline-variant bg-surface-container-low p-4">
       <h2 className="font-headline-sm">{t("wallet.transactions")}</h2>
@@ -505,6 +647,7 @@ function TransactionsPanel({ transactions }: { transactions: WalletTransaction[]
       ) : (
         transactions.map((tx) => {
           const asset = getLeclercAsset(tx.assetId);
+          const chain = tx.chainId ? chainById(tx.chainId) : null;
           return (
             <div key={tx.id} className="rounded-xl bg-surface p-3">
               <div className="mb-1 flex items-center justify-between gap-3">
@@ -514,7 +657,7 @@ function TransactionsPanel({ transactions }: { transactions: WalletTransaction[]
               <div className="font-mono text-body-md">
                 {formatAtomicPreview(tx.amount, asset.decimals)} {asset.displaySymbol}
               </div>
-              {tx.hash && tx.chainId === TESTNET_CHAIN_ID && (
+              {tx.hash && chain && (
                 <a
                   href={explorerTxUrl(chain, tx.hash)}
                   target="_blank"
@@ -537,7 +680,7 @@ function AssetStat({
   value,
   status,
 }: {
-  assetId: ReturnType<typeof listLeclercAssets>[number]["id"];
+  assetId: LeclercAssetId;
   value: string;
   status?: WalletAssetBalance["status"];
 }) {

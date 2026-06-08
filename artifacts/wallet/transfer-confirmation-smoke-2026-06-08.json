@@ -1,5 +1,5 @@
 {
-  "createdAt": "2026-06-08T14:56:10.289Z",
+  "createdAt": "2026-06-08T21:09:25.176Z",
   "status": "PASS",
   "checks": [
     "proposal remains pending across fresh module import in the same server process",

@@ -42,6 +42,13 @@ export interface AssetCatalogEntry {
   note?: string;
 }
 
+export interface ChainTokenCatalogEntry {
+  chain: ChainCatalogEntry;
+  assets: AssetCatalogEntry[];
+  tokenCount: number;
+  writable: boolean;
+}
+
 export type LeclercAssetId =
   | "usdt"
   | "btc"
@@ -300,6 +307,33 @@ export function getLeclercChain(key: LeclercChainKey): ChainCatalogEntry {
 
 export function chainById(chainId: number): ChainCatalogEntry | null {
   return listLeclercChains().find((chain) => chain.chainId === chainId) ?? null;
+}
+
+export function listLeclercAssetsForChain(chainId: number): AssetCatalogEntry[] {
+  const chain = chainById(chainId);
+  if (!chain) return [];
+  return listLeclercAssets().filter((asset) => tokenAddress(asset.id, chain.chainId));
+}
+
+export function listLeclercTransferAssetsForChain(chainId: number): AssetCatalogEntry[] {
+  return listLeclercAssetsForChain(chainId).filter((asset) => asset.transferPolicy === "testnet-only");
+}
+
+export function isLeclercAssetAvailableOnChain(assetId: LeclercAssetId, chainId: number): boolean {
+  const chain = chainById(chainId);
+  return chain ? tokenAddress(assetId, chain.chainId) !== null : false;
+}
+
+export function listLeclercChainTokenCatalog(): ChainTokenCatalogEntry[] {
+  return listLeclercChains().map((chain) => {
+    const assets = listLeclercAssetsForChain(chain.chainId);
+    return {
+      chain,
+      assets,
+      tokenCount: assets.length,
+      writable: isWritableChain(chain),
+    };
+  });
 }
 
 export function tokenAddress(

@@ -21,7 +21,8 @@
     "./tool-router": "./src/tool-router.ts",
     "./transfers": "./src/transfers.ts",
     "./voice": "./src/voice.ts",
-    "./wallet": "./src/wallet.ts"
+    "./wallet": "./src/wallet.ts",
+    "./wallet-networks": "./src/wallet-networks.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
