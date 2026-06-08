@@ -581,6 +581,9 @@ Verified in the in-app browser:
 - In-chat auto-invocation renders `Tool: dossier RAG` inline with grounded JSON
   output; SPY mission gating was rechecked on Glasshouse and locked gadgets plus
   their inputs are disabled.
+- Enlace mission funding now requires a seed before propose; with current env it
+  blocks safely because `LECLERC_MISSION_RAVEN_USDC_ADDRESS` is absent, so no
+  confirm button is exposed.
 
 ### Fixes landed in this pass
 
@@ -624,5 +627,7 @@ or committed.
   in-app browser returned `NotAllowedError: Permission denied` after the voice
   service had booted successfully.
 - Live Rain funding is intentionally untested without `LECLERC_SMOKE_SEED`.
+- Live mission funding remains blocked until `LECLERC_MISSION_RAVEN_USDC_ADDRESS`
+  is configured.
 - Live passive Spark reads require `LECLERC_ENABLE_LIVE_SPARK_READS=1` and a
   working TESTNET Spark auth environment.

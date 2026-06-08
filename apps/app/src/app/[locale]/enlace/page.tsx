@@ -83,6 +83,7 @@ export default function LinkPage() {
     setDropStatus(`${t("link.dropInbox")} · ${res.payloads.length}/${res.rawCount}`);
   }
   async function fundMission() {
+    if (!fundSeed.trim() || !fundAmount.trim()) return;
     setBusy(true);
     try {
       setFundingProposal(null);
@@ -265,7 +266,7 @@ export default function LinkPage() {
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={fundMission}
-            disabled={busy || !missionId || !fundAmount.trim()}
+            disabled={busy || !missionId || !fundSeed.trim() || !fundAmount.trim()}
             className="rounded-xl bg-ignyte py-2.5 text-on-ignyte font-label-md disabled:opacity-50"
           >
             {t("link.fundMission")}

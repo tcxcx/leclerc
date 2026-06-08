@@ -33,6 +33,7 @@ Screenshots captured under `artifacts/qa/2026-06-08/`:
 - `25-en-wallet-final-refresh.png` - final rebuilt wallet refresh: assets render, no overflow.
 - `26-en-chat-auto-tool.png` - in-chat query auto-renders `Tool: dossier RAG` with grounded JSON output.
 - `27-en-spy-mission-gating.png` - Glasshouse mission gating enables only its 4 assigned gadgets and disables 6 locked gadgets/inputs.
+- `28-en-mission-funding-guard.png` - Enlace requires a seed before funding and blocks live proposal while `LECLERC_MISSION_RAVEN_USDC_ADDRESS` is absent.
 
 ## Gates
 
@@ -66,6 +67,7 @@ Results:
 
 - In-chat auto-invocation: query `Raven funding Kestrel dossier` rendered the assistant auto-invocation copy plus `Tool: dossier RAG` and grounded JSON output with no `<think>` tags. Evidence: `26-en-chat-auto-tool.png`.
 - Mission gating: triple-tap opened SPY console; selecting Glasshouse enabled Extract, Intel Brief, Geo Extract, and Station while disabling Transcribe, Chat, RAG Ask, RAG Search, Reasoning, and Wallet. Locked gadget inputs were disabled. Evidence: `27-en-spy-mission-gating.png`; the visible voice permission banner is the separate browser mic permission blocker noted below.
+- Mission funding: empty seed keeps `Fund mission` disabled; a dummy non-secret seed with the current env returns a blocked notification because `LECLERC_MISSION_RAVEN_USDC_ADDRESS` is not configured. No confirm button appears in the blocked state. Evidence: `28-en-mission-funding-guard.png`.
 
 ## Defects Fixed
 
@@ -109,8 +111,19 @@ Results:
 - Fix: those paths now import and use `ARC_TESTNET_CHAIN_ID`.
 - Evidence: app typecheck/lint/build and transfer/Rain smokes.
 
+### Mission Funding Empty-Seed Guard
+
+- Surface: Enlace mission funding bridge.
+- Repro: open `/en/enlace` with the default mission amount and no wallet seed.
+- Expected: funding cannot be proposed until a seed and amount are present.
+- Actual: the button was enabled with only mission and amount; a configured target would have reached the server and failed with `wallet seed required`.
+- Severity: minor/safety.
+- Fix: `fundMission()` returns early without seed/amount, and the `Fund mission` button is disabled until both are present.
+- Evidence: `28-en-mission-funding-guard.png`.
+
 ## Residual Notes
 
 - Browser mic ended at `NotAllowedError: Permission denied`; this is an in-app browser permission/environment blocker, not a voice service boot failure. Voice service models loaded and listened on `ws://localhost:7077`.
 - Live Rain funding remains intentionally unexecuted without `LECLERC_SMOKE_SEED`.
+- Live mission funding remains intentionally blocked until `LECLERC_MISSION_RAVEN_USDC_ADDRESS` is configured.
 - Spark passive reads are disabled by default; set `LECLERC_ENABLE_LIVE_SPARK_READS=1` only when live TESTNET Spark auth is available.
