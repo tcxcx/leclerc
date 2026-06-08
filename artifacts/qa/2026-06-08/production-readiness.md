@@ -31,6 +31,8 @@ Screenshots captured under `artifacts/qa/2026-06-08/`:
 - `23-en-wallet-passive-spark-fixed.png` - passive wallet reads render unavailable Spark fields without retry storm.
 - `24-en-dossier-rag-normalized.png` - RAG sourced English answer no longer appends fallback text.
 - `25-en-wallet-final-refresh.png` - final rebuilt wallet refresh: assets render, no overflow.
+- `26-en-chat-auto-tool.png` - in-chat query auto-renders `Tool: dossier RAG` with grounded JSON output.
+- `27-en-spy-mission-gating.png` - Glasshouse mission gating enables only its 4 assigned gadgets and disables 6 locked gadgets/inputs.
 
 ## Gates
 
@@ -59,6 +61,11 @@ Results:
 - `vault:smoke`: PASS, locked device-key capture readback with sealed ciphertext.
 - `wallet:smoke`: PASS, wrote `artifacts/wallet/wdk-smoke-2026-06-08T14-56-23-589Z.{json,md}`.
 - `rain:smoke`: PASS/SKIPPED live funding because `LECLERC_SMOKE_SEED` is absent, wrote `artifacts/wallet/rain-funding-smoke-2026-06-08.{json,md}`.
+
+## Residual QA Closed
+
+- In-chat auto-invocation: query `Raven funding Kestrel dossier` rendered the assistant auto-invocation copy plus `Tool: dossier RAG` and grounded JSON output with no `<think>` tags. Evidence: `26-en-chat-auto-tool.png`.
+- Mission gating: triple-tap opened SPY console; selecting Glasshouse enabled Extract, Intel Brief, Geo Extract, and Station while disabling Transcribe, Chat, RAG Ask, RAG Search, Reasoning, and Wallet. Locked gadget inputs were disabled. Evidence: `27-en-spy-mission-gating.png`; the visible voice permission banner is the separate browser mic permission blocker noted below.
 
 ## Defects Fixed
 

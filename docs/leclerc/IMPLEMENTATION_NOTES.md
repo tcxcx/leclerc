@@ -578,6 +578,9 @@ Verified in the in-app browser:
 - Rain cards render and funding remains propose/confirm gated.
 - Enlace mission funding/globe renders.
 - Capture -> confirm -> dossier -> RAG query works against local QVAC.
+- In-chat auto-invocation renders `Tool: dossier RAG` inline with grounded JSON
+  output; SPY mission gating was rechecked on Glasshouse and locked gadgets plus
+  their inputs are disabled.
 
 ### Fixes landed in this pass
 
