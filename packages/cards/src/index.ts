@@ -1,3 +1,4 @@
+import { ARC_TESTNET_CHAIN_ID } from "@leclerc/transfer-core";
 import type { LeclercAssetId, LeclercChainId } from "@leclerc/transfer-core";
 import { parseAssetAmountToAtomic } from "@leclerc/transfer-utils";
 import { confirmTransfer, proposeTransfer } from "@leclerc/transfers";
@@ -57,7 +58,7 @@ export const LECLERC_RAIN_AGENT_CARDS = [
     last4: "0707",
     expiry: "10/28",
     assetId: "usdc",
-    chainId: 5042002,
+    chainId: ARC_TESTNET_CHAIN_ID,
     balance: "240.00",
     limit: {
       amount: "500.00",

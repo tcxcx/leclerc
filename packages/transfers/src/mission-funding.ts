@@ -1,3 +1,4 @@
+import { ARC_TESTNET_CHAIN_ID } from "@leclerc/transfer-core";
 import type { LeclercAssetId, LeclercChainId } from "@leclerc/transfer-core";
 import { confirmTransfer, proposeTransfer } from "./confirmation";
 
@@ -32,7 +33,7 @@ export const LECLERC_MISSION_FUNDING = [
     missionId: "raven",
     titleKey: "missions.raven.title",
     assetId: "usdc",
-    chainId: 5042002,
+    chainId: ARC_TESTNET_CHAIN_ID,
     defaultAmount: "25.00",
     fundingTargetEnv: "LECLERC_MISSION_RAVEN_USDC_ADDRESS",
     notificationTopicHint: "raven-ops",

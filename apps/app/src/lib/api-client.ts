@@ -50,20 +50,22 @@ export function captureExtract(input: {
   return post<{ record: IntelRecord }>("/api/capture", input);
 }
 
-export function ragAsk(query: string, k = 6) {
+export function ragAsk(query: string, k = 6, locale?: "es" | "en") {
   return post<{ answer: string; sources: { id: string; score?: number }[] }>("/api/rag", {
     action: "query",
     query,
     k,
+    locale,
   });
 }
 
-export function ragAskScoped(query: string, k = 6, missionId?: string) {
+export function ragAskScoped(query: string, k = 6, missionId?: string, locale?: "es" | "en") {
   return post<{ answer: string; sources: { id: string; score?: number }[] }>("/api/rag", {
     action: "query",
     query,
     k,
     missionId,
+    locale,
   });
 }
 

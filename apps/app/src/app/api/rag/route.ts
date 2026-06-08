@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json()) as
       | { action: "ingest"; docs: { id: string; text: string; meta?: Record<string, unknown> }[] }
-      | { action: "query"; query: string; k?: number; missionId?: string }
+      | { action: "query"; query: string; k?: number; missionId?: string; locale?: "es" | "en" }
       | { action: "search"; query: string; k?: number; missionId?: string };
 
     if (body.action === "ingest") {
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, count: body.docs.length });
     }
     if (body.action === "query") {
-      const result = await answer(body.query, body.k, body.missionId);
+      const result = await answer(body.query, body.k, body.missionId, body.locale);
       return NextResponse.json(result);
     }
     if (body.action === "search") {

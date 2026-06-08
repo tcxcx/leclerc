@@ -6,6 +6,7 @@ import {
   receiveDetails,
   walletTransactions,
 } from "@leclerc/wallet";
+import { ARC_TESTNET_CHAIN_ID } from "@leclerc/transfer-core";
 import type { LeclercAssetId, LeclercChainId } from "@leclerc/transfer-core";
 import { confirmTransfer, proposeTransfer } from "@leclerc/transfers";
 
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
           to: body.to,
           amount: body.amount,
           assetId: (body.assetId as LeclercAssetId | undefined) ?? "usdc",
-          chainId: body.chainId ? (Number(body.chainId) as LeclercChainId) : 5042002,
+          chainId: body.chainId ? (Number(body.chainId) as LeclercChainId) : ARC_TESTNET_CHAIN_ID,
           purpose: "wallet",
         });
         return NextResponse.json({ status: "requires_confirmation", ...proposal });

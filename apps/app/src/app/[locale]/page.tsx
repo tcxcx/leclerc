@@ -432,7 +432,19 @@ export default function ConsolePage() {
         </button>
       </div>
 
-      <ActionBar voiceState={voice.state} onAsk={onAsk} onAction={onAction} labels={LABELS[locale]} />
+      <ActionBar
+        voiceState={voice.state}
+        onAsk={onAsk}
+        onAction={onAction}
+        labels={LABELS[locale]}
+        voiceLabels={{
+          idle: LABELS[locale].ask,
+          connecting: t("voice.connecting"),
+          listening: t("voice.listening"),
+          thinking: t("voice.thinking"),
+          speaking: t("voice.speaking"),
+        }}
+      />
     </div>
   );
 }
@@ -467,7 +479,7 @@ async function maybeAutoInvoke(query: string, locale: "es" | "en") {
   const route = routeOperatorQuery(query);
   if (route.intent === "chat") return null;
   if (route.intent === "dossier.answer") {
-    const output = await ragAskScoped(query, 6, route.missionId).catch(async () =>
+    const output = await ragAskScoped(query, 6, route.missionId, locale).catch(async () =>
       ragSearch(query, 4, route.missionId),
     );
     return {

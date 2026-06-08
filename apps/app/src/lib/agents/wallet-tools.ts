@@ -3,15 +3,15 @@ import "server-only";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import {
+  ARC_TESTNET_CHAIN_ID,
   listLeclercAssets,
   tokenAddress,
   type LeclercAssetId,
-  type LeclercChainId,
 } from "@leclerc/transfer-core";
 import { balances } from "@leclerc/wallet";
 import { proposeTransfer } from "@leclerc/transfers";
 
-const TESTNET_CHAIN_ID = 5042002 satisfies LeclercChainId;
+const TESTNET_CHAIN_ID = ARC_TESTNET_CHAIN_ID;
 const SENDABLE_ASSETS = ["usdc", "eurc", "mxnb", "qcad", "audf", "jpyc", "cirbtc"] as const;
 
 const balanceSchema = z.object({

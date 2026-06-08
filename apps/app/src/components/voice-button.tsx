@@ -35,15 +35,17 @@ export function VoiceButton(props: {
   state: VoiceState;
   onClick: () => void;
   size?: number;
+  ariaLabels?: Partial<Record<VoiceState, string>>;
 }): JSX.Element {
-  const { state, onClick, size = 72 } = props;
+  const { state, onClick, size = 72, ariaLabels } = props;
   const ring = state === "listening" || state === "connecting";
+  const ariaLabel = ariaLabels?.[state] ?? ARIA[state];
 
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={ARIA[state]}
+      aria-label={ariaLabel}
       aria-busy={state === "connecting" || state === "thinking"}
       className="relative inline-flex items-center justify-center rounded-full active:active-tap"
       style={{ width: size, height: size }}

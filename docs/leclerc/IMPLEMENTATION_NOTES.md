@@ -542,3 +542,84 @@ root re-export pulled `@leclerc/cards -> @leclerc/transfers -> @leclerc/wallet`
 into a client bundle. The final commit fixes that by removing money package
 exports from the `@leclerc/core` root while preserving explicit package/subpath
 imports.
+
+## STATUS 2026-06-08 production-readiness QA
+
+Branch: `feat/leclerc-scaffold`
+
+Artifact report:
+
+- `artifacts/qa/2026-06-08/production-readiness.md`
+- `artifacts/qa/2026-06-08/01-es-home.png` through `25-en-wallet-final-refresh.png`
+
+### Browser QA result
+
+Production runtime was rebuilt with:
+
+```bash
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+bun --filter app start
+```
+
+The built app ran at `http://localhost:7001`; the voice service ran at
+`ws://localhost:7077`.
+
+Verified in the in-app browser:
+
+- Spanish and English ops surfaces render the Ignyte black/yellow/glass theme
+  with favicon/logo assets and no mobile horizontal overflow.
+- Triple-tap SPY console renders all 10 gadgets: Transcribir, Extraer, Chat,
+  RAG Pregunta, RAG Busca, Informe Intel, Geo Extrae, Razonamiento, Billetera,
+  Estación.
+- Three data-driven missions render; accept/deny state changes are captured.
+- Wallet onboarding reaches ready state without exposing the recovery phrase in
+  artifacts; multi-asset balances render; send uses review before confirm;
+  receive and transactions render.
+- Rain cards render and funding remains propose/confirm gated.
+- Enlace mission funding/globe renders.
+- Capture -> confirm -> dossier -> RAG query works against local QVAC.
+
+### Fixes landed in this pass
+
+- RAG answers now strip `<think>` blocks, receive locale from the client/API, and
+  normalize trailing fallback text so sourced English answers do not leak
+  Spanish or appended fallback copy.
+- English voice-button ARIA is localized through `ActionBar`/`VoiceButton`.
+- Passive wallet Spark reads are gated by `LECLERC_ENABLE_LIVE_SPARK_READS=1`
+  (or the existing smoke switch), preventing background Spark auth retry storms
+  when live Spark auth is not available. Explicit Lightning payment remains live
+  and TESTNET guarded.
+- Remaining Arc testnet chain literals in wallet/card/mission-funding surfaces
+  now flow through `ARC_TESTNET_CHAIN_ID`.
+- `apps/app/.env.example` documents `LECLERC_ENABLE_LIVE_SPARK_READS`.
+
+### Gates
+
+Commands run after the final code changes:
+
+```bash
+cd apps/app && bunx tsc --noEmit
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+grep -rE "huggingface|openai|anthropic|@google/gen|langchain|chromadb|pinecone" apps packages services
+rg -n "server-only" apps/app/src/components 'apps/app/src/app/[locale]' --glob '*.tsx' --glob '*.ts'
+bun run transfer:smoke
+bun run vault:smoke
+bun run wallet:smoke
+bun run rain:smoke
+```
+
+Results: typecheck, lint, production build, transfer smoke, vault smoke, and
+wallet smoke exited 0. The forbidden inference grep and browser-surface
+`server-only` grep returned no matches. Rain smoke exited 0 and correctly
+SKIPPED live funding because `LECLERC_SMOKE_SEED` is absent; no seed was printed
+or committed.
+
+### Residual blockers
+
+- Browser microphone capture still depends on the browser permission prompt; the
+  in-app browser returned `NotAllowedError: Permission denied` after the voice
+  service had booted successfully.
+- Live Rain funding is intentionally untested without `LECLERC_SMOKE_SEED`.
+- Live passive Spark reads require `LECLERC_ENABLE_LIVE_SPARK_READS=1` and a
+  working TESTNET Spark auth environment.

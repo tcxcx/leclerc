@@ -44,11 +44,20 @@ async function spark(seed: string) {
   }).getAccount();
 }
 
+export function liveSparkReadsEnabled(env: Partial<Record<string, string | undefined>> = process.env): boolean {
+  return env.LECLERC_ENABLE_LIVE_SPARK_READS === "1" || env.LECLERC_ENABLE_LIVE_SPARK_SMOKE === "1";
+}
+
+async function passiveSpark(seed: string) {
+  if (!liveSparkReadsEnabled()) return null;
+  return spark(seed).catch(() => null);
+}
+
 export async function balances(seed: string): Promise<Balances> {
   const e = await evm(seed);
   const chainId = evmChainId();
   const assets = listLeclercAssets();
-  const sparkAccountPromise = spark(seed).catch(() => null);
+  const sparkAccountPromise = passiveSpark(seed);
   const [address, sparkAccount] = await Promise.all([
     e.getAddress(),
     sparkAccountPromise,
@@ -120,7 +129,7 @@ async function sparkTokenBalance(account: unknown, assetId: LeclercAssetId): Pro
 }
 
 export async function receiveDetails(seed: string): Promise<WalletReceiveDetails> {
-  const [e, s] = await Promise.all([evm(seed), spark(seed).catch(() => null)]);
+  const [e, s] = await Promise.all([evm(seed), passiveSpark(seed)]);
   try {
     const [address, sparkAddress, depositAddress] = await Promise.all([
       e.getAddress(),
@@ -136,7 +145,7 @@ export async function receiveDetails(seed: string): Promise<WalletReceiveDetails
 }
 
 export async function walletTransactions(seed: string): Promise<{ transactions: WalletTransaction[] }> {
-  const s = await spark(seed).catch(() => null);
+  const s = await passiveSpark(seed);
   if (!s) return { transactions: [] };
   try {
     const transfers = await s.getTransfers({ limit: 20, direction: "all" }).catch(() => []);

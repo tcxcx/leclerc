@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { getLeclercAsset, getLeclercChain } from "@leclerc/transfer-core";
+import { ARC_TESTNET_CHAIN_ID, getLeclercAsset, getLeclercChain } from "@leclerc/transfer-core";
 import type { RainAgentCardConfig } from "@leclerc/cards";
 import type { TransferProposal } from "@leclerc/transfers";
 import { rainCards } from "@/lib/api-client";
@@ -85,7 +85,7 @@ export function AgentCardsPanel() {
   }
 
   const asset = getLeclercAsset(selected.assetId);
-  const chain = getLeclercChain(selected.chainId === 5042002 ? "arc-testnet" : "arbitrum-one");
+  const chain = getLeclercChain(selected.chainId === ARC_TESTNET_CHAIN_ID ? "arc-testnet" : "arbitrum-one");
   const disabled = busy || !target?.configured || !seed.trim() || !amount.trim();
 
   return (

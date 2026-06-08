@@ -30,7 +30,7 @@ export default function DossierPage() {
     setAsking(true);
     setAnswer(null);
     try {
-      setAnswer(await ragAsk(q.trim()));
+      setAnswer(await ragAsk(q.trim(), 6, locale as "es" | "en"));
     } catch (e) {
       setAnswer({ answer: e instanceof Error ? e.message : "RAG error", sources: [] });
     } finally {

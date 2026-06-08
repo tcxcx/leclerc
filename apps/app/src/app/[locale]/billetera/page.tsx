@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
+  ARC_TESTNET_CHAIN_ID,
   getLeclercAsset,
   getLeclercChain,
   listLeclercAssets,
@@ -23,7 +24,7 @@ type OnboardingStep = "create" | "handle" | "biometric" | "recovery" | "ready";
 type WalletView = "balances" | "send" | "receive" | "transactions";
 type SendStage = "form" | "review" | "submitted";
 
-const TESTNET_CHAIN_ID = 5042002;
+const TESTNET_CHAIN_ID = ARC_TESTNET_CHAIN_ID;
 
 export default function WalletPage() {
   const t = useI18n();

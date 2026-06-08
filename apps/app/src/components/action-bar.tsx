@@ -22,8 +22,9 @@ export function ActionBar(props: {
   onAsk: () => void;
   onAction: (a: BarAction) => void;
   labels: { card: string; ask: string; send: string; stash: string; receive: string };
+  voiceLabels: Record<VoiceState, string>;
 }): JSX.Element {
-  const { voiceState, onAsk, onAction, labels } = props;
+  const { voiceState, onAsk, onAction, labels, voiceLabels } = props;
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md bg-transparent">
@@ -45,7 +46,7 @@ export function ActionBar(props: {
             <GlassIcon icon={ICON.send} label={labels.send} size="sm" />
           </button>
           <div className="-mt-5">
-            <VoiceButton state={voiceState} onClick={onAsk} size={70} />
+            <VoiceButton state={voiceState} onClick={onAsk} size={70} ariaLabels={voiceLabels} />
           </div>
           <button
             type="button"
