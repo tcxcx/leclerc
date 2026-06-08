@@ -4,6 +4,7 @@ export * from "./intel";
 export * from "./landing";
 export * from "./mission-dossier";
 export * from "./ops-network";
+export * from "./ops-console";
 export * from "./p2p";
 export * from "./rag";
 export * from "./rpc";

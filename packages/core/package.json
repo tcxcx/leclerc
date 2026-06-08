@@ -13,6 +13,7 @@
     "./mission-funding": "./src/mission-funding.ts",
     "./mission-dossier": "./src/mission-dossier.ts",
     "./ops-network": "./src/ops-network.ts",
+    "./ops-console": "./src/ops-console.ts",
     "./p2p": "./src/p2p.ts",
     "./rag": "./src/rag.ts",
     "./rain-cards": "./src/rain-cards.ts",

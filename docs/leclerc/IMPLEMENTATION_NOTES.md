@@ -642,3 +642,55 @@ or committed.
   the route check used an ephemeral dummy QA token only.
 - Live passive Spark reads require `LECLERC_ENABLE_LIVE_SPARK_READS=1` and a
   working TESTNET Spark auth environment.
+
+## STATUS 2026-06-08 bucket-analysis v2 operations ecosystem
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added a shared operations-console model in `@leclerc/core` for operative aliases,
+  mission bounties, workspace invites, assignment, invite creation, and counters.
+- Added a PWA operations room at `/[locale]/operaciones` with a mission assigner,
+  agent control center, workspace invite creation, bounty display, operations
+  globe, and stronger Ignyte/yellow action accents.
+- Added encrypted local IndexedDB persistence for the operations room through the
+  existing vault envelope path.
+- Exposed the same `opsConsole.state` and counters from the desktop and mobile
+  scaffold models so native surfaces share the same ecosystem contract.
+- Added the updated bucket-analysis artifact:
+  `artifacts/bucket-analysis/leclerc-v2-ecosystem-2026-06-08.md`.
+
+### Design fetch result
+
+The requested `LeClerc.html` design URL returned 404 without auth, 404 with bearer
+auth, and 401 `unsupported authentication method for HTTP endpoint` with API-key
+auth. No local `LeClerc.html` copy was found. The implemented design delta is
+therefore based on `DESIGN.md` plus the explicit instruction to preserve the
+current look while using yellow/Ignyte more strongly.
+
+### Verification
+
+```bash
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+cd packages/core && bun -e 'import { defaultOpsConsoleState, assignMission, createWorkspaceInvite, opsConsoleCounts } from "./src/index.ts"; const s=defaultOpsConsoleState(1); const a=assignMission(s,"mission-medic","alias-medic",2); const i=createWorkspaceInvite(a,{missionId:"mission-raven",targetAlias:"NIGHT-31"},3); console.log(JSON.stringify({counts:opsConsoleCounts(i), medic:i.missions.find(m=>m.id==="mission-medic")?.assignedAliasIds, invite:i.invites[0]?.inviteCode}))'
+```
+
+Results: all commands exited 0. Production build generated
+`/[locale]/operaciones` for both `en` and `es`. The core ops smoke returned one
+new invite and the medic mission assignment. Headless Chrome rendered the
+hydrated desktop operations room to
+`artifacts/qa/2026-06-08/30-en-operations-console.png`. A mobile-width Chrome
+headless capture exited nonzero before writing a screenshot, so mobile visual
+proof remains outstanding.
+
+The remaining bucket-analysis blockers are native runtime/rendering, native
+worklet adapter, live OCR/translate/MedPsy model sources, two-peer P2P proof,
+real browser mic permission proof, mobile-width ops screenshot, and a demo video
+artifact.

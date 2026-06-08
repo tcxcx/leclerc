@@ -1,0 +1,69 @@
+# LeClerc bucket analysis v2: ecosystem completion target
+
+Date: 2026-06-08
+Branch: `feat/leclerc-scaffold`
+
+This supersedes the first bucket analysis by adding the monorepo ecosystem
+requirement: the PWA remains the runnable judged surface, while desktop and
+mobile must become first-class versions sharing the same mission, alias, bounty,
+wallet, QVAC, P2P, and design contracts.
+
+Design-fetch note: `https://api.anthropic.com/v1/design/h/YjLdT50xpPVjdHjXM60kkQ?open_file=LeClerc.html`
+returned 404 without auth, 404 with bearer auth, and 401 `unsupported
+authentication method for HTTP endpoint` with `x-api-key` auth. No `LeClerc.html`
+copy was found locally. Current implementation therefore used `docs/leclerc/DESIGN.md`
+plus the explicit instruction to keep the current look and strengthen the
+yellow/Ignyte accent.
+
+## Bucket scorecard
+
+| # | Bucket | Score | Evidence added in this pass |
+|---|---|---:|---|
+| HP1 | PWA judged surface | 80% | `/operaciones` route now gives the PWA the mission assigner and agent control center. |
+| B1 | QVAC-only inference + RAG | 85% | Unchanged; OCR/translate/MedPsy still env-gated. |
+| B2 | Voice-first Cleo loop | 75% | Unchanged; real browser mic permission proof still missing. |
+| B3 | Capture, encrypted dossier, wipe | 85% | Unchanged. |
+| B4 | Analyst desk + brief export | 80% | Unchanged; true QVAC tool-call loop still TODO. |
+| B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
+| B6 | P2P delegation + dead-drop | 70% | Ops console links missions to dead-drop intent; two-peer delegation proof still missing. |
+| B7 | WDK wallet + network-token selector | 80% | Ops missions now carry bounties in the shared model. |
+| B8 | Monorepo ecosystem: PWA + desktop + mobile | 60% | Shared ops-console model is imported by PWA, desktop, and mobile scaffolds. Native adapters still missing. |
+| B9 | Cleo visual identity/design system | 90% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents. Native design mirror still missing. |
+| B10 | EN/ES localization | 90% | Operations copy is localized in EN/ES. |
+| B11 | Repro, artifacts, compliance gates | 82% | This artifact documents the updated completion target and design fetch blocker. |
+
+## New 100% criteria for B8: monorepo ecosystem
+
+- ✓ One shared operations model for aliases, bounties, assignments, and workspace
+  invites: `packages/core/src/ops-console.ts`.
+- ✓ PWA route renders the operative control center and mission assigner:
+  `apps/app/src/app/[locale]/operaciones/page.tsx`.
+- ✓ PWA persists the ops console locally with the shared vault envelope:
+  `apps/app/src/lib/ops/store-client.ts`.
+- ✓ Hydrated desktop-width PWA proof:
+  `artifacts/qa/2026-06-08/30-en-operations-console.png`.
+- ✓ Desktop scaffold imports the shared ops-console state:
+  `apps/desktop/src/main.ts`.
+- ✓ Mobile scaffold imports the shared ops-console state:
+  `apps/mobile/src/App.ts`.
+- ◐ Desktop does not yet vendor Electron/Pear or render a window.
+- ◐ Mobile does not yet vendor Expo/React Native/Bare or render an installable app.
+- ◐ Native worklet still reports `missing-adapter`, so QVAC/WDK/Hyperswarm are
+  not on-device in desktop/mobile.
+- ✗ Shared `@leclerc/ui` web/native component package is not implemented.
+- ◐ Real PWA desktop screenshot exists; mobile-width screenshot failed in headless
+  Chrome before writing a file.
+- ✗ Real native desktop/mobile screenshots or install artifacts are not present.
+
+## Closure items to reach 100%
+
+1. Port PearPass desktop shell: Electron/Pear runtime, renderer, bridge, and an
+   operations window rendering the shared ops-console state.
+2. Port PearPass mobile shell: Expo + Bare + `react-native-bare-kit` and a native
+   operations screen rendering the same state.
+3. Implement the native worklet adapter for QVAC, WDK, and Hyperswarm, verifying
+   installed `.d.ts` and QVAC examples before each call.
+4. Extract the Cleo components/tokens into `@leclerc/ui` and mirror them for RN.
+5. Capture desktop and mobile artifacts: screenshots, typecheck/build logs, and
+   native package proof (`.dmg`/app launch for desktop, `.ipa`/`.apk`/simulator
+   install for mobile).

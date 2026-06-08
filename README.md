@@ -24,6 +24,9 @@ part of the judged path.
   and PDF/DOCX export.
 - P2P: encrypted Hyperswarm dead drop proven between two clients; delegated
   completion is wired but needs a second DHT-reachable provider to prove.
+- Operations: `/operaciones` provides the local mission assigner, operative alias
+  control center, workspace invite codes, bounty display, and ops globe over the
+  shared `@leclerc/core` ops-console model.
 - MedPsy: medic mode is surfaced and blocked on `LECLERC_MEDPSY_SRC`.
 
 See `SUBMISSION.md` and `artifacts/` for the current proof set.

@@ -10,6 +10,7 @@
     "analysis": "Analysis",
     "wallet": "Wallet",
     "link": "Link",
+    "operations": "Operations",
     "settings": "Settings"
   },
   "common": {
@@ -136,6 +137,69 @@
       "desktopLondon": "London desktop",
       "agentDubai": "Dubai field",
       "observerTokyo": "Tokyo observer"
+    }
+  },
+  "opsConsole": {
+    "eyebrow": "Continental-style mission desk",
+    "title": "Operative control center",
+    "subtitle": "Assign global missions, attach bounties, and invite codename agents into the same local-first workspace.",
+    "reset": "Reset demo desk",
+    "assigner": "Mission assigner",
+    "assignerBody": "Choose a bounty and bind it to an operative alias before funding or dead-dropping the packet.",
+    "agentControl": "Agent control",
+    "agentControlBody": "Aliases are local workspace identities. Invites create a codename and a mission-scoped join code.",
+    "mission": "Mission",
+    "alias": "Alias",
+    "assign": "Assign bounty",
+    "deadDrop": "Prepare dead-drop",
+    "dropHint": "Use Link to join the mission dead-drop and send the sealed packet.",
+    "inviteAlias": "Invite codename",
+    "invitePlaceholder": "NIGHT-31",
+    "sendInvite": "Send workspace invite",
+    "invites": "Workspace invites",
+    "invitesBody": "Pending join codes for codename agents. Share out-of-band or over a mission dead-drop.",
+    "assigned": "Mission assigned to alias.",
+    "invited": "Workspace invite created.",
+    "resetDone": "Operations desk reset.",
+    "bounty": "Bounty",
+    "status": "Status",
+    "assignedTo": "Assigned to",
+    "metrics": {
+      "aliases": "Aliases",
+      "missions": "Missions",
+      "active": "Active",
+      "open": "Open",
+      "invites": "Invites"
+    },
+    "roles": {
+      "handler": "Handler",
+      "field": "Field",
+      "analyst": "Analyst",
+      "medic": "Medic",
+      "treasury": "Treasury"
+    },
+    "risk": {
+      "routine": "Routine",
+      "elevated": "Elevated",
+      "critical": "Critical"
+    },
+    "missionStatus": {
+      "draft": "Draft",
+      "open": "Open",
+      "assigned": "Assigned",
+      "active": "Active",
+      "complete": "Complete"
+    },
+    "aliasStatus": {
+      "available": "Available",
+      "assigned": "Assigned",
+      "invited": "Invited",
+      "offline": "Offline"
+    },
+    "inviteStatus": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "expired": "Expired"
     }
   },
   "landing": {

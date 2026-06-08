@@ -212,7 +212,7 @@ export default function ConsolePage() {
   const voiceIcon = voice.error != null ? "error" : voice.state === "idle" ? null : VOICE_ICON[voice.state];
 
   return (
-    <div className="flex h-[calc(100dvh-8.5rem)] flex-col">
+    <div className="mx-auto flex h-[calc(100dvh-8.5rem)] w-full max-w-md flex-col">
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto pb-2">
         <div className="flex items-start justify-between gap-3 pt-4">
           <h1 className="anim-enter font-display-lg text-[30px] leading-tight">{greeting(locale)}</h1>

@@ -10,6 +10,7 @@
     "analysis": "Análisis",
     "wallet": "Billetera",
     "link": "Enlace",
+    "operations": "Operaciones",
     "settings": "Ajustes"
   },
   "common": {
@@ -136,6 +137,69 @@
       "desktopLondon": "Escritorio Londres",
       "agentDubai": "Campo Dubai",
       "observerTokyo": "Observador Tokio"
+    }
+  },
+  "opsConsole": {
+    "eyebrow": "Mesa de misiones estilo Continental",
+    "title": "Centro de control operativo",
+    "subtitle": "Asigne misiones globales, vincule recompensas e invite agentes con nombre clave al mismo espacio local primero.",
+    "reset": "Reiniciar mesa demo",
+    "assigner": "Asignador de misión",
+    "assignerBody": "Elija una recompensa y átela a un alias operativo antes de fondear o enviar el paquete por buzón.",
+    "agentControl": "Control de agentes",
+    "agentControlBody": "Los aliases son identidades locales del workspace. Las invitaciones crean un nombre clave y un código de unión por misión.",
+    "mission": "Misión",
+    "alias": "Alias",
+    "assign": "Asignar recompensa",
+    "deadDrop": "Preparar buzón",
+    "dropHint": "Use Enlace para unirse al buzón de misión y enviar el paquete sellado.",
+    "inviteAlias": "Invitar nombre clave",
+    "invitePlaceholder": "NOCHE-31",
+    "sendInvite": "Enviar invitación",
+    "invites": "Invitaciones del workspace",
+    "invitesBody": "Códigos pendientes para agentes con nombre clave. Compártalos fuera de banda o por buzón de misión.",
+    "assigned": "Misión asignada al alias.",
+    "invited": "Invitación de workspace creada.",
+    "resetDone": "Mesa de operaciones reiniciada.",
+    "bounty": "Recompensa",
+    "status": "Estado",
+    "assignedTo": "Asignado a",
+    "metrics": {
+      "aliases": "Aliases",
+      "missions": "Misiones",
+      "active": "Activas",
+      "open": "Abiertas",
+      "invites": "Invites"
+    },
+    "roles": {
+      "handler": "Handler",
+      "field": "Campo",
+      "analyst": "Analista",
+      "medic": "Médico",
+      "treasury": "Tesorería"
+    },
+    "risk": {
+      "routine": "Rutinario",
+      "elevated": "Elevado",
+      "critical": "Crítico"
+    },
+    "missionStatus": {
+      "draft": "Borrador",
+      "open": "Abierta",
+      "assigned": "Asignada",
+      "active": "Activa",
+      "complete": "Completa"
+    },
+    "aliasStatus": {
+      "available": "Disponible",
+      "assigned": "Asignado",
+      "invited": "Invitado",
+      "offline": "Fuera de línea"
+    },
+    "inviteStatus": {
+      "pending": "Pendiente",
+      "accepted": "Aceptada",
+      "expired": "Expirada"
     }
   },
   "landing": {

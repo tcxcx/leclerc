@@ -19,6 +19,13 @@ export function TopBar() {
       <div className="flex items-center gap-2">
         <ModeBadge />
         <Link
+          href={`/${locale}/operaciones`}
+          className="flex h-9 w-9 items-center justify-center rounded-full"
+          aria-label={t("nav.operations")}
+        >
+          <GlassIcon icon="assignment_ind" label={t("nav.operations")} size="sm" />
+        </Link>
+        <Link
           href={`/${locale}/ajustes`}
           className="flex h-9 w-9 items-center justify-center rounded-full"
           aria-label={t("nav.settings")}
