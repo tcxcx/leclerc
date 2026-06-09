@@ -50,6 +50,26 @@ export interface WorkspaceInvite {
   expiresAt: number;
 }
 
+export type OpsNodeRole = "station" | "mobile-agent" | "desktop-peer" | "observer";
+export type OpsNodeStatus = "online" | "standby" | "degraded";
+
+export interface OpsNetworkNode {
+  id: string;
+  labelKey: string;
+  role: OpsNodeRole;
+  status: OpsNodeStatus;
+  location: [number, number];
+  size: number;
+  color: [number, number, number];
+}
+
+export interface OpsNetworkArc {
+  id: string;
+  fromNodeId: string;
+  toNodeId: string;
+  color: [number, number, number];
+}
+
 export type OpsNotificationKind = "assignment" | "invite" | "funding" | "system";
 
 export interface OpsNotification {

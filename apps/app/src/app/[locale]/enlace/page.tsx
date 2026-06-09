@@ -62,9 +62,9 @@ export default function LinkPage() {
     try {
       const joined = await drop.join(topic.trim());
       setDropId(joined.dropId);
-      setDropStatus(`${t("link.dropReady")} · ${joined.topicHash} · peers ${joined.peers}`);
+      setDropStatus(`${t("link.dropReady")} · ${joined.topicHash} · ${t("link.peers")} ${joined.peers}`);
     } catch (e) {
-      setDropStatus(e instanceof Error ? e.message : "drop failed");
+      setDropStatus(e instanceof Error ? e.message : t("link.dropFailed"));
     } finally {
       setBusy(false);
     }
@@ -72,10 +72,10 @@ export default function LinkPage() {
   async function sendTest() {
     if (!dropId) return;
     const res = await drop.send(dropId, secret.trim() || topic.trim(), {
-      title: "LeClerc dead-drop test",
+      title: t("link.dropTestTitle"),
       sentAt: Date.now(),
     });
-    setDropStatus(`${t("link.dropSent")} · ${res.status} · peers ${res.peers}`);
+    setDropStatus(`${t("link.dropSent")} · ${res.status} · ${t("link.peers")} ${res.peers}`);
   }
   async function pollDrop() {
     if (!dropId) return;
@@ -105,7 +105,7 @@ export default function LinkPage() {
       );
       setEvents((current) => [res.notification, ...current].slice(0, 20));
     } catch (e) {
-      setFundingStatus(e instanceof Error ? e.message : "mission funding failed");
+      setFundingStatus(e instanceof Error ? e.message : t("link.missionFundingFailed"));
     } finally {
       setBusy(false);
     }
@@ -125,7 +125,7 @@ export default function LinkPage() {
       );
       setEvents((current) => [res.notification, ...current].slice(0, 20));
     } catch (e) {
-      setFundingStatus(e instanceof Error ? e.message : "mission funding failed");
+      setFundingStatus(e instanceof Error ? e.message : t("link.missionFundingFailed"));
     } finally {
       setBusy(false);
     }
@@ -163,7 +163,7 @@ export default function LinkPage() {
         <input
           value={peer}
           onChange={(e) => setPeer(e.target.value)}
-          placeholder="provider public key"
+          placeholder={t("link.peerPlaceholder")}
           className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 font-mono text-caption"
         />
         <button onClick={ping} className="w-full rounded-xl border border-outline-variant py-2.5 text-label-md">
@@ -181,7 +181,7 @@ export default function LinkPage() {
         <input
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          placeholder="mission passphrase"
+          placeholder={t("link.dropPlaceholder")}
           className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-body-md"
         />
         <input

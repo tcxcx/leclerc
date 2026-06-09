@@ -796,3 +796,45 @@ the story-derived Raven USDC Arc Testnet config.
 - Native runtime/rendering, native worklet adapter, live OCR/translate/MedPsy
   model sources, two-peer P2P proof, real mic permission proof, native install
   artifacts, and demo video artifact remain outstanding.
+
+## STATUS 2026-06-09 ops network story + Link copy
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Moved operations network node/arc geography into
+  `packages/core/src/ops-stories.ts` so aliases, missions, invites, and globe
+  network topology now live in the same dedicated operations story fixture.
+- Kept the public `listOpsNetworkNodes()` / `listOpsNetworkArcs()` API stable in
+  `packages/core/src/ops-network.ts`, with optional story injection for future
+  alternate user stories.
+- Localized remaining Link page placeholders, dead-drop test title, and fallback
+  status strings in EN/ES instead of keeping inline English in the route.
+
+### Verification
+
+```bash
+bun --filter @leclerc/core typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd packages/core && bun -e 'import { DEFAULT_OPS_CONSOLE_STORY, listOpsNetworkNodes, listOpsNetworkArcs } from "./src/index.ts"; console.log(JSON.stringify({story:DEFAULT_OPS_CONSOLE_STORY.id,nodes:listOpsNetworkNodes().map(n=>n.id),arcs:listOpsNetworkArcs().map(a=>a.id)}))'
+cd ../..
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+```
+
+Results: all commands exited 0. The ops network smoke returned the
+`continental-desk` story with five nodes and four arcs, proving the globe data is
+now story-derived while the PWA build still prerenders `/[locale]/enlace` and
+`/[locale]/operaciones`.
+
+### Residual blockers
+
+- Finance and intel demo seed rows still contain inline scenario copy and should
+  move behind dedicated story/catalog fixtures next.
+- Native runtime/rendering, native worklet adapter, live OCR/translate/MedPsy
+  model sources, two-peer P2P proof, real mic permission proof, native install
+  artifacts, and demo video artifact remain outstanding.
