@@ -7,6 +7,19 @@ export type ApiErrorCode =
   | "rain_card_failed"
   | "station_failed"
   | "wallet_agent_tool_failed"
+  | "rag_failed"
+  | "brief_records_required"
+  | "brief_failed"
+  | "brief_export_unsupported_format"
+  | "brief_export_payload_required"
+  | "brief_export_failed"
+  | "document_image_required"
+  | "document_intel_failed"
+  | "chat_failed"
+  | "capture_source_required"
+  | "capture_failed"
+  | "qvac_upstream_unconfigured"
+  | "qvac_upstream_failed"
   | "mission_funding_failed"
   | "wallet_seed_required"
   | "unknown_mission"
@@ -88,6 +101,13 @@ function codeForMessage(message: string): ApiErrorCode | null {
   if (normalized.includes("evm_chain_id must be arc testnet")) return "evm_chain_mismatch";
   if (normalized.includes("spark_network must be testnet")) return "spark_network_mismatch";
   if (normalized.includes("startqvacprovider returned no publickey")) return "station_key_missing";
+  if (normalized.includes("no records")) return "brief_records_required";
+  if (normalized.includes("unsupported format")) return "brief_export_unsupported_format";
+  if (normalized.includes("missing brief or records")) return "brief_export_payload_required";
+  if (normalized.includes("missing image")) return "document_image_required";
+  if (normalized.includes("empty source")) return "capture_source_required";
+  if (normalized.includes("qvac_base_url not configured")) return "qvac_upstream_unconfigured";
+  if (normalized.includes("all qvac upstreams failed")) return "qvac_upstream_failed";
   return null;
 }
 
@@ -109,6 +129,11 @@ function statusForCode(code: ApiErrorCode): number {
     case "evm_chain_mismatch":
     case "spark_network_mismatch":
     case "station_key_missing":
+    case "brief_records_required":
+    case "brief_export_unsupported_format":
+    case "brief_export_payload_required":
+    case "document_image_required":
+    case "capture_source_required":
       return 400;
     case "unauthorized_wallet_tool_caller":
       return 401;
@@ -116,7 +141,10 @@ function statusForCode(code: ApiErrorCode): number {
     case "transfer_confirmation_not_found":
       return 404;
     case "agent_wallet_token_required":
+    case "qvac_upstream_unconfigured":
       return 503;
+    case "qvac_upstream_failed":
+      return 502;
     case "transfer_confirmation_expired":
     case "transfer_confirmation_integrity_failed":
     case "rain_card_deposit_unconfigured":
@@ -127,6 +155,12 @@ function statusForCode(code: ApiErrorCode): number {
     case "rain_card_failed":
     case "station_failed":
     case "wallet_agent_tool_failed":
+    case "rag_failed":
+    case "brief_failed":
+    case "brief_export_failed":
+    case "document_intel_failed":
+    case "chat_failed":
+    case "capture_failed":
       return 500;
   }
 }

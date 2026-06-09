@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ingest, answer, search } from "@/lib/rag/server";
+import { apiError, apiErrorBody, apiErrorFromUnknown, type LeclercApiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -28,11 +29,12 @@ export async function POST(req: Request) {
       const hits = await search(body.query, body.k, body.missionId);
       return NextResponse.json({ hits });
     }
-    return NextResponse.json({ error: "unknown action" }, { status: 400 });
+    return apiErrorResponse(apiError("unknown_action"));
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "rag failed" },
-      { status: 500 },
-    );
+    return apiErrorResponse(apiErrorFromUnknown(err, "rag_failed"));
   }
+}
+
+function apiErrorResponse(error: LeclercApiError) {
+  return NextResponse.json(apiErrorBody(error), { status: error.status });
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ocrImage, translateText } from "@repo/qvacs";
 import { loadOcr, loadTranslate } from "@/lib/qvac/server";
+import { apiError, apiErrorBody, apiErrorFromUnknown, type LeclercApiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 export const maxDuration = 180;
@@ -14,7 +15,7 @@ export async function POST(req: Request) {
     const form = await req.formData();
     const image = form.get("image");
     if (!(image instanceof File)) {
-      return NextResponse.json({ error: "missing image" }, { status: 400 });
+      return apiErrorResponse(apiError("document_image_required"));
     }
 
     const buffer = Buffer.from(await image.arrayBuffer());
@@ -40,9 +41,10 @@ export async function POST(req: Request) {
       blocks: ocr.blocks,
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "document intel failed" },
-      { status: 500 },
-    );
+    return apiErrorResponse(apiErrorFromUnknown(err, "document_intel_failed"));
   }
+}
+
+function apiErrorResponse(error: LeclercApiError) {
+  return NextResponse.json(apiErrorBody(error), { status: error.status });
 }

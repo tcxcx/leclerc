@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { completeText, type CompleteMessage } from "@repo/qvacs";
 import { loadLLM } from "@/lib/qvac/server";
 import { persona, type Locale } from "@/lib/agents/persona";
+import { apiErrorBody, apiErrorFromUnknown, type LeclercApiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -30,9 +31,10 @@ export async function POST(req: Request) {
     const text = await completeText({ modelId: llm, history, stream: true });
     return NextResponse.json({ text: text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim() });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "chat failed" },
-      { status: 500 },
-    );
+    return apiErrorResponse(apiErrorFromUnknown(err, "chat_failed"));
   }
+}
+
+function apiErrorResponse(error: LeclercApiError) {
+  return NextResponse.json(apiErrorBody(error), { status: error.status });
 }

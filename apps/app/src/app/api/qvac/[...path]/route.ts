@@ -5,6 +5,7 @@
 // to an external QVAC server (Railway), so it stays serverless-safe.
 
 import { NextResponse } from "next/server";
+import { apiError, apiErrorBody } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -89,10 +90,8 @@ async function proxy(req: Request, ctx: RouteContext): Promise<Response> {
   const bases = upstreamBases();
 
   if (bases.length === 0) {
-    return NextResponse.json(
-      { error: "QVAC_BASE_URL not configured" },
-      { status: 503 }
-    );
+    const error = apiError("qvac_upstream_unconfigured");
+    return NextResponse.json(apiErrorBody(error), { status: error.status });
   }
 
   // Read the raw body once so multipart audio (and any binary payload) passes
@@ -132,10 +131,8 @@ async function proxy(req: Request, ctx: RouteContext): Promise<Response> {
     }
   }
 
-  return NextResponse.json(
-    { error: "All QVAC upstreams failed", detail: lastError },
-    { status: 502 }
-  );
+  const error = apiError("qvac_upstream_failed");
+  return NextResponse.json({ ...apiErrorBody(error), detail: lastError }, { status: error.status });
 }
 
 export function GET(req: Request, ctx: RouteContext): Promise<Response> {

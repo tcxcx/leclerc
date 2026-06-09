@@ -957,3 +957,48 @@ API smokes returned `unknown_action`, `wallet_seed_required`,
 - Native runtime/rendering, native worklet adapter, live OCR/translate/MedPsy
   model sources, two-peer P2P proof, real mic permission proof, native install
   artifacts, and demo video artifact remain outstanding.
+
+## STATUS 2026-06-09 remaining station API error codes
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Converted `/api/rag`, `/api/brief`, `/api/brief/export`, `/api/document`,
+  `/api/chat`, `/api/capture`, and `/api/qvac/[...path]` to stable
+  `{ error, code }` responses for validation and catch fallback paths.
+- Extended `apps/app/src/lib/api-errors.ts` with RAG, analyst brief, export,
+  document intel, chat, capture, and QVAC upstream codes.
+- Added EN/ES `apiErrors.*` labels for every new code. The QVAC proxy still
+  returns upstream diagnostic `detail` for operators, but the public `error`
+  and `code` fields are stable.
+
+### Verification
+
+```bash
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+curl -sS -i -X POST http://localhost:7001/api/rag -H 'Content-Type: application/json' -d '{"action":"wat"}'
+curl -sS -i -X POST http://localhost:7001/api/brief -H 'Content-Type: application/json' -d '{"records":[]}'
+curl -sS -i -X POST http://localhost:7001/api/brief/export -H 'Content-Type: application/json' -d '{"format":"txt","brief":{},"records":[]}'
+curl -sS -i -X POST http://localhost:7001/api/capture -H 'Content-Type: application/json' -d '{"transcript":""}'
+curl -sS -i -X POST http://localhost:7001/api/document -F noop=1
+cd apps/app && bun -e 'process.env.QVAC_BASE_URL=""; process.env.QVAC_NGROK_URL=""; const mod = await import("./src/app/api/qvac/[...path]/route.ts"); const res = await mod.GET(new Request("http://localhost/api/qvac/health"), { params: Promise.resolve({ path: ["health"] }) }); console.log(JSON.stringify({ status: res.status, body: await res.json() }));'
+cd ../..
+curl -sS -i -X POST http://localhost:7001/api/chat -H 'Content-Type: application/json' -d '{'
+```
+
+Results: app typecheck, lint, production build, and route smokes exited 0. The
+smokes returned `unknown_action`, `brief_records_required`,
+`brief_export_unsupported_format`, `capture_source_required`,
+`document_image_required`, `qvac_upstream_unconfigured`, and `chat_failed`.
+
+### Residual blockers
+
+- Live OCR/translate/MedPsy and chat model sources remain env-gated; configure
+  the relevant model env vars before expecting live inference in these routes.
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

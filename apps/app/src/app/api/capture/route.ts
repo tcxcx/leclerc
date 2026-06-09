@@ -8,6 +8,7 @@ import {
   buildRecord,
   isMeaningful,
 } from "@/lib/intel/assemble";
+import { apiError, apiErrorBody, apiErrorFromUnknown, type LeclercApiError } from "@/lib/api-errors";
 import type { IntelExtraction, IntelRecord, RecordKind } from "@/lib/intel/schema";
 
 export const runtime = "nodejs";
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json()) as CaptureBody;
     if (!isMeaningful(body.transcript ?? "")) {
-      return NextResponse.json({ error: "empty source" }, { status: 400 });
+      return apiErrorResponse(apiError("capture_source_required"));
     }
 
     const capturedAt = Date.now();
@@ -49,9 +50,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ record });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "capture failed" },
-      { status: 500 },
-    );
+    return apiErrorResponse(apiErrorFromUnknown(err, "capture_failed"));
   }
+}
+
+function apiErrorResponse(error: LeclercApiError) {
+  return NextResponse.json(apiErrorBody(error), { status: error.status });
 }
