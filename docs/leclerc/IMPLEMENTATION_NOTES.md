@@ -838,3 +838,41 @@ now story-derived while the PWA build still prerenders `/[locale]/enlace` and
 - Native runtime/rendering, native worklet adapter, live OCR/translate/MedPsy
   model sources, two-peer P2P proof, real mic permission proof, native install
   artifacts, and demo video artifact remain outstanding.
+
+## STATUS 2026-06-09 field demo story fixtures
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `apps/app/src/lib/stories/field-demo-story.ts` for local field-demo
+  scenario data used by the finance dashboard and analyst dossier seed path.
+- Rewired `apps/app/src/lib/finance/store-client.ts` so the encrypted finance
+  store owns persistence only; it now imports story rows from the field-demo
+  fixture.
+- Rewired `apps/app/src/lib/intel/store-client.ts` so the encrypted dossier
+  store owns persistence only; it now imports story records from the same
+  field-demo fixture.
+
+### Verification
+
+```bash
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+cd apps/app && bun -e 'import { financeDemoRows, intelDemoRecords } from "./src/lib/stories/field-demo-story.ts"; const now=Date.UTC(2026,5,9); console.log(JSON.stringify({finance:financeDemoRows("en").length,intel:intelDemoRecords("en",now).map(r=>r.id),localized:financeDemoRows("es")[0]?.merchant}))'
+cd ../..
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+```
+
+Results: app typecheck, lint, story smoke, and production build exited 0. The
+story smoke returned 12 finance rows and the three expected intel record IDs:
+`demo-rio-001`, `demo-clinica-002`, and `demo-boveda-003`.
+
+### Residual blockers
+
+- API fallback strings still contain minimal English server errors in a few route
+  handlers; these should be normalized into route-level error codes/messages.
+- Native runtime/rendering, native worklet adapter, live OCR/translate/MedPsy
+  model sources, two-peer P2P proof, real mic permission proof, native install
+  artifacts, and demo video artifact remain outstanding.

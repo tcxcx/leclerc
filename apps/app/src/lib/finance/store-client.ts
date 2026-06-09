@@ -1,6 +1,7 @@
 "use client";
 
 import { fromVaultEnvelope, toVaultEnvelope, type VaultEnvelope } from "@/lib/vault/envelope-client";
+import { financeDemoRows } from "@/lib/stories/field-demo-story";
 
 /**
  * Offline-first, encrypted-at-rest local transaction store (IndexedDB on the
@@ -178,131 +179,6 @@ export async function listSavingsGoals(): Promise<SavingsGoal[]> {
 
 const DAY = 86_400_000;
 
-/** Spy-themed demo data so the UI/demo has believable spend (docs §13). */
-function demoRows(
-  locale: "es" | "en",
-): (Omit<Transaction, "id" | "ts"> & { dayAgo: number })[] {
-  const es = locale === "es";
-  // Mostly spend, a couple income, single currency (USDT) for clean math,
-  // plus two Lightning (sats) payments. Amounts are realistic.
-  const c = {
-    informant: es ? "informante" : "informant",
-    safehouse: es ? "alojamiento" : "safehouse",
-    comms: es ? "comunicaciones" : "comms",
-    transport: es ? "transporte" : "transport",
-    meals: es ? "comida" : "meals",
-    gear: es ? "equipo" : "gear",
-    income: es ? "ingreso" : "income",
-  };
-  return [
-    {
-      dayAgo: 0,
-      amount: 18.4,
-      currency: "USDT",
-      kind: "spend",
-      category: c.meals,
-      merchant: es ? "Café de la esquina" : "Corner Café",
-      note: es ? "reunión de tapadera" : "cover meeting",
-    },
-    {
-      dayAgo: 0,
-      amount: 12000,
-      currency: "sats",
-      kind: "spend",
-      category: c.comms,
-      merchant: es ? "VPN sin logs" : "No-log VPN",
-      note: es ? "pago Lightning" : "Lightning payment",
-    },
-    {
-      dayAgo: 1,
-      amount: 250,
-      currency: "USDT",
-      kind: "spend",
-      category: c.informant,
-      merchant: es ? 'Sujeto "Halcón"' : 'Subject "Falcon"',
-      note: es ? "soplo verificado" : "verified tip",
-    },
-    {
-      dayAgo: 2,
-      amount: 42.75,
-      currency: "USDT",
-      kind: "spend",
-      category: c.transport,
-      merchant: es ? "Taxi nocturno" : "Night cab",
-      note: es ? "vigilancia móvil" : "mobile surveillance",
-    },
-    {
-      dayAgo: 2,
-      amount: 89.99,
-      currency: "USDT",
-      kind: "spend",
-      category: c.gear,
-      merchant: es ? "Teléfono desechable" : "Burner phone",
-    },
-    {
-      dayAgo: 3,
-      amount: 1500,
-      currency: "USDT",
-      kind: "income",
-      category: c.income,
-      merchant: es ? "Estipendio de la Agencia" : "Agency stipend",
-      note: es ? "asignación de misión" : "mission allowance",
-    },
-    {
-      dayAgo: 4,
-      amount: 600,
-      currency: "USDT",
-      kind: "spend",
-      category: c.safehouse,
-      merchant: es ? "Piso franco — Distrito 7" : "Safehouse — District 7",
-      note: es ? "renta semanal" : "weekly rent",
-    },
-    {
-      dayAgo: 5,
-      amount: 27.3,
-      currency: "USDT",
-      kind: "spend",
-      category: c.meals,
-      merchant: es ? "Mercado nocturno" : "Night market",
-    },
-    {
-      dayAgo: 6,
-      amount: 8500,
-      currency: "sats",
-      kind: "spend",
-      category: c.informant,
-      merchant: es ? "Contacto portuario" : "Dock contact",
-      note: es ? "pago Lightning discreto" : "discreet Lightning payment",
-    },
-    {
-      dayAgo: 7,
-      amount: 64.0,
-      currency: "USDT",
-      kind: "spend",
-      category: c.gear,
-      merchant: es ? "Tienda de electrónica" : "Electronics shop",
-      note: es ? "cables y baterías" : "cables and batteries",
-    },
-    {
-      dayAgo: 8,
-      amount: 33.5,
-      currency: "USDT",
-      kind: "spend",
-      category: c.transport,
-      merchant: es ? "Alquiler de coche" : "Car rental",
-    },
-    {
-      dayAgo: 9,
-      amount: 175,
-      currency: "USDT",
-      kind: "spend",
-      category: c.informant,
-      merchant: es ? 'Sujeto "Cuervo"' : 'Subject "Raven"',
-      note: es ? "documentos filtrados" : "leaked documents",
-    },
-  ];
-}
-
 /**
  * Insert ~12 believable spy-themed demo transactions across the last ~10 days.
  * Idempotent: skips entirely if any transaction already exists.
@@ -311,7 +187,7 @@ export async function seedDemo(locale: "es" | "en"): Promise<void> {
   const existing = await tx<number>("readonly", (s) => s.count());
   if (existing > 0) return;
   const now = Date.now();
-  for (const row of demoRows(locale)) {
+  for (const row of financeDemoRows(locale)) {
     const { dayAgo, ...rest } = row;
     // Spread within the day so the list ordering looks natural.
     const ts = now - dayAgo * DAY - Math.floor(Math.random() * DAY * 0.4);

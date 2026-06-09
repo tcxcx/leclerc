@@ -22,7 +22,7 @@ yellow/Ignyte accent.
 | HP1 | PWA judged surface | 85% | `/operaciones` route now gives the PWA the mission assigner, agent control center, story-backed defaults, and notification feed. |
 | B1 | QVAC-only inference + RAG | 85% | Unchanged; OCR/translate/MedPsy still env-gated. |
 | B2 | Voice-first Cleo loop | 75% | Unchanged; real browser mic permission proof still missing. |
-| B3 | Capture, encrypted dossier, wipe | 85% | Unchanged. |
+| B3 | Capture, encrypted dossier, wipe | 88% | Finance and intel demo seeds now come from a dedicated field-demo story fixture instead of store-inline scenario copy. |
 | B4 | Analyst desk + brief export | 80% | Unchanged; true QVAC tool-call loop still TODO. |
 | B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
 | B6 | P2P delegation + dead-drop | 78% | Ops console links missions to dead-drop intent, story-derived mission-funding notifications, and story-derived global topology; two-peer delegation proof still missing. |
@@ -30,7 +30,7 @@ yellow/Ignyte accent.
 | B8 | Monorepo ecosystem: PWA + desktop + mobile | 70% | Shared ops-console, ops-network, and mission-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, and SPY presets. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 90% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents. Native design mirror still missing. |
 | B10 | EN/ES localization | 95% | Operations story labels, notification copy, and error/status states are localized in EN/ES. |
-| B11 | Repro, artifacts, compliance gates | 85% | Updated desktop and mobile-width operations notification screenshots captured. |
+| B11 | Repro, artifacts, compliance gates | 86% | Updated status notes now track field-demo fixture extraction and smoke coverage. |
 
 ## New 100% criteria for B8: monorepo ecosystem
 
@@ -66,6 +66,8 @@ yellow/Ignyte accent.
   `apps/desktop/src/main.ts`.
 - ✓ Mobile scaffold imports the shared ops-console state:
   `apps/mobile/src/App.ts`.
+- ✓ Finance and intel demo seeds use a dedicated field-demo story fixture:
+  `apps/app/src/lib/stories/field-demo-story.ts`.
 - ◐ Desktop does not yet vendor Electron/Pear or render a window.
 - ◐ Mobile does not yet vendor Expo/React Native/Bare or render an installable app.
 - ◐ Native worklet still reports `missing-adapter`, so QVAC/WDK/Hyperswarm are
