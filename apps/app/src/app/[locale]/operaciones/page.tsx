@@ -1,19 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/locales/client";
 import { GlassIcon } from "@/components/glass-icon";
 import { OperationsGlobe } from "@/components/operations-globe";
+import { missionFunding } from "@/lib/api-client";
 import {
   assignOpsMission,
   inviteOpsAlias,
   loadOpsConsole,
+  mergeOpsConsoleNotifications,
   resetOpsConsole,
 } from "@/lib/ops/store-client";
 import {
+  opsNotificationFromMissionFunding,
   opsConsoleCounts,
   type MissionBounty,
   type OperativeAlias,
+  type OpsNotification,
   type OpsConsoleState,
   type WorkspaceInvite,
 } from "@leclerc/core";
@@ -28,29 +32,54 @@ export default function OperationsPage() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
+  const applyOpsState = useCallback((next: OpsConsoleState) => {
+    setState(next);
+    setSelectedMissionId((current) =>
+      current && next.missions.some((mission) => mission.id === current) ? current : next.missions[0]?.id ?? "",
+    );
+    setSelectedAliasId((current) =>
+      current && next.aliases.some((alias) => alias.id === current) ? current : next.aliases[0]?.id ?? "",
+    );
+  }, []);
+
+  const refreshFundingNotifications = useCallback(
+    async (baseState: OpsConsoleState, announce = true) => {
+      try {
+        const res = await missionFunding.events();
+        const notifications = res.events.map((event) => opsNotificationFromMissionFunding(event, baseState));
+        const next = await mergeOpsConsoleNotifications(notifications);
+        applyOpsState(next);
+        if (announce) setStatus(t("opsConsole.notifications.synced"));
+      } catch (error) {
+        if (announce) setStatus(error instanceof Error ? error.message : t("opsConsole.notifications.loadFailed"));
+      }
+    },
+    [applyOpsState, t],
+  );
+
   useEffect(() => {
     loadOpsConsole()
       .then((next) => {
-        setState(next);
-        setSelectedMissionId(next.missions[0]?.id ?? "");
-        setSelectedAliasId(next.aliases[0]?.id ?? "");
+        applyOpsState(next);
+        return refreshFundingNotifications(next, false);
       })
-      .catch((error) => setStatus(error instanceof Error ? error.message : "ops load failed"));
-  }, []);
+      .catch((error) => setStatus(error instanceof Error ? error.message : t("opsConsole.loadFailed")));
+  }, [applyOpsState, refreshFundingNotifications, t]);
 
   const counts = useMemo(() => (state ? opsConsoleCounts(state) : null), [state]);
   const selectedMission = state?.missions.find((mission) => mission.id === selectedMissionId) ?? state?.missions[0];
   const selectedAlias = state?.aliases.find((alias) => alias.id === selectedAliasId) ?? state?.aliases[0];
+  const workspaceLabel = state?.workspaceNameKey ? tt(state.workspaceNameKey) : state?.workspaceName;
 
   async function assignSelected() {
     if (!selectedMission || !selectedAlias) return;
     setBusy(true);
     try {
       const next = await assignOpsMission(selectedMission.id, selectedAlias.id);
-      setState(next);
+      applyOpsState(next);
       setStatus(t("opsConsole.assigned"));
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "assign failed");
+      setStatus(error instanceof Error ? error.message : t("opsConsole.assignFailed"));
     } finally {
       setBusy(false);
     }
@@ -61,11 +90,11 @@ export default function OperationsPage() {
     setBusy(true);
     try {
       const next = await inviteOpsAlias(selectedMission.id, inviteAlias);
-      setState(next);
+      applyOpsState(next);
       setInviteAlias("");
       setStatus(t("opsConsole.invited"));
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "invite failed");
+      setStatus(error instanceof Error ? error.message : t("opsConsole.inviteFailed"));
     } finally {
       setBusy(false);
     }
@@ -75,9 +104,7 @@ export default function OperationsPage() {
     setBusy(true);
     try {
       const next = await resetOpsConsole();
-      setState(next);
-      setSelectedMissionId(next.missions[0]?.id ?? "");
-      setSelectedAliasId(next.aliases[0]?.id ?? "");
+      applyOpsState(next);
       setStatus(t("opsConsole.resetDone"));
     } finally {
       setBusy(false);
@@ -106,6 +133,7 @@ export default function OperationsPage() {
             <h1 className="font-display-lg text-[34px] leading-tight text-on-surface">
               {t("opsConsole.title")}
             </h1>
+            {workspaceLabel ? <p className="font-mono text-caption text-ignyte">{workspaceLabel}</p> : null}
             <p className="max-w-2xl text-body-md text-on-surface-variant">{t("opsConsole.subtitle")}</p>
           </div>
           <button
@@ -218,7 +246,7 @@ export default function OperationsPage() {
               <input
                 value={inviteAlias}
                 onChange={(event) => setInviteAlias(event.target.value)}
-                placeholder={t("opsConsole.invitePlaceholder")}
+                placeholder={state.inviteAliasPlaceholder}
                 className="w-full rounded-lg border border-ignyte/30 bg-surface px-3 py-2 font-mono text-body-md outline-none"
               />
             </label>
@@ -239,24 +267,41 @@ export default function OperationsPage() {
 
       <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
         <OperationsGlobe />
-        <section className="space-y-3 rounded-lg border border-outline-variant bg-surface-container-low/90 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="font-headline-sm">{t("opsConsole.invites")}</h2>
-              <p className="text-body-md text-on-surface-variant">{t("opsConsole.invitesBody")}</p>
+        <div className="space-y-4">
+          <NotificationFeed
+            notifications={state.notifications}
+            missions={state.missions}
+            aliases={state.aliases}
+            busy={busy}
+            onRefresh={() => {
+              void refreshFundingNotifications(state);
+            }}
+            t={t}
+          />
+          <section className="space-y-3 rounded-lg border border-outline-variant bg-surface-container-low/90 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="font-headline-sm">{t("opsConsole.invites")}</h2>
+                <p className="text-body-md text-on-surface-variant">{t("opsConsole.invitesBody")}</p>
+              </div>
+              <GlassIcon icon="mark_email_unread" active size="lg" />
             </div>
-            <GlassIcon icon="mark_email_unread" active size="lg" />
-          </div>
-          {state.invites.length === 0 ? (
-            <p className="text-body-md text-on-surface-variant">{t("common.empty")}</p>
-          ) : (
-            <div className="space-y-2">
-              {state.invites.map((invite) => (
-                <InviteRow key={invite.id} invite={invite} mission={state.missions.find((m) => m.id === invite.missionId)} t={t} />
-              ))}
-            </div>
-          )}
-        </section>
+            {state.invites.length === 0 ? (
+              <p className="text-body-md text-on-surface-variant">{t("common.empty")}</p>
+            ) : (
+              <div className="space-y-2">
+                {state.invites.map((invite) => (
+                  <InviteRow
+                    key={invite.id}
+                    invite={invite}
+                    mission={state.missions.find((m) => m.id === invite.missionId)}
+                    t={t}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
       </div>
 
       {status ? (
@@ -317,12 +362,14 @@ function MissionCard({
 }
 
 function AliasRow({ alias, t }: { alias: OperativeAlias; t: ReturnType<typeof useI18n> }) {
+  const tt = t as unknown as (key: string) => string;
+  const displayName = alias.displayNameKey ? tt(alias.displayNameKey) : alias.displayName;
   return (
     <div className="flex items-center justify-between gap-3 rounded-lg bg-surface p-3">
       <div className="min-w-0">
         <div className="font-mono text-label-md text-ignyte">{alias.codename}</div>
         <div className="truncate text-caption text-on-surface-variant">
-          {alias.displayName} / {t(`opsConsole.roles.${alias.role}`)}
+          {displayName} / {t(`opsConsole.roles.${alias.role}`)}
         </div>
       </div>
       <span className={`shrink-0 rounded-full px-2 py-1 text-caption ${aliasStatusClass(alias.status)}`}>
@@ -359,6 +406,132 @@ function InviteRow({
   );
 }
 
+function NotificationFeed({
+  notifications,
+  missions,
+  aliases,
+  busy,
+  onRefresh,
+  t,
+}: {
+  notifications: OpsNotification[];
+  missions: MissionBounty[];
+  aliases: OperativeAlias[];
+  busy: boolean;
+  onRefresh: () => void;
+  t: ReturnType<typeof useI18n>;
+}) {
+  return (
+    <section className="space-y-3 rounded-lg border border-outline-variant bg-surface-container-low/90 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="font-headline-sm">{t("opsConsole.notifications.title")}</h2>
+          <p className="text-body-md text-on-surface-variant">{t("opsConsole.notifications.body")}</p>
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={busy}
+          className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant disabled:opacity-50"
+          aria-label={t("opsConsole.notifications.refresh")}
+          title={t("opsConsole.notifications.refresh")}
+        >
+          <span className="material-symbols-outlined text-[18px]" aria-hidden>
+            sync
+          </span>
+        </button>
+      </div>
+      {notifications.length === 0 ? (
+        <p className="text-body-md text-on-surface-variant">{t("opsConsole.notifications.empty")}</p>
+      ) : (
+        <div className="space-y-2">
+          {notifications.slice(0, 8).map((notification) => (
+            <NotificationRow
+              key={notification.id}
+              notification={notification}
+              missions={missions}
+              aliases={aliases}
+              t={t}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function NotificationRow({
+  notification,
+  missions,
+  aliases,
+  t,
+}: {
+  notification: OpsNotification;
+  missions: MissionBounty[];
+  aliases: OperativeAlias[];
+  t: ReturnType<typeof useI18n>;
+}) {
+  const tt = t as unknown as (key: string) => string;
+  const mission = notification.missionId ? missions.find((candidate) => candidate.id === notification.missionId) : null;
+  const alias = notification.aliasId ? aliases.find((candidate) => candidate.id === notification.aliasId) : null;
+  const details = notificationDetails(notification, mission, alias, t);
+  return (
+    <div className="rounded-lg bg-surface p-3">
+      <div className="flex items-start gap-3">
+        <span
+          className={`material-symbols-outlined mt-0.5 rounded-lg p-2 text-[18px] ${notificationIconClass(
+            notification.kind,
+          )}`}
+          aria-hidden
+        >
+          {notificationIcon(notification.kind)}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="font-headline-sm text-[16px]">{tt(notification.titleKey)}</h3>
+            <time className="font-mono text-caption text-on-surface-variant">
+              {new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(
+                new Date(notification.createdAt),
+              )}
+            </time>
+          </div>
+          <p className="text-body-md text-on-surface-variant">{tt(notification.bodyKey)}</p>
+          {details.length > 0 ? (
+            <dl className="mt-2 grid gap-2 sm:grid-cols-2">
+              {details.map(([label, value]) => (
+                <div key={`${label}-${value}`} className="min-w-0 rounded-md bg-surface-container-low px-2 py-1">
+                  <dt className="text-caption text-on-surface-variant">{label}</dt>
+                  <dd className="truncate font-mono text-caption text-on-surface">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function notificationDetails(
+  notification: OpsNotification,
+  mission: MissionBounty | null | undefined,
+  alias: OperativeAlias | null | undefined,
+  t: ReturnType<typeof useI18n>,
+): Array<[string, string]> {
+  const meta = notification.meta ?? {};
+  const details: Array<[string, string]> = [];
+  if (mission) details.push([t("opsConsole.mission"), mission.codename]);
+  else if (meta.mission) details.push([t("opsConsole.mission"), meta.mission]);
+  if (alias) details.push([t("opsConsole.alias"), alias.codename]);
+  else if (meta.alias) details.push([t("opsConsole.alias"), meta.alias]);
+  if (meta.amount) details.push([t("opsConsole.notificationMeta.amount"), meta.amount]);
+  if (meta.invite) details.push([t("opsConsole.notificationMeta.invite"), meta.invite]);
+  if (meta.chain) details.push([t("opsConsole.notificationMeta.chain"), meta.chain]);
+  if (meta.reason) details.push([t("opsConsole.notificationMeta.reason"), meta.reason]);
+  if (meta.hash) details.push([t("opsConsole.notificationMeta.hash"), meta.hash]);
+  return details.slice(0, 6);
+}
+
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-surface-container-low p-2">
@@ -378,5 +551,19 @@ function aliasStatusClass(status: string) {
   if (status === "available") return "bg-secondary-container text-on-secondary-container";
   if (status === "assigned") return "bg-ignyte text-on-ignyte";
   if (status === "invited") return "bg-primary-container text-on-primary-container";
+  return "bg-surface-container-high text-on-surface-variant";
+}
+
+function notificationIcon(kind: OpsNotification["kind"]) {
+  if (kind === "assignment") return "assignment_turned_in";
+  if (kind === "invite") return "forward_to_inbox";
+  if (kind === "funding") return "account_balance_wallet";
+  return "notifications";
+}
+
+function notificationIconClass(kind: OpsNotification["kind"]) {
+  if (kind === "assignment") return "bg-ignyte text-on-ignyte";
+  if (kind === "invite") return "bg-primary-container text-on-primary-container";
+  if (kind === "funding") return "bg-secondary-container text-on-secondary-container";
   return "bg-surface-container-high text-on-surface-variant";
 }

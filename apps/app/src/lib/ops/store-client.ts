@@ -4,6 +4,9 @@ import {
   assignMission,
   createWorkspaceInvite,
   defaultOpsConsoleState,
+  mergeOpsNotifications,
+  normalizeOpsConsoleState,
+  type OpsNotification,
   type OpsConsoleState,
 } from "@leclerc/core";
 import { fromVaultEnvelope, toVaultEnvelope, type VaultEnvelope } from "@/lib/vault/envelope-client";
@@ -47,9 +50,10 @@ function tx<T>(mode: IDBTransactionMode, fn: (store: IDBObjectStore) => IDBReque
 }
 
 async function writeState(state: OpsConsoleState): Promise<OpsConsoleState> {
-  const env = await toVaultEnvelope({ id: STATE_ID, updatedAt: state.updatedAt }, state);
+  const normalized = normalizeOpsConsoleState(state);
+  const env = await toVaultEnvelope({ id: STATE_ID, updatedAt: normalized.updatedAt }, normalized);
   await tx("readwrite", (store) => store.put(env));
-  return state;
+  return normalized;
 }
 
 async function readState(): Promise<OpsConsoleState | null> {
@@ -59,7 +63,7 @@ async function readState(): Promise<OpsConsoleState | null> {
 
 export async function loadOpsConsole(): Promise<OpsConsoleState> {
   const existing = await readState();
-  if (existing) return existing;
+  if (existing) return writeState(normalizeOpsConsoleState(existing));
   return writeState(defaultOpsConsoleState(Date.now()));
 }
 
@@ -75,4 +79,9 @@ export async function assignOpsMission(missionId: string, aliasId: string): Prom
 export async function inviteOpsAlias(missionId: string, targetAlias: string): Promise<OpsConsoleState> {
   const state = await loadOpsConsole();
   return writeState(createWorkspaceInvite(state, { missionId, targetAlias }, Date.now()));
+}
+
+export async function mergeOpsConsoleNotifications(notifications: OpsNotification[]): Promise<OpsConsoleState> {
+  const state = await loadOpsConsole();
+  return writeState(mergeOpsNotifications(state, notifications, Date.now()));
 }

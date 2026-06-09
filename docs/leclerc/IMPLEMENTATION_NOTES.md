@@ -694,3 +694,50 @@ The remaining bucket-analysis blockers are native runtime/rendering, native
 worklet adapter, live OCR/translate/MedPsy model sources, two-peer P2P proof,
 real browser mic permission proof, mobile-width ops screenshot, and a demo video
 artifact.
+
+## STATUS 2026-06-08 ops stories + notifications
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Extracted the operations demo codenames, workspace, invite prefix, aliases,
+  missions, and invite defaults into the dedicated story fixture
+  `packages/core/src/ops-stories.ts`.
+- Upgraded `@leclerc/core` ops state with `storyId`, localized story label keys,
+  invite placeholder/prefix fields, notification storage, legacy state
+  normalization, and helpers for assignment, invite, and mission-funding
+  notifications.
+- Wired the PWA operations room to show a notification feed. Assignment and
+  invite actions write notifications immediately; the refresh control merges
+  `/api/mission-funding` events into the same local encrypted ops store.
+- Removed raw page fallback strings for ops load/assign/invite failures and added
+  EN/ES notification/status copy.
+- Captured updated QA artifacts:
+  `artifacts/qa/2026-06-08/31-en-operations-notifications.png` and
+  `artifacts/qa/2026-06-08/32-mobile-operations-notifications.png`.
+
+### Verification
+
+```bash
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+cd packages/core && bun -e 'import { defaultOpsConsoleState, assignMission, createWorkspaceInvite, mergeOpsNotifications, opsNotificationFromMissionFunding, opsConsoleCounts } from "./src/index.ts"; const s=defaultOpsConsoleState(1); const a=assignMission(s,"mission-medic","alias-medic",2); const i=createWorkspaceInvite(a,{missionId:"mission-raven",targetAlias:s.inviteAliasPlaceholder},3); const f=mergeOpsNotifications(i,[opsNotificationFromMissionFunding({id:"fund-raven-1",missionId:"raven",assetId:"usdc",chainId:"arc-testnet",amount:"25.00",status:"blocked",reason:"missing env",createdAt:new Date(4).toISOString()}, i)],4); console.log(JSON.stringify({counts:opsConsoleCounts(f), notifications:f.notifications.map(n=>n.kind), invite:i.invites[0]?.inviteCode, placeholder:s.inviteAliasPlaceholder}))'
+```
+
+Results: all typecheck/lint/build commands exited 0. The core smoke returned
+`{"counts":{"aliases":5,"missions":3,"openMissions":1,"activeMissions":2,"pendingInvites":2},"notifications":["funding","invite","assignment"],"invite":"LC-NIGHT-31-3","placeholder":"NIGHT-31"}`.
+Browser QA on `http://localhost:7001/en/operaciones` returned 200, no console
+errors, and a visible `Bounty assigned` notification after clicking Assign.
+
+### Residual blockers
+
+- Native runtime/rendering and native worklet adapter are still missing.
+- Live OCR/translate/MedPsy model sources are still env-gated.
+- Two-peer P2P proof, real browser mic permission proof, native install
+  artifacts, and demo video artifact remain outstanding.

@@ -151,19 +151,63 @@
     "mission": "Mission",
     "alias": "Alias",
     "assign": "Assign bounty",
+    "assignFailed": "Mission assignment failed.",
     "deadDrop": "Prepare dead-drop",
     "dropHint": "Use Link to join the mission dead-drop and send the sealed packet.",
     "inviteAlias": "Invite codename",
-    "invitePlaceholder": "NIGHT-31",
+    "inviteFailed": "Workspace invite failed.",
     "sendInvite": "Send workspace invite",
     "invites": "Workspace invites",
     "invitesBody": "Pending join codes for codename agents. Share out-of-band or over a mission dead-drop.",
     "assigned": "Mission assigned to alias.",
     "invited": "Workspace invite created.",
+    "loadFailed": "Operations desk unavailable.",
     "resetDone": "Operations desk reset.",
     "bounty": "Bounty",
     "status": "Status",
     "assignedTo": "Assigned to",
+    "notifications": {
+      "title": "Notification wire",
+      "body": "Assignment, invite, and funding events that reached this workspace.",
+      "refresh": "Refresh funding events",
+      "empty": "No operations notifications yet.",
+      "synced": "Notifications synced.",
+      "loadFailed": "Funding notifications unavailable.",
+      "assignment": {
+        "title": "Bounty assigned",
+        "body": "The assignment was recorded in the local operations workspace."
+      },
+      "invite": {
+        "title": "Workspace invite created",
+        "body": "A mission-scoped join code is ready for the invited codename."
+      },
+      "fundingSubmitted": {
+        "title": "Funding submitted",
+        "body": "Mission funding reached the transfer confirmation path."
+      },
+      "fundingBlocked": {
+        "title": "Funding blocked",
+        "body": "Mission funding needs configuration before it can be sent."
+      }
+    },
+    "notificationMeta": {
+      "amount": "Amount",
+      "chain": "Network",
+      "hash": "Hash",
+      "invite": "Invite",
+      "reason": "Reason"
+    },
+    "stories": {
+      "continental": {
+        "workspace": "LeClerc Continental Desk",
+        "aliases": {
+          "handler": "Handler",
+          "raven": "North pier operative",
+          "glass": "Route analyst",
+          "medic": "Field medic"
+        }
+      }
+    },
     "metrics": {
       "aliases": "Aliases",
       "missions": "Missions",

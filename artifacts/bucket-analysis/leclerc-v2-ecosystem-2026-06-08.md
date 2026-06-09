@@ -19,29 +19,40 @@ yellow/Ignyte accent.
 
 | # | Bucket | Score | Evidence added in this pass |
 |---|---|---:|---|
-| HP1 | PWA judged surface | 80% | `/operaciones` route now gives the PWA the mission assigner and agent control center. |
+| HP1 | PWA judged surface | 85% | `/operaciones` route now gives the PWA the mission assigner, agent control center, story-backed defaults, and notification feed. |
 | B1 | QVAC-only inference + RAG | 85% | Unchanged; OCR/translate/MedPsy still env-gated. |
 | B2 | Voice-first Cleo loop | 75% | Unchanged; real browser mic permission proof still missing. |
 | B3 | Capture, encrypted dossier, wipe | 85% | Unchanged. |
 | B4 | Analyst desk + brief export | 80% | Unchanged; true QVAC tool-call loop still TODO. |
 | B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
-| B6 | P2P delegation + dead-drop | 70% | Ops console links missions to dead-drop intent; two-peer delegation proof still missing. |
+| B6 | P2P delegation + dead-drop | 75% | Ops console links missions to dead-drop intent and merges mission-funding notifications; two-peer delegation proof still missing. |
 | B7 | WDK wallet + network-token selector | 80% | Ops missions now carry bounties in the shared model. |
-| B8 | Monorepo ecosystem: PWA + desktop + mobile | 60% | Shared ops-console model is imported by PWA, desktop, and mobile scaffolds. Native adapters still missing. |
+| B8 | Monorepo ecosystem: PWA + desktop + mobile | 65% | Shared ops-console model/story/notification contract is imported by PWA, desktop, and mobile scaffolds. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 90% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents. Native design mirror still missing. |
-| B10 | EN/ES localization | 90% | Operations copy is localized in EN/ES. |
-| B11 | Repro, artifacts, compliance gates | 82% | This artifact documents the updated completion target and design fetch blocker. |
+| B10 | EN/ES localization | 95% | Operations story labels, notification copy, and error/status states are localized in EN/ES. |
+| B11 | Repro, artifacts, compliance gates | 85% | Updated desktop and mobile-width operations notification screenshots captured. |
 
 ## New 100% criteria for B8: monorepo ecosystem
 
 - ✓ One shared operations model for aliases, bounties, assignments, and workspace
   invites: `packages/core/src/ops-console.ts`.
+- ✓ Story-backed operations defaults instead of page-local hardcoding:
+  `packages/core/src/ops-stories.ts`.
+- ✓ Shared assignment, invite, and mission-funding notification helpers:
+  `packages/core/src/ops-console.ts`.
 - ✓ PWA route renders the operative control center and mission assigner:
+  `apps/app/src/app/[locale]/operaciones/page.tsx`.
+- ✓ PWA route renders a local notification feed and can merge
+  `/api/mission-funding` events:
   `apps/app/src/app/[locale]/operaciones/page.tsx`.
 - ✓ PWA persists the ops console locally with the shared vault envelope:
   `apps/app/src/lib/ops/store-client.ts`.
 - ✓ Hydrated desktop-width PWA proof:
   `artifacts/qa/2026-06-08/30-en-operations-console.png`.
+- ✓ Hydrated desktop notification proof:
+  `artifacts/qa/2026-06-08/31-en-operations-notifications.png`.
+- ✓ Mobile-width PWA proof:
+  `artifacts/qa/2026-06-08/32-mobile-operations-notifications.png`.
 - ✓ Desktop scaffold imports the shared ops-console state:
   `apps/desktop/src/main.ts`.
 - ✓ Mobile scaffold imports the shared ops-console state:
@@ -51,8 +62,7 @@ yellow/Ignyte accent.
 - ◐ Native worklet still reports `missing-adapter`, so QVAC/WDK/Hyperswarm are
   not on-device in desktop/mobile.
 - ✗ Shared `@leclerc/ui` web/native component package is not implemented.
-- ◐ Real PWA desktop screenshot exists; mobile-width screenshot failed in headless
-  Chrome before writing a file.
+- ✓ Real PWA desktop and mobile-width screenshots exist for the operations room.
 - ✗ Real native desktop/mobile screenshots or install artifacts are not present.
 
 ## Closure items to reach 100%

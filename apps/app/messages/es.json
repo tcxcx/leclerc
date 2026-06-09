@@ -151,19 +151,63 @@
     "mission": "Misión",
     "alias": "Alias",
     "assign": "Asignar recompensa",
+    "assignFailed": "Falló la asignación de misión.",
     "deadDrop": "Preparar buzón",
     "dropHint": "Use Enlace para unirse al buzón de misión y enviar el paquete sellado.",
     "inviteAlias": "Invitar nombre clave",
-    "invitePlaceholder": "NOCHE-31",
+    "inviteFailed": "Falló la invitación de workspace.",
     "sendInvite": "Enviar invitación",
     "invites": "Invitaciones del workspace",
     "invitesBody": "Códigos pendientes para agentes con nombre clave. Compártalos fuera de banda o por buzón de misión.",
     "assigned": "Misión asignada al alias.",
     "invited": "Invitación de workspace creada.",
+    "loadFailed": "Mesa de operaciones no disponible.",
     "resetDone": "Mesa de operaciones reiniciada.",
     "bounty": "Recompensa",
     "status": "Estado",
     "assignedTo": "Asignado a",
+    "notifications": {
+      "title": "Cable de notificaciones",
+      "body": "Eventos de asignación, invitación y fondeo que llegaron a este workspace.",
+      "refresh": "Actualizar eventos de fondeo",
+      "empty": "Aún no hay notificaciones operativas.",
+      "synced": "Notificaciones sincronizadas.",
+      "loadFailed": "Notificaciones de fondeo no disponibles.",
+      "assignment": {
+        "title": "Recompensa asignada",
+        "body": "La asignación quedó registrada en el workspace operativo local."
+      },
+      "invite": {
+        "title": "Invitación de workspace creada",
+        "body": "Un código de unión por misión está listo para el nombre clave invitado."
+      },
+      "fundingSubmitted": {
+        "title": "Fondeo enviado",
+        "body": "El fondeo de misión llegó al flujo de confirmación de transferencia."
+      },
+      "fundingBlocked": {
+        "title": "Fondeo bloqueado",
+        "body": "El fondeo de misión necesita configuración antes de enviarse."
+      }
+    },
+    "notificationMeta": {
+      "amount": "Monto",
+      "chain": "Red",
+      "hash": "Hash",
+      "invite": "Invitación",
+      "reason": "Motivo"
+    },
+    "stories": {
+      "continental": {
+        "workspace": "Mesa Continental LeClerc",
+        "aliases": {
+          "handler": "Handler",
+          "raven": "Operativo del muelle norte",
+          "glass": "Analista de rutas",
+          "medic": "Médico de campo"
+        }
+      }
+    },
     "metrics": {
       "aliases": "Aliases",
       "missions": "Misiones",
