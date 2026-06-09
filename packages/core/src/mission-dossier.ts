@@ -1,4 +1,6 @@
-export type MissionScopeId = "raven" | "glasshouse" | "medic";
+import { listMissionStories, type LeclercMissionStoryId } from "@leclerc/transfer-core";
+
+export type MissionScopeId = LeclercMissionStoryId;
 
 export interface MissionDossierScope {
   id: MissionScopeId;
@@ -6,23 +8,11 @@ export interface MissionDossierScope {
   keywords: readonly string[];
 }
 
-export const MISSION_DOSSIER_SCOPES = [
-  {
-    id: "raven",
-    labelKey: "missions.raven.title",
-    keywords: ["raven", "cuervo", "fund", "funding", "handler", "kestrel", "vector gris", "money"],
-  },
-  {
-    id: "glasshouse",
-    labelKey: "missions.glasshouse.title",
-    keywords: ["glasshouse", "casa de vidrio", "warehouse", "almacen", "south gate", "route", "ruta"],
-  },
-  {
-    id: "medic",
-    labelKey: "missions.medic.title",
-    keywords: ["medic", "medical", "medico", "triage", "triaje", "wound", "herida", "clinic", "clinica"],
-  },
-] as const satisfies readonly MissionDossierScope[];
+export const MISSION_DOSSIER_SCOPES = listMissionStories().map((story) => ({
+  id: story.id,
+  labelKey: story.titleKey,
+  keywords: story.dossierKeywords,
+})) satisfies MissionDossierScope[];
 
 export function listMissionDossierScopes(): MissionDossierScope[] {
   return [...MISSION_DOSSIER_SCOPES];

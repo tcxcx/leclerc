@@ -1,5 +1,5 @@
-import { ARC_TESTNET_CHAIN_ID } from "@leclerc/transfer-core";
 import type { LeclercAssetId, LeclercChainId } from "@leclerc/transfer-core";
+import { DEFAULT_MISSION_FUNDING_STORY_ID, listMissionStories } from "@leclerc/transfer-core";
 import { confirmTransfer, proposeTransfer } from "./confirmation";
 
 export type MissionFundingStatus = "submitted" | "blocked";
@@ -28,17 +28,23 @@ export interface MissionFundingNotification {
   createdAt: string;
 }
 
-export const LECLERC_MISSION_FUNDING = [
-  {
-    missionId: "raven",
-    titleKey: "missions.raven.title",
-    assetId: "usdc",
-    chainId: ARC_TESTNET_CHAIN_ID,
-    defaultAmount: "25.00",
-    fundingTargetEnv: "LECLERC_MISSION_RAVEN_USDC_ADDRESS",
-    notificationTopicHint: "raven-ops",
-  },
-] as const satisfies readonly MissionFundingConfig[];
+export const DEFAULT_MISSION_FUNDING_ID = DEFAULT_MISSION_FUNDING_STORY_ID;
+
+export const LECLERC_MISSION_FUNDING = listMissionStories().flatMap((story) =>
+  story.funding
+    ? [
+        {
+          missionId: story.funding.missionId,
+          titleKey: story.titleKey,
+          assetId: story.funding.assetId,
+          chainId: story.funding.chainId,
+          defaultAmount: story.funding.defaultAmount,
+          fundingTargetEnv: story.funding.fundingTargetEnv,
+          notificationTopicHint: story.funding.notificationTopicHint,
+        },
+      ]
+    : [],
+) satisfies MissionFundingConfig[];
 
 export function listMissionFundingConfigs(): MissionFundingConfig[] {
   return [...LECLERC_MISSION_FUNDING];
@@ -56,7 +62,7 @@ export function proposeMissionFunding(input: {
 }):
   | { status: "requires_confirmation"; proposal: ReturnType<typeof proposeTransfer> }
   | { status: "blocked"; notification: MissionFundingNotification } {
-  const missionId = input.missionId?.trim() || "raven";
+  const missionId = input.missionId?.trim() || DEFAULT_MISSION_FUNDING_ID;
   const mission = getMissionFundingConfig(missionId);
   if (!mission) throw new Error("unknown mission");
 

@@ -25,9 +25,9 @@ yellow/Ignyte accent.
 | B3 | Capture, encrypted dossier, wipe | 85% | Unchanged. |
 | B4 | Analyst desk + brief export | 80% | Unchanged; true QVAC tool-call loop still TODO. |
 | B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
-| B6 | P2P delegation + dead-drop | 75% | Ops console links missions to dead-drop intent and merges mission-funding notifications; two-peer delegation proof still missing. |
-| B7 | WDK wallet + network-token selector | 80% | Ops missions now carry bounties in the shared model. |
-| B8 | Monorepo ecosystem: PWA + desktop + mobile | 65% | Shared ops-console model/story/notification contract is imported by PWA, desktop, and mobile scaffolds. Native adapters still missing. |
+| B6 | P2P delegation + dead-drop | 75% | Ops console links missions to dead-drop intent and story-derived mission-funding notifications; two-peer delegation proof still missing. |
+| B7 | WDK wallet + network-token selector | 82% | Rain card and mission-funding configs now derive from the shared mission-story catalog. |
+| B8 | Monorepo ecosystem: PWA + desktop + mobile | 68% | Shared ops-console and mission-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, and SPY presets. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 90% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents. Native design mirror still missing. |
 | B10 | EN/ES localization | 95% | Operations story labels, notification copy, and error/status states are localized in EN/ES. |
 | B11 | Repro, artifacts, compliance gates | 85% | Updated desktop and mobile-width operations notification screenshots captured. |
@@ -38,6 +38,9 @@ yellow/Ignyte accent.
   invites: `packages/core/src/ops-console.ts`.
 - ✓ Story-backed operations defaults instead of page-local hardcoding:
   `packages/core/src/ops-stories.ts`.
+- ✓ Shared mission-story catalog for mission IDs, dossier keywords, SPY presets,
+  Rain card profile, and mission-funding metadata:
+  `packages/transfer-core/src/mission-stories.ts`.
 - ✓ Shared assignment, invite, and mission-funding notification helpers:
   `packages/core/src/ops-console.ts`.
 - ✓ PWA route renders the operative control center and mission assigner:
@@ -45,6 +48,9 @@ yellow/Ignyte accent.
 - ✓ PWA route renders a local notification feed and can merge
   `/api/mission-funding` events:
   `apps/app/src/app/[locale]/operaciones/page.tsx`.
+- ✓ Link mission funding defaults are story-derived without pulling transfer
+  execution code into the browser bundle:
+  `apps/app/src/app/[locale]/enlace/page.tsx`.
 - ✓ PWA persists the ops console locally with the shared vault envelope:
   `apps/app/src/lib/ops/store-client.ts`.
 - ✓ Hydrated desktop-width PWA proof:

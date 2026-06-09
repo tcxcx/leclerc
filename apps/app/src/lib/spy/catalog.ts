@@ -1,3 +1,5 @@
+import { listMissionStories, type LeclercMissionStoryId } from "@leclerc/transfer-core";
+
 export type GadgetId =
   | "transcribe"
   | "extract"
@@ -105,7 +107,7 @@ export const GADGETS: Gadget[] = [
   },
 ];
 
-export type MissionId = "raven" | "glasshouse" | "medic";
+export type MissionId = LeclercMissionStoryId;
 
 export type Mission = {
   id: MissionId;
@@ -116,42 +118,11 @@ export type Mission = {
   prefill: Partial<Record<GadgetId, Record<string, string>>>;
 };
 
-export const MISSIONS: Mission[] = [
-  {
-    id: "raven",
-    icon: "person_pin_circle",
-    titleKey: "missions.raven.title",
-    briefKey: "missions.raven.brief",
-    gadgetIds: ["ragAsk", "ragSearch", "brief", "wallet"],
-    prefill: {
-      ragAsk: { query: "who funds Raven" },
-      ragSearch: { query: "Raven funding handler" },
-      brief: { focus: "Raven funding network" },
-    },
-  },
-  {
-    id: "glasshouse",
-    icon: "warehouse",
-    titleKey: "missions.glasshouse.title",
-    briefKey: "missions.glasshouse.brief",
-    gadgetIds: ["extract", "geo", "brief", "station"],
-    prefill: {
-      extract: { transcript: "Warehouse lights active after midnight near the south gate." },
-      geo: { query: "warehouse south gate" },
-      brief: { focus: "Glasshouse route and site exposure" },
-    },
-  },
-  {
-    id: "medic",
-    icon: "medical_services",
-    titleKey: "missions.medic.title",
-    briefKey: "missions.medic.brief",
-    gadgetIds: ["extract", "ragAsk", "reasoning", "brief"],
-    prefill: {
-      extract: { transcript: "Asset reports dizziness, shallow breathing, and dehydration after transit." },
-      ragAsk: { query: "medical symptoms transit asset" },
-      reasoning: { level: "medico" },
-      brief: { focus: "Medic triage and field risk" },
-    },
-  },
-];
+export const MISSIONS: Mission[] = listMissionStories().map((story) => ({
+  id: story.id,
+  icon: story.spy.icon,
+  titleKey: story.titleKey,
+  briefKey: story.briefKey,
+  gadgetIds: [...story.spy.gadgetIds] as GadgetId[],
+  prefill: story.spy.prefill as Partial<Record<GadgetId, Record<string, string>>>,
+}));

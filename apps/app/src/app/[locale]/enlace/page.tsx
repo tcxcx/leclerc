@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useI18n } from "@/locales/client";
 import { OperationsGlobe } from "@/components/operations-globe";
 import { drop, missionFunding, station } from "@/lib/api-client";
+import { DEFAULT_MISSION_FUNDING_STORY_ID } from "@leclerc/transfer-core";
 import type { MissionFundingConfig, MissionFundingNotification, TransferProposal } from "@leclerc/transfers";
 
 /**
@@ -22,7 +23,7 @@ export default function LinkPage() {
   const [dropStatus, setDropStatus] = useState("");
   const [inbox, setInbox] = useState<Array<{ kind: string; value: unknown; ts: number }>>([]);
   const [missions, setMissions] = useState<MissionFundingConfig[]>([]);
-  const [missionId, setMissionId] = useState("raven");
+  const [missionId, setMissionId] = useState(DEFAULT_MISSION_FUNDING_STORY_ID);
   const [fundSeed, setFundSeed] = useState("");
   const [fundAmount, setFundAmount] = useState("");
   const [fundingProposal, setFundingProposal] = useState<TransferProposal | null>(null);
@@ -35,7 +36,7 @@ export default function LinkPage() {
       .list()
       .then((res) => {
         setMissions(res.missions);
-        setMissionId(res.missions[0]?.missionId ?? "raven");
+        setMissionId(res.missions[0]?.missionId ?? DEFAULT_MISSION_FUNDING_STORY_ID);
         setFundAmount(res.missions[0]?.defaultAmount ?? "");
       })
       .catch(() => {});

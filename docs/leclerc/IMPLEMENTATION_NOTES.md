@@ -514,6 +514,8 @@ bun --filter @leclerc/wallet typecheck
 bun --filter @leclerc/transfers typecheck
 bun --filter @leclerc/cards typecheck
 bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
 cd apps/app && bunx tsc --noEmit
 bun --filter @leclerc/worklet typecheck
 bun --filter @leclerc/desktop typecheck
@@ -740,4 +742,57 @@ errors, and a visible `Bounty assigned` notification after clicking Assign.
 - Native runtime/rendering and native worklet adapter are still missing.
 - Live OCR/translate/MedPsy model sources are still env-gated.
 - Two-peer P2P proof, real browser mic permission proof, native install
+  artifacts, and demo video artifact remain outstanding.
+
+## STATUS 2026-06-09 mission-story catalog
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added a shared mission-story catalog in
+  `packages/transfer-core/src/mission-stories.ts` for mission IDs, title/brief
+  keys, dossier keywords, SPY mission presets, Rain card profile, and mission
+  funding metadata.
+- Rewired dossier mission inference, operator tool routing, SPY mission presets,
+  Rain card configs, and mission-funding configs to derive from the shared story
+  catalog instead of repeating Raven/Glasshouse/Medic data in each surface.
+- Removed the Link page's runtime import from `@leclerc/transfers` so the client
+  bundle does not pull WDK/Spark native dependencies; it now reads the default
+  funding mission from `@leclerc/transfer-core`.
+- Verified `/api/mission-funding {"action":"list"}` returns the story-derived
+  Raven funding config, and refreshed wallet artifacts:
+  `artifacts/wallet/transfer-confirmation-smoke-2026-06-09.json`,
+  `artifacts/wallet/rain-funding-smoke-2026-06-09.json`, and
+  `artifacts/wallet/rain-funding-smoke-2026-06-09.md`.
+
+### Verification
+
+```bash
+bun --filter @leclerc/transfer-core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/cards typecheck
+bun --filter @leclerc/core typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+bun run transfer:smoke
+bun run rain:smoke
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+curl -sS -X POST http://localhost:7001/api/mission-funding -H 'Content-Type: application/json' -d '{"action":"list"}'
+```
+
+Results: package typechecks, app typecheck, lint, transfer smoke, and production
+build exited 0. Rain smoke exited 0 with `SKIPPED` because
+`LECLERC_SMOKE_SEED` is absent; no seed was printed. With the production server
+running, the Rain smoke route check reported `configured: true` from
+`http://localhost:7001/api/rain-cards`. The mission-funding list route returned
+the story-derived Raven USDC Arc Testnet config.
+
+### Residual blockers
+
+- Live Rain funding still requires `LECLERC_SMOKE_SEED` and a funded Arc-testnet
+  sender wallet.
+- Native runtime/rendering, native worklet adapter, live OCR/translate/MedPsy
+  model sources, two-peer P2P proof, real mic permission proof, native install
   artifacts, and demo video artifact remain outstanding.

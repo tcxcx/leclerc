@@ -9,6 +9,7 @@
     ".": "./src/index.ts",
     "./asset-catalog": "./src/asset-catalog.ts",
     "./chains": "./src/chains.ts",
+    "./mission-stories": "./src/mission-stories.ts",
     "./rpc": "./src/rpc.ts"
   },
   "scripts": {

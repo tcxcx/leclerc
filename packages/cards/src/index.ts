@@ -1,5 +1,5 @@
-import { ARC_TESTNET_CHAIN_ID } from "@leclerc/transfer-core";
 import type { LeclercAssetId, LeclercChainId } from "@leclerc/transfer-core";
+import { listMissionStories } from "@leclerc/transfer-core";
 import { parseAssetAmountToAtomic } from "@leclerc/transfer-utils";
 import { confirmTransfer, proposeTransfer } from "@leclerc/transfers";
 
@@ -44,36 +44,33 @@ export interface RainFundingTarget {
   env: string;
 }
 
-const RAIN_USDC_DEPOSIT_ENV = "LECLERC_RAIN_USDC_DEPOSIT_ADDRESS";
-
-export const LECLERC_RAIN_AGENT_CARDS = [
-  {
-    id: "raven-07-usdc-virtual",
-    missionId: "raven",
-    codename: "RAVEN-07",
-    agentLabelKey: "missions.raven.title",
-    type: "virtual",
-    status: "active",
-    networkLabel: "Rain issuing",
-    last4: "0707",
-    expiry: "10/28",
-    assetId: "usdc",
-    chainId: ARC_TESTNET_CHAIN_ID,
-    balance: "240.00",
-    limit: {
-      amount: "500.00",
-      assetId: "usdc",
-      frequency: "monthly",
-    },
-    defaultFundingAmount: "25.00",
-    fundingDepositEnv: RAIN_USDC_DEPOSIT_ENV,
-    backgroundImagePath: "/assets/cards/bufi-card-bg-new.png",
-    networkIconPath: "/networks/arc.svg",
-    brandIconPath: "/icons/mastercard.svg",
-    source:
-      "../desk-v1 Rain card flows: getUserContracts().depositAddress + USDC funding; adapted to LeClerc WDK Arc Testnet.",
-  },
-] as const satisfies readonly RainAgentCardConfig[];
+export const LECLERC_RAIN_AGENT_CARDS = listMissionStories().flatMap((story) =>
+  story.rainCard
+    ? [
+        {
+          id: story.rainCard.id,
+          missionId: story.id,
+          codename: story.rainCard.codename,
+          agentLabelKey: story.titleKey,
+          type: story.rainCard.type,
+          status: story.rainCard.status,
+          networkLabel: story.rainCard.networkLabel,
+          last4: story.rainCard.last4,
+          expiry: story.rainCard.expiry,
+          assetId: story.rainCard.assetId,
+          chainId: story.rainCard.chainId,
+          balance: story.rainCard.balance,
+          limit: { ...story.rainCard.limit },
+          defaultFundingAmount: story.rainCard.defaultFundingAmount,
+          fundingDepositEnv: story.rainCard.fundingDepositEnv,
+          backgroundImagePath: story.rainCard.backgroundImagePath,
+          networkIconPath: story.rainCard.networkIconPath,
+          brandIconPath: story.rainCard.brandIconPath,
+          source: story.rainCard.source,
+        },
+      ]
+    : [],
+) satisfies RainAgentCardConfig[];
 
 export function listRainAgentCards(): RainAgentCardConfig[] {
   return [...LECLERC_RAIN_AGENT_CARDS];

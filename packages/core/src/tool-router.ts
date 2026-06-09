@@ -1,4 +1,4 @@
-import { inferMissionIdsForText, type MissionScopeId } from "./mission-dossier";
+import { inferMissionIdsForText, MISSION_DOSSIER_SCOPES, type MissionScopeId } from "./mission-dossier";
 
 export type OperatorToolIntent =
   | "dossier.answer"
@@ -20,6 +20,14 @@ interface RouteRule {
   href?: string;
   keywords: readonly string[];
 }
+
+const DOSSIER_ROUTE_KEYWORDS = [
+  ...new Set([
+    ...MISSION_DOSSIER_SCOPES.flatMap((scope) => scope.keywords),
+    "dossier",
+    "expediente",
+  ]),
+];
 
 const ROUTE_RULES = [
   {
@@ -48,7 +56,7 @@ const ROUTE_RULES = [
   },
   {
     intent: "dossier.answer",
-    keywords: ["raven", "cuervo", "glasshouse", "medic", "medico", "dossier", "expediente", "funding"],
+    keywords: DOSSIER_ROUTE_KEYWORDS,
   },
 ] as const satisfies readonly RouteRule[];
 
