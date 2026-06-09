@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useI18n } from "@/locales/client";
 import { OperationsGlobe } from "@/components/operations-globe";
-import { drop, missionFunding, station } from "@/lib/api-client";
+import { drop, isApiClientError, missionFunding, station } from "@/lib/api-client";
 import { DEFAULT_MISSION_FUNDING_STORY_ID } from "@leclerc/transfer-core";
 import type { MissionFundingConfig, MissionFundingNotification, TransferProposal } from "@leclerc/transfers";
 
@@ -47,7 +47,7 @@ export default function LinkPage() {
     try {
       setKey((await station.start()).publicKey);
     } catch {
-      setKey("error — see /api/station");
+      setKey(t("link.stationFailed"));
     } finally {
       setBusy(false);
     }
@@ -64,24 +64,32 @@ export default function LinkPage() {
       setDropId(joined.dropId);
       setDropStatus(`${t("link.dropReady")} · ${joined.topicHash} · ${t("link.peers")} ${joined.peers}`);
     } catch (e) {
-      setDropStatus(e instanceof Error ? e.message : t("link.dropFailed"));
+      setDropStatus(apiErrorText(t, e, "link.dropFailed"));
     } finally {
       setBusy(false);
     }
   }
   async function sendTest() {
     if (!dropId) return;
-    const res = await drop.send(dropId, secret.trim() || topic.trim(), {
-      title: t("link.dropTestTitle"),
-      sentAt: Date.now(),
-    });
-    setDropStatus(`${t("link.dropSent")} · ${res.status} · ${t("link.peers")} ${res.peers}`);
+    try {
+      const res = await drop.send(dropId, secret.trim() || topic.trim(), {
+        title: t("link.dropTestTitle"),
+        sentAt: Date.now(),
+      });
+      setDropStatus(`${t("link.dropSent")} · ${res.status} · ${t("link.peers")} ${res.peers}`);
+    } catch (e) {
+      setDropStatus(apiErrorText(t, e, "link.dropFailed"));
+    }
   }
   async function pollDrop() {
     if (!dropId) return;
-    const res = await drop.read(dropId, secret.trim() || topic.trim());
-    setInbox(res.payloads.map((p) => ({ kind: p.kind, value: p.value, ts: p.ts })));
-    setDropStatus(`${t("link.dropInbox")} · ${res.payloads.length}/${res.rawCount}`);
+    try {
+      const res = await drop.read(dropId, secret.trim() || topic.trim());
+      setInbox(res.payloads.map((p) => ({ kind: p.kind, value: p.value, ts: p.ts })));
+      setDropStatus(`${t("link.dropInbox")} · ${res.payloads.length}/${res.rawCount}`);
+    } catch (e) {
+      setDropStatus(apiErrorText(t, e, "link.dropFailed"));
+    }
   }
   async function fundMission() {
     if (!fundSeed.trim() || !fundAmount.trim()) return;
@@ -105,7 +113,7 @@ export default function LinkPage() {
       );
       setEvents((current) => [res.notification, ...current].slice(0, 20));
     } catch (e) {
-      setFundingStatus(e instanceof Error ? e.message : t("link.missionFundingFailed"));
+      setFundingStatus(apiErrorText(t, e, "link.missionFundingFailed"));
     } finally {
       setBusy(false);
     }
@@ -125,7 +133,7 @@ export default function LinkPage() {
       );
       setEvents((current) => [res.notification, ...current].slice(0, 20));
     } catch (e) {
-      setFundingStatus(e instanceof Error ? e.message : t("link.missionFundingFailed"));
+      setFundingStatus(apiErrorText(t, e, "link.missionFundingFailed"));
     } finally {
       setBusy(false);
     }
@@ -311,4 +319,11 @@ export default function LinkPage() {
 
 function translateKey(t: ReturnType<typeof useI18n>, key: string): string {
   return (t as unknown as (value: string) => string)(key);
+}
+
+function apiErrorText(t: ReturnType<typeof useI18n>, error: unknown, fallbackKey: string): string {
+  if (isApiClientError(error) && error.code) {
+    return translateKey(t, `apiErrors.${error.code}`);
+  }
+  return translateKey(t, fallbackKey);
 }

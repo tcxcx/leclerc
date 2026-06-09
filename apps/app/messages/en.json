@@ -25,6 +25,17 @@
     "offline": "Offline",
     "noData": "no data"
   },
+  "apiErrors": {
+    "unknown_action": "Unknown request.",
+    "drop_failed": "Dead-drop failed.",
+    "drop_not_joined": "Join the dead-drop before sending or reading.",
+    "drop_passphrase_required": "Enter a mission passphrase first.",
+    "mission_funding_failed": "Mission funding failed.",
+    "wallet_seed_required": "Enter the wallet recovery phrase first.",
+    "unknown_mission": "This mission is not available.",
+    "confirm_id_required": "A funding confirmation is required.",
+    "confirmation_not_mission_funding": "That confirmation is not for mission funding."
+  },
   "mode": {
     "station": "Station",
     "delegate": "Delegated",
@@ -508,6 +519,7 @@
     "peerPlaceholder": "Provider public key",
     "peerOnline": "Peer online",
     "peerOffline": "Peer offline",
+    "stationFailed": "Station unavailable.",
     "delegate": "Delegate to station",
     "missionFunding": "Mission funding bridge",
     "fundingSeed": "Wallet recovery phrase for this session",

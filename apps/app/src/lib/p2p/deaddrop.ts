@@ -15,6 +15,7 @@ import "server-only";
  */
 import Hyperswarm from "hyperswarm";
 import crypto from "node:crypto";
+import { apiError } from "@/lib/api-errors";
 
 export interface DropPayload {
   kind: "brief" | "record" | "notification";
@@ -142,7 +143,7 @@ export async function joinDrop(
   passphrase: string,
   label = "default",
 ): Promise<{ dropId: string; topicHash: string; peers: number }> {
-  if (!passphrase.trim()) throw new Error("drop passphrase required");
+  if (!passphrase.trim()) throw apiError("drop_passphrase_required");
   const key = dropKey(passphrase, label);
   let pending = drops.get(key);
   if (!pending) {
@@ -170,7 +171,7 @@ export async function sendDrop(
   secret: string,
 ): Promise<{ peers: number; status: SendDropStatus }> {
   const managed = await drops.get(dropId);
-  if (!managed) throw new Error("drop not joined");
+  if (!managed) throw apiError("drop_not_joined");
   const peers = managed.channel.peerCount();
   if (peers === 0) {
     return { peers, status: "pending" };
@@ -184,7 +185,7 @@ export async function readDrop<T = unknown>(
   secret: string,
 ): Promise<{ payloads: Array<{ kind: DropPayload["kind"]; value: T; ts: number }>; rawCount: number }> {
   const managed = await drops.get(dropId);
-  if (!managed) throw new Error("drop not joined");
+  if (!managed) throw apiError("drop_not_joined");
   const payloads = managed.messages
     .map((payload) => ({
       kind: payload.kind,

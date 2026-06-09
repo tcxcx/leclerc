@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiError, apiErrorBody, apiErrorFromUnknown } from "@/lib/api-errors";
 import { closeDrop, joinDrop, readDrop, sendDrop } from "@/lib/p2p/deaddrop";
 
 export const runtime = "nodejs";
@@ -23,12 +24,13 @@ export async function POST(req: Request) {
         await closeDrop(body.dropId);
         return NextResponse.json({ ok: true });
       default:
-        return NextResponse.json({ error: "unknown action" }, { status: 400 });
+        return apiErrorResponse(apiError("unknown_action"));
     }
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "drop failed" },
-      { status: 500 },
-    );
+    return apiErrorResponse(apiErrorFromUnknown(err, "drop_failed"));
   }
+}
+
+function apiErrorResponse(error: ReturnType<typeof apiError>) {
+  return NextResponse.json(apiErrorBody(error), { status: error.status });
 }

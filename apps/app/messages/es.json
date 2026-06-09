@@ -25,6 +25,17 @@
     "offline": "Sin conexión",
     "noData": "sin datos"
   },
+  "apiErrors": {
+    "unknown_action": "Solicitud desconocida.",
+    "drop_failed": "Falló el buzón.",
+    "drop_not_joined": "Únase al buzón antes de enviar o leer.",
+    "drop_passphrase_required": "Ingrese primero una frase de misión.",
+    "mission_funding_failed": "Falló el fondeo de misión.",
+    "wallet_seed_required": "Ingrese primero la frase de recuperación.",
+    "unknown_mission": "Esta misión no está disponible.",
+    "confirm_id_required": "Se requiere una confirmación de fondeo.",
+    "confirmation_not_mission_funding": "Esa confirmación no corresponde al fondeo de misión."
+  },
   "mode": {
     "station": "Estación",
     "delegate": "Delegado",
@@ -515,6 +526,7 @@
     "peerPlaceholder": "Clave pública del proveedor",
     "peerOnline": "Par en línea",
     "peerOffline": "Par fuera de línea",
+    "stationFailed": "Estación no disponible.",
     "delegate": "Delegar a la estación",
     "missionFunding": "Puente de fondeo de misión",
     "fundingSeed": "Frase de recuperación de la billetera para esta sesión",

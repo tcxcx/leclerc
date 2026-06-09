@@ -876,3 +876,42 @@ story smoke returned 12 finance rows and the three expected intel record IDs:
 - Native runtime/rendering, native worklet adapter, live OCR/translate/MedPsy
   model sources, two-peer P2P proof, real mic permission proof, native install
   artifacts, and demo video artifact remain outstanding.
+
+## STATUS 2026-06-09 Link API error codes
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `apps/app/src/lib/api-errors.ts` with stable API error codes and HTTP
+  status mapping.
+- Updated the API client to preserve `code` and `status` through
+  `ApiClientError`.
+- Converted `/api/drop` and `/api/mission-funding` error responses to structured
+  `{ error, code }` bodies for the Link/dead-drop/funding notification path.
+- Updated `apps/app/src/app/[locale]/enlace/page.tsx` to translate API error
+  codes through `apiErrors.*` instead of showing raw route exception text.
+
+### Verification
+
+```bash
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+cd apps/app && bunx tsc --noEmit
+curl -sS -i -X POST http://localhost:7001/api/drop -H 'Content-Type: application/json' -d '{"action":"join","passphrase":""}'
+curl -sS -i -X POST http://localhost:7001/api/drop -H 'Content-Type: application/json' -d '{"action":"send","dropId":"missing","secret":"s","kind":"brief","value":{}}'
+curl -sS -i -X POST http://localhost:7001/api/mission-funding -H 'Content-Type: application/json' -d '{"action":"confirm","confirmId":""}'
+curl -sS -i -X POST http://localhost:7001/api/mission-funding -H 'Content-Type: application/json' -d '{"action":"events"}'
+```
+
+Results: lint, production build, and app typecheck exited 0. The API smoke
+returned `drop_passphrase_required` with 400, `drop_not_joined` with 404,
+`confirm_id_required` with 400, and mission-funding events with 200.
+
+### Residual blockers
+
+- Other API route handlers still use raw fallback strings and should be migrated
+  to the same error-code utility.
+- Native runtime/rendering, native worklet adapter, live OCR/translate/MedPsy
+  model sources, two-peer P2P proof, real mic permission proof, native install
+  artifacts, and demo video artifact remain outstanding.

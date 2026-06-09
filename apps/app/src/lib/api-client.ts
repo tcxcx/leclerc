@@ -1,6 +1,7 @@
 "use client";
 
 /** Thin client helpers for the station Route Handlers. */
+import { type ApiErrorBody, type ApiErrorCode } from "@/lib/api-errors";
 import type { IntelRecord } from "@/lib/intel/schema";
 import type { IntelBrief, BriefRequest } from "@/lib/agents/orchestrator";
 import type {
@@ -21,13 +22,32 @@ import type {
   WalletTransaction,
 } from "@leclerc/wallet";
 
+export class ApiClientError extends Error {
+  readonly code?: ApiErrorCode;
+  readonly status: number;
+
+  constructor(status: number, body: Partial<ApiErrorBody>, fallback: string) {
+    super(body.error ?? fallback);
+    this.name = "ApiClientError";
+    this.code = body.code;
+    this.status = status;
+  }
+}
+
+export function isApiClientError(error: unknown): error is ApiClientError {
+  return error instanceof ApiClientError;
+}
+
 async function post<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `${url} ${res.status}`);
+  if (!res.ok) {
+    const errorBody = (await res.json().catch(() => ({}))) as Partial<ApiErrorBody>;
+    throw new ApiClientError(res.status, errorBody, `${url} ${res.status}`);
+  }
   return res.json() as Promise<T>;
 }
 

@@ -25,7 +25,7 @@ yellow/Ignyte accent.
 | B3 | Capture, encrypted dossier, wipe | 88% | Finance and intel demo seeds now come from a dedicated field-demo story fixture instead of store-inline scenario copy. |
 | B4 | Analyst desk + brief export | 80% | Unchanged; true QVAC tool-call loop still TODO. |
 | B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
-| B6 | P2P delegation + dead-drop | 78% | Ops console links missions to dead-drop intent, story-derived mission-funding notifications, and story-derived global topology; two-peer delegation proof still missing. |
+| B6 | P2P delegation + dead-drop | 80% | Ops console links missions to dead-drop intent, story-derived mission-funding notifications, story-derived global topology, and structured Link API errors; two-peer delegation proof still missing. |
 | B7 | WDK wallet + network-token selector | 82% | Rain card and mission-funding configs now derive from the shared mission-story catalog. |
 | B8 | Monorepo ecosystem: PWA + desktop + mobile | 70% | Shared ops-console, ops-network, and mission-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, and SPY presets. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 90% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents. Native design mirror still missing. |
@@ -54,6 +54,9 @@ yellow/Ignyte accent.
 - ✓ Link mission funding defaults are story-derived without pulling transfer
   execution code into the browser bundle:
   `apps/app/src/app/[locale]/enlace/page.tsx`.
+- ✓ Link/dead-drop/funding route errors use stable API codes that the UI can
+  translate:
+  `apps/app/src/lib/api-errors.ts`.
 - ✓ PWA persists the ops console locally with the shared vault envelope:
   `apps/app/src/lib/ops/store-client.ts`.
 - ✓ Hydrated desktop-width PWA proof:
