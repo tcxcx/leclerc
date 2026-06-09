@@ -1002,3 +1002,52 @@ smokes returned `unknown_action`, `brief_records_required`,
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-06-09 native wallet selector contract
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `createWalletNetworkSelector()`, `selectWalletNetwork()`, and
+  `selectWalletToken()` to `packages/core/src/wallet-networks.ts`.
+- The selector returns a selected network plus only the tokens available on that
+  network. If a stale token is passed after a network switch, it selects the
+  first available token for the new network instead of surfacing an unsupported
+  token state.
+- Wired `walletSelector` into `apps/mobile/src/App.ts`,
+  `apps/mobile/src/worklet-client.ts`, `apps/desktop/src/main.ts`, and
+  `apps/desktop/src/renderer.ts`, so Expo/Bare and desktop shells share the
+  same network-token contract as the PWA.
+- Updated the native README files to tell renderer work to consume
+  `walletSelector.availableTokens`.
+
+### Verification
+
+```bash
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+cd packages/core && bun -e 'import { createWalletNetworkSelector, selectWalletNetwork } from "./src/index.ts"; const arc = createWalletNetworkSelector({ chainId: 5042002, assetId: "qcad" }); const arb = selectWalletNetwork(arc, 42161); console.log(JSON.stringify({ arc: arc.availableTokens.map(t => t.id), arb: arb.availableTokens.map(t => t.id), selectedAfterNetworkSwitch: arb.selectedAssetId, staleTokenVisible: arb.availableTokens.some(t => t.id === "qcad") }));'
+cd ../..
+bun -e 'import { createMobileAppModel } from "./apps/mobile/src/App.ts"; const model = createMobileAppModel("en", { wallet: { chainId: 42161, assetId: "eurc" } }); console.log(JSON.stringify({ surface: model.surface, chain: model.walletSelector.selectedChainId, tokens: model.walletSelector.availableTokens.map(t => t.id), selected: model.walletSelector.selectedAssetId, staleTokenVisible: model.walletSelector.availableTokens.some(t => t.id === "eurc") }));'
+bun -e 'import { createDesktopShell } from "./apps/desktop/src/main.ts"; const shell = createDesktopShell({ locale: "en", wallet: { chainId: 42161, assetId: "jpyc" } }); console.log(JSON.stringify({ surface: shell.surface, chain: shell.walletSelector.selectedChainId, tokens: shell.walletSelector.availableTokens.map(t => t.id), selected: shell.walletSelector.selectedAssetId, staleTokenVisible: shell.walletSelector.availableTokens.some(t => t.id === "jpyc") }));'
+bun -e 'import { createDesktopRendererModel } from "./apps/desktop/src/renderer.ts"; const renderer = createDesktopRendererModel("en", { chainId: 42161, assetId: "qcad" }); console.log(JSON.stringify({ title: renderer.title, chain: renderer.walletSelector.selectedChainId, tokens: renderer.walletSelector.availableTokens.map(t => t.id), selected: renderer.walletSelector.selectedAssetId }));'
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+```
+
+Results: all commands exited 0. The selector smokes proved Arc exposes
+`usdc`, `eurc`, `mxnb`, `qcad`, `audf`, `jpyc`, and `cirbtc`, while Arbitrum
+exposes only `usdc` and `mxnb`; stale Arc-only token selections were coerced to
+`usdc` on Arbitrum.
+
+### Residual blockers
+
+- Desktop/mobile still need real renderers to turn `walletSelector` into native
+  controls. The shared selector contract is ready for those renderers.
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

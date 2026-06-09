@@ -26,8 +26,8 @@ yellow/Ignyte accent.
 | B4 | Analyst desk + brief export | 80% | Unchanged; true QVAC tool-call loop still TODO. |
 | B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
 | B6 | P2P delegation + dead-drop | 80% | Ops console links missions to dead-drop intent, story-derived mission-funding notifications, story-derived global topology, and structured Link API errors; two-peer delegation proof still missing. |
-| B7 | WDK wallet + network-token selector | 83% | Rain card and mission-funding configs now derive from the shared mission-story catalog; wallet/card/station failures now use stable API codes. |
-| B8 | Monorepo ecosystem: PWA + desktop + mobile | 70% | Shared ops-console, ops-network, and mission-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, and SPY presets. Native adapters still missing. |
+| B7 | WDK wallet + network-token selector | 85% | Rain card and mission-funding configs now derive from the shared mission-story catalog; wallet/card/station failures and native selector state now use stable network-token contracts. |
+| B8 | Monorepo ecosystem: PWA + desktop + mobile | 72% | Shared ops-console, ops-network, mission-story, and wallet selector contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, and SPY presets. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 90% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents. Native design mirror still missing. |
 | B10 | EN/ES localization | 95% | Operations story labels, notification copy, and error/status states are localized in EN/ES. |
 | B11 | Repro, artifacts, compliance gates | 88% | Updated status notes now track field-demo fixture extraction plus wallet/card/station and station/proxy structured-error smoke coverage. |
@@ -77,6 +77,9 @@ yellow/Ignyte accent.
   `apps/mobile/src/App.ts`.
 - ✓ Finance and intel demo seeds use a dedicated field-demo story fixture:
   `apps/app/src/lib/stories/field-demo-story.ts`.
+- ✓ Desktop and mobile scaffolds expose the shared wallet network-token selector:
+  `packages/core/src/wallet-networks.ts`, `apps/desktop/src/main.ts`, and
+  `apps/mobile/src/App.ts`.
 - ◐ Desktop does not yet vendor Electron/Pear or render a window.
 - ◐ Mobile does not yet vendor Expo/React Native/Bare or render an installable app.
 - ◐ Native worklet still reports `missing-adapter`, so QVAC/WDK/Hyperswarm are

@@ -3,11 +3,12 @@
 Expo + Bare shell scaffold for the Mobile surface.
 
 This package imports `@leclerc/core` for shared contracts, the operative
-control-center model, and `@leclerc/worklet` for the Bare RPC boundary. It
-intentionally does not vendor Expo, React Native, `react-native-bare-kit`,
-`bare-pack`, QVAC, WDK, or Hyperswarm yet. The next implementation step is to
-mirror `references/pearpass-mobile/src/worklet/index.js`, add the linked Bare
-bundles, render `opsConsole.state`, and wire the adapter after rechecking
+control-center model, the wallet network-token selector, and `@leclerc/worklet`
+for the Bare RPC boundary. It intentionally does not vendor Expo, React Native,
+`react-native-bare-kit`, `bare-pack`, QVAC, WDK, or Hyperswarm yet. The next
+implementation step is to mirror `references/pearpass-mobile/src/worklet/index.js`,
+add the linked Bare bundles, render `opsConsole.state` plus
+`walletSelector.availableTokens`, and wire the adapter after rechecking
 installed SDK `.d.ts` files.
 
 Current gates:

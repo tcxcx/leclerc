@@ -35,6 +35,20 @@ export interface WalletNetworkOption {
   tokens: WalletTokenOption[];
 }
 
+export interface WalletNetworkSelectorInput {
+  chainId?: LeclercChainId | number | null;
+  assetId?: LeclercAssetId | null;
+}
+
+export interface WalletNetworkSelectorModel {
+  networks: WalletNetworkOption[];
+  selectedNetwork: WalletNetworkOption;
+  selectedChainId: LeclercChainId;
+  availableTokens: WalletTokenOption[];
+  selectedToken: WalletTokenOption | null;
+  selectedAssetId: LeclercAssetId | null;
+}
+
 export function walletNetworkOptions(): WalletNetworkOption[] {
   return listLeclercChains().map((chain) => {
     const tokens = listLeclercAssetsForChain(chain.chainId).map((asset) => {
@@ -69,4 +83,58 @@ export function walletNetworkOptions(): WalletNetworkOption[] {
       tokens,
     };
   });
+}
+
+export function createWalletNetworkSelector(
+  input: WalletNetworkSelectorInput = {},
+  networks: WalletNetworkOption[] = walletNetworkOptions(),
+): WalletNetworkSelectorModel {
+  if (networks.length === 0) {
+    throw new Error("wallet network catalog is empty");
+  }
+
+  const selectedNetwork =
+    networks.find((network) => network.chainId === input.chainId) ??
+    networks.find((network) => network.writable) ??
+    networks[0];
+  const availableTokens = selectedNetwork.tokens;
+  const selectedToken =
+    availableTokens.find((token) => token.id === input.assetId) ??
+    availableTokens[0] ??
+    null;
+
+  return {
+    networks,
+    selectedNetwork,
+    selectedChainId: selectedNetwork.chainId,
+    availableTokens,
+    selectedToken,
+    selectedAssetId: selectedToken?.id ?? null,
+  };
+}
+
+export function selectWalletNetwork(
+  selector: WalletNetworkSelectorModel,
+  chainId: LeclercChainId | number,
+): WalletNetworkSelectorModel {
+  return createWalletNetworkSelector(
+    {
+      chainId,
+      assetId: selector.selectedAssetId,
+    },
+    selector.networks,
+  );
+}
+
+export function selectWalletToken(
+  selector: WalletNetworkSelectorModel,
+  assetId: LeclercAssetId,
+): WalletNetworkSelectorModel {
+  return createWalletNetworkSelector(
+    {
+      chainId: selector.selectedChainId,
+      assetId,
+    },
+    selector.networks,
+  );
 }
