@@ -4,6 +4,7 @@ import {
   listRainCardsResponse,
   proposeRainCardFunding,
 } from "@leclerc/cards";
+import { apiError, apiErrorBody, apiErrorFromUnknown, type LeclercApiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -30,12 +31,13 @@ export async function POST(req: Request) {
       case "confirm":
         return NextResponse.json(await confirmRainCardFunding(body.confirmId ?? ""));
       default:
-        return NextResponse.json({ error: "unknown action" }, { status: 400 });
+        return apiErrorResponse(apiError("unknown_action"));
     }
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "rain card failed" },
-      { status: 500 },
-    );
+    return apiErrorResponse(apiErrorFromUnknown(err, "rain_card_failed"));
   }
+}
+
+function apiErrorResponse(error: LeclercApiError) {
+  return NextResponse.json(apiErrorBody(error), { status: error.status });
 }

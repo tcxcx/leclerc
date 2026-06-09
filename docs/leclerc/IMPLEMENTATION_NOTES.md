@@ -915,3 +915,45 @@ returned `drop_passphrase_required` with 400, `drop_not_joined` with 404,
 - Native runtime/rendering, native worklet adapter, live OCR/translate/MedPsy
   model sources, two-peer P2P proof, real mic permission proof, native install
   artifacts, and demo video artifact remain outstanding.
+
+## STATUS 2026-06-09 wallet/card/station API error codes
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Extended `apps/app/src/lib/api-errors.ts` with wallet, Rain card, station,
+  wallet-agent, network, asset, and transfer-confirmation error codes.
+- Converted `/api/wallet`, `/api/rain-cards`, `/api/station`, and
+  `/api/agent/wallet-tools` to return structured `{ error, code }` responses
+  through the shared API error helper.
+- Added EN/ES `apiErrors.*` strings for the new codes so UI surfaces can
+  translate route failures without showing raw server text.
+
+### Verification
+
+```bash
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+curl -sS -i -X POST http://localhost:7001/api/wallet -H 'Content-Type: application/json' -d '{"action":"wat"}'
+curl -sS -i -X POST http://localhost:7001/api/rain-cards -H 'Content-Type: application/json' -d '{"action":"fund","seed":"","cardId":"missing","amount":"25"}'
+curl -sS -i -X POST http://localhost:7001/api/rain-cards -H 'Content-Type: application/json' -d '{"action":"confirm","confirmId":""}'
+curl -sS -i -X POST http://localhost:7001/api/station -H 'Content-Type: application/json' -d '{"action":"wat"}'
+curl -sS -i -X POST http://localhost:7001/api/agent/wallet-tools -H 'Content-Type: application/json' -d '{"action":"list"}'
+curl -sS -i -X POST http://localhost:7001/api/rain-cards -H 'Content-Type: application/json' -d '{"action":"list"}'
+```
+
+Results: app typecheck, lint, production build, and route smokes exited 0. The
+API smokes returned `unknown_action`, `wallet_seed_required`,
+`confirm_id_required`, `unknown_action`, `agent_wallet_token_required`, and a
+200 Rain card list response respectively.
+
+### Residual blockers
+
+- `/api/rag` still has a small raw `unknown action` fallback and should be
+  migrated to `apps/app/src/lib/api-errors.ts` next.
+- Native runtime/rendering, native worklet adapter, live OCR/translate/MedPsy
+  model sources, two-peer P2P proof, real mic permission proof, native install
+  artifacts, and demo video artifact remain outstanding.

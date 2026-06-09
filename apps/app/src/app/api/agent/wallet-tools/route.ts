@@ -5,6 +5,7 @@ import {
   walletAgentToolDefs,
   type WalletAgentToolName,
 } from "@/lib/agents/wallet-tools";
+import { apiError, apiErrorBody, apiErrorFromUnknown, type LeclercApiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -30,28 +31,29 @@ export async function POST(req: Request) {
         });
       }
       case "call": {
-        if (!body.tool) return NextResponse.json({ error: "tool required" }, { status: 400 });
+        if (!body.tool) return apiErrorResponse(apiError("tool_required"));
         return NextResponse.json(await callWalletAgentTool(body.tool, body.args ?? {}));
       }
       default:
-        return NextResponse.json({ error: "unknown action" }, { status: 400 });
+        return apiErrorResponse(apiError("unknown_action"));
     }
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "wallet agent tool failed" },
-      { status: 500 },
-    );
+    return apiErrorResponse(apiErrorFromUnknown(err, "wallet_agent_tool_failed"));
   }
 }
 
 function guardWalletToolsCaller(req: Request): NextResponse | null {
   const expected = process.env.LECLERC_AGENT_WALLET_TOOLS_TOKEN?.trim();
   if (!expected) {
-    return NextResponse.json({ error: "LECLERC_AGENT_WALLET_TOOLS_TOKEN is required" }, { status: 503 });
+    return apiErrorResponse(apiError("agent_wallet_token_required"));
   }
   const auth = req.headers.get("authorization") ?? "";
   if (auth !== `Bearer ${expected}`) {
-    return NextResponse.json({ error: "unauthorized wallet tool caller" }, { status: 401 });
+    return apiErrorResponse(apiError("unauthorized_wallet_tool_caller"));
   }
   return null;
+}
+
+function apiErrorResponse(error: LeclercApiError) {
+  return NextResponse.json(apiErrorBody(error), { status: error.status });
 }

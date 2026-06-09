@@ -7,6 +7,7 @@ import {
   stationKey,
   peerAlive,
 } from "@/lib/p2p/delegate";
+import { apiError, apiErrorBody, apiErrorFromUnknown, type LeclercApiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -41,12 +42,13 @@ export async function POST(req: Request) {
         return NextResponse.json({ providerPublicKey: provider, text });
       }
       default:
-        return NextResponse.json({ error: "unknown action" }, { status: 400 });
+        return apiErrorResponse(apiError("unknown_action"));
     }
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "station failed" },
-      { status: 500 },
-    );
+    return apiErrorResponse(apiErrorFromUnknown(err, "station_failed"));
   }
+}
+
+function apiErrorResponse(error: LeclercApiError) {
+  return NextResponse.json(apiErrorBody(error), { status: error.status });
 }
