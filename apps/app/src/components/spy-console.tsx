@@ -48,7 +48,7 @@ export function SpyConsole({ locale, onClose }: { locale: "es" | "en"; onClose: 
     setRunning(gadget.id);
     setResult(null);
     try {
-      const output = await executeGadget(gadget.id, input, locale, mission.id);
+      const output = await executeGadget(gadget.id, input, locale, mission.id, t as unknown as Translator);
       setResult({ gadget: gadget.id, text: output });
     } catch (error) {
       setResult({
@@ -189,7 +189,7 @@ function GadgetTile({
             >
               {(field.options ?? []).map((option) => (
                 <option key={option} value={option}>
-                  {option}
+                  {tt(`spy.options.${option}`)}
                 </option>
               ))}
             </select>
@@ -232,12 +232,11 @@ async function executeGadget(
   input: Record<string, string>,
   locale: "es" | "en",
   missionId: MissionId,
+  t: Translator,
 ) {
   switch (id) {
     case "transcribe":
-      return locale === "es"
-        ? "La transcripción en vivo se ejecuta desde el botón central de voz y el servicio WS."
-        : "Live transcription runs from the center voice button and WS service.";
+      return t("spy.results.transcribe");
     case "extract":
       return JSON.stringify(await captureExtract({ transcript: input.transcript ?? "", locale }), null, 2);
     case "chat":
@@ -251,12 +250,14 @@ async function executeGadget(
     case "geo":
       return JSON.stringify(await ragSearch(input.query ?? "location", 8, missionId), null, 2);
     case "reasoning":
-      return JSON.stringify({ level: input.level || "medio", mode: "configured in settings/model level" }, null, 2);
+      return JSON.stringify({ level: input.level || "medio", mode: t("spy.results.reasoningMode") }, null, 2);
     case "wallet":
-      return input.seed ? JSON.stringify(await wallet.balances(input.seed), null, 2) : "seed required";
+      return input.seed ? JSON.stringify(await wallet.balances(input.seed), null, 2) : t("spy.results.seedRequired");
     case "station":
       return input.peer
         ? JSON.stringify(await station.ping(input.peer), null, 2)
         : JSON.stringify(await station.start(), null, 2);
   }
 }
+
+type Translator = (key: string) => string;

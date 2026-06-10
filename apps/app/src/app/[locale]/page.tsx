@@ -87,6 +87,7 @@ export default function ConsolePage() {
   // Voice: each completed turn becomes a pair of bubbles + refreshed chips.
   const voice = useVoice({
     locale,
+    startError: t("voice.startError"),
     onTurn: ({ user, assistant }) => {
       setMessages((m) => [...m, { role: "user", content: user }, { role: "assistant", content: assistant }]);
       refreshChips(user);

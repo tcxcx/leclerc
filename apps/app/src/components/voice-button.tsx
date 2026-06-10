@@ -10,14 +10,6 @@ export type VoiceState =
   | "thinking"
   | "speaking";
 
-const ARIA: Record<VoiceState, string> = {
-  idle: "Hablar",
-  connecting: "Conectando",
-  listening: "Escuchando",
-  thinking: "Pensando",
-  speaking: "Hablando",
-};
-
 /** Color ring/fill per state — accent shifts to signal who's "talking". */
 const SHELL: Record<VoiceState, string> = {
   idle: "text-on-surface",
@@ -35,11 +27,11 @@ export function VoiceButton(props: {
   state: VoiceState;
   onClick: () => void;
   size?: number;
-  ariaLabels?: Partial<Record<VoiceState, string>>;
+  ariaLabels: Record<VoiceState, string>;
 }): JSX.Element {
   const { state, onClick, size = 72, ariaLabels } = props;
   const ring = state === "listening" || state === "connecting";
-  const ariaLabel = ariaLabels?.[state] ?? ARIA[state];
+  const ariaLabel = ariaLabels[state];
 
   return (
     <button
@@ -73,7 +65,7 @@ export function VoiceButton(props: {
         ) : state === "thinking" ? (
           <Dots />
         ) : (
-          <GlassIcon icon="mic" label={ARIA[state]} active={state === "connecting"} size="xl" />
+          <GlassIcon icon="mic" label={ariaLabel} active={state === "connecting"} size="xl" />
         )}
       </span>
     </button>

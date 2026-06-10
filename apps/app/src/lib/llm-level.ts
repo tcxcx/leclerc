@@ -18,12 +18,6 @@ export const LEVEL_MODEL: Record<LlmLevel, string> = {
   medico: "medpsy-4b",
 };
 
-export const LEVEL_LABEL: Record<LlmLevel, string> = {
-  alta: "Razonamiento Alto",
-  media: "Razonamiento Medio",
-  medico: "Médico (MedPsy)",
-};
-
 const KEY = "leclerc-llm-level";
 const DEFAULT: LlmLevel = "media";
 

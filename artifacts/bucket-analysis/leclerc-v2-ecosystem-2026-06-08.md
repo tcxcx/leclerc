@@ -21,7 +21,7 @@ yellow/Ignyte accent.
 |---|---|---:|---|
 | HP1 | PWA judged surface | 86% | `/operaciones` route now gives the PWA the mission assigner, agent control center, story-backed defaults, notification feed, and Link-page notification sync. |
 | B1 | QVAC-only inference + RAG | 86% | RAG, chat, document, capture, and QVAC proxy failures now return stable API codes; OCR/translate/MedPsy still env-gated. |
-| B2 | Voice-first Cleo loop | 75% | Unchanged; real browser mic permission proof still missing. |
+| B2 | Voice-first Cleo loop | 76% | Voice-state labels and recorder/start fallback errors now resolve through EN/ES messages; real browser mic permission proof still missing. |
 | B3 | Capture, encrypted dossier, wipe | 88% | Finance and intel demo seeds now come from a dedicated field-demo story fixture instead of store-inline scenario copy. |
 | B4 | Analyst desk + brief export | 83% | Analyst progress, fallback copy, runtime prompt copy, tool-log notes, export labels, and tool descriptors now come from a shared analyst story; true QVAC tool-call loop still TODO. |
 | B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
@@ -29,8 +29,8 @@ yellow/Ignyte accent.
 | B7 | WDK wallet + network-token selector | 86% | Rain card and mission-funding configs now derive from shared catalogs; wallet/card/station failures, native selector state, and wallet-agent tool copy use stable network-token/story contracts. |
 | B8 | Monorepo ecosystem: PWA + desktop + mobile | 76% | Shared ops-console, ops-network, mission-story, wallet selector, assistant-story, analyst-story, and wallet-tool-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, and SPY presets. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 90% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents. Native design mirror still missing. |
-| B10 | EN/ES localization | 98% | Operations story labels, notification copy, error/status states, Link protocol event/status labels, console assistant copy, analyst/capture/dossier fallback copy, and analyst report/runtime copy are localized in EN/ES. |
-| B11 | Repro, artifacts, compliance gates | 91% | Updated status notes now track field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, and Link i18n key coverage. |
+| B10 | EN/ES localization | 99% | Operations story labels, notification copy, error/status states, Link protocol event/status labels, console assistant copy, voice/settings/SPY fallback copy, analyst/capture/dossier fallback copy, and analyst report/runtime copy are localized in EN/ES. |
+| B11 | Repro, artifacts, compliance gates | 92% | Updated status notes now track field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, and Link/voice/settings/SPY i18n key coverage. |
 
 ## New 100% criteria for B8: monorepo ecosystem
 
@@ -108,6 +108,13 @@ yellow/Ignyte accent.
   copy, and blocked swap reason use the shared wallet tool story:
   `packages/core/src/wallet-tool-stories.ts` and
   `apps/app/src/lib/agents/wallet-tools.ts`.
+- ✓ Voice-state accessibility labels, recorder/start fallback errors, settings
+  model labels, and SPY gadget result/option labels resolve through EN/ES
+  message keys:
+  `apps/app/src/components/voice-button.tsx`,
+  `apps/app/src/components/llm-config.tsx`,
+  `apps/app/src/app/[locale]/ajustes/page.tsx`, and
+  `apps/app/src/components/spy-console.tsx`.
 - ◐ Desktop does not yet vendor Electron/Pear or render a window.
 - ◐ Mobile does not yet vendor Expo/React Native/Bare or render an installable app.
 - ◐ Native worklet still reports `missing-adapter`, so QVAC/WDK/Hyperswarm are

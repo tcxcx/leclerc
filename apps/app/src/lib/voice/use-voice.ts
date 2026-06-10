@@ -28,12 +28,13 @@ export interface UseVoice {
 export interface UseVoiceOptions {
   locale?: "es" | "en";
   speak?: boolean;
+  startError?: string;
   /** Fired when a full turn completes (transcript + answer). */
   onTurn?: (turn: { user: string; assistant: string }) => void;
 }
 
 export function useVoice(opts: UseVoiceOptions = {}): UseVoice {
-  const { locale = "es", speak: initialSpeak = true, onTurn } = opts;
+  const { locale = "es", speak: initialSpeak = true, startError, onTurn } = opts;
 
   const [state, setState] = useState<VoiceState>("idle");
   const [transcript, setTranscript] = useState("");
@@ -57,6 +58,7 @@ export function useVoice(opts: UseVoiceOptions = {}): UseVoice {
     const client = createVoiceClient({
       locale,
       speak,
+      startError,
       onState: (s) => setState(s),
       onError: (msg) => setError(msg),
       onTranscript: (text) => {

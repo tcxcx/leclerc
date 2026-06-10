@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useI18n, useCurrentLocale } from "@/locales/client";
 import { LocaleSwitcher } from "@/components/locale-switcher";
-import { useLlmLevel, LEVEL_LABEL, type LlmLevel } from "@/lib/llm-level";
+import { useLlmLevel, type LlmLevel } from "@/lib/llm-level";
 import { unlock, lock, isUnlocked, forgetDeviceKey } from "@/lib/intel/crypto";
 import { wipeAll } from "@/lib/intel/store-client";
 import { wipeAllFinance } from "@/lib/finance/store-client";
@@ -60,7 +60,7 @@ export default function SettingsPage() {
                   : "border-outline-variant text-on-surface-variant"
               }`}
             >
-              {LEVEL_LABEL[l]}
+              {t(`settings.modelLevels.${l}`)}
             </button>
           ))}
         </div>

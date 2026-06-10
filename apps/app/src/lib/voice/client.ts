@@ -36,6 +36,7 @@ export interface VoiceClientOptions extends VoiceClientEvents {
   url?: string; // default NEXT_PUBLIC_VOICE_WS_URL ?? "ws://localhost:7077"
   locale?: "es" | "en";
   speak?: boolean; // default true
+  startError?: string;
 }
 
 export interface VoiceClient {
@@ -304,7 +305,7 @@ export function createVoiceClient(opts: VoiceClientOptions = {}): VoiceClient {
         await startMic();
         setState("listening");
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "No se pudo iniciar la voz";
+        const msg = err instanceof Error ? err.message : opts.startError ?? "";
         console.error(`${LOG} start failed:`, err);
         opts.onError?.(msg);
         await this.stop();

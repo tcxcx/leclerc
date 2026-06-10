@@ -134,7 +134,9 @@
     "listening": "Listening",
     "thinking": "Drafting the reply",
     "speaking": "Speaking",
-    "error": "Voice error"
+    "error": "Voice error",
+    "startError": "Voice could not start.",
+    "microphoneError": "Microphone access failed."
   },
   "finance": {
     "spendTitle": "Spend breakdown",
@@ -365,6 +367,16 @@
     "runFailed": "Gadget failed.",
     "toolResult": "Tool result",
     "autoInvoked": "I ran the dossier tool inline. Look at us, almost professional.",
+    "options": {
+      "medio": "Medium",
+      "alto": "High",
+      "medico": "Medical"
+    },
+    "results": {
+      "transcribe": "Live transcription runs from the center voice button and WS service.",
+      "reasoningMode": "configured in settings/model level",
+      "seedRequired": "seed required"
+    },
     "fields": {
       "audioNote": "Audio note or transcript reference",
       "transcript": "Field transcript",
@@ -638,6 +650,13 @@
     "title": "Settings",
     "language": "Language",
     "model": "Model level",
+    "modelAria": "Model reasoning level",
+    "modelDevHint": "Development only — choose the local inference model",
+    "modelLevels": {
+      "alta": "High reasoning",
+      "media": "Medium reasoning",
+      "medico": "Medical (MedPsy)"
+    },
     "lock": "Passphrase lock",
     "unlock": "Unlock vault",
     "passphrase": "Passphrase",

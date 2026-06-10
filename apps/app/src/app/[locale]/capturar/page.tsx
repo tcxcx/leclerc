@@ -30,7 +30,9 @@ export default function CapturePage() {
   const [err, setErr] = useState("");
 
   const onMax = (res: RecordingResult | null) => res && void process(res.blob, res.durationMs);
-  const { recording, elapsedMs, error, start, stop } = useRecorder(60_000, onMax);
+  const { recording, elapsedMs, error, start, stop } = useRecorder(60_000, onMax, {
+    microphoneError: t("voice.microphoneError"),
+  });
 
   async function process(source: Blob | string, durationMs: number | null) {
     try {

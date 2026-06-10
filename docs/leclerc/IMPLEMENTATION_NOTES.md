@@ -1308,8 +1308,46 @@ story contract instead of the orchestrator/export modules.
 
 ### Residual blockers
 
-- Analyst tool schema descriptions in `apps/app/src/lib/agents/tools.ts` and
-  wallet-agent tool descriptions still contain deterministic English copy.
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
+
+## STATUS 2026-06-10 voice/settings/spy i18n cleanup
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Removed the `VoiceButton` component's local Spanish ARIA fallback table; the
+  caller now provides localized voice-state labels.
+- Rewired the dev model selector and settings model-level buttons to resolve
+  labels and accessibility copy from `settings.model*` message keys instead of
+  `LEVEL_LABEL`/component literals.
+- Rewired capture recorder and continuous voice fallback errors to use localized
+  `voice.*` message keys.
+- Rewired SPY console select-option labels and gadget result fallbacks through
+  `spy.options.*` and `spy.results.*` message keys.
+
+### Verification
+
+```bash
+rg -n "Hablar|Conectando|Escuchando|Pensando|Hablando|Solo en desarrollo|Nivel de razonamiento del modelo|Razonamiento Alto|Razonamiento Medio|No se pudo acceder al micrófono|No se pudo iniciar la voz|Live transcription runs|configured in settings/model level|seed required|La transcripción en vivo" apps/app/src -g '*.ts' -g '*.tsx'
+bun -e 'import en from "./apps/app/messages/en.json"; import es from "./apps/app/messages/es.json"; const get=(obj,key)=>key.split(".").reduce((acc,part)=>acc?.[part],obj); const keys=["voice.startError","voice.microphoneError","settings.modelAria","settings.modelDevHint","settings.modelLevels.alta","settings.modelLevels.media","settings.modelLevels.medico","spy.options.medio","spy.options.alto","spy.options.medico","spy.results.transcribe","spy.results.reasoningMode","spy.results.seedRequired"]; const missing=keys.filter((key)=>typeof get(en,key)!=="string"||typeof get(es,key)!=="string"); console.log(JSON.stringify({keys:keys.length,missing})); if (missing.length) process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+```
+
+Results: all typecheck/lint/build commands exited 0. The exact-string scan
+returned only the API error-normalization phrase `wallet seed required`, not
+the moved visible copy. The EN/ES key smoke returned `missing: []`.
+
+### Residual blockers
+
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.

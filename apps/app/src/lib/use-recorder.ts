@@ -24,6 +24,7 @@ const LOG = "[recorder]";
 export function useRecorder(
   maxMs = 60_000,
   onMaxDuration?: (result: RecordingResult | null) => void,
+  options: { microphoneError?: string } = {},
 ) {
   const [recording, setRecording] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -104,7 +105,7 @@ export function useRecorder(
         onMaxRef.current?.(result);
       }, maxMs);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "No se pudo acceder al micrófono";
+      const msg = e instanceof Error ? e.message : options.microphoneError ?? "";
       console.error(`${LOG} getUserMedia failed:`, e);
       setError(msg);
       teardownAudio();

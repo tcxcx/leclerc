@@ -134,7 +134,9 @@
     "listening": "Escuchando",
     "thinking": "Redactando respuesta",
     "speaking": "Hablando",
-    "error": "Error de voz"
+    "error": "Error de voz",
+    "startError": "No se pudo iniciar la voz.",
+    "microphoneError": "No se pudo acceder al micrófono."
   },
   "finance": {
     "spendTitle": "Desglose de gasto",
@@ -365,6 +367,16 @@
     "runFailed": "Falló el gadget.",
     "toolResult": "Resultado de herramienta",
     "autoInvoked": "Ejecuté la herramienta del expediente en línea. Mira, casi profesional.",
+    "options": {
+      "medio": "Medio",
+      "alto": "Alto",
+      "medico": "Médico"
+    },
+    "results": {
+      "transcribe": "La transcripción en vivo se ejecuta desde el botón central de voz y el servicio WS.",
+      "reasoningMode": "configurado en ajustes/nivel de modelo",
+      "seedRequired": "semilla requerida"
+    },
     "fields": {
       "audioNote": "Nota de audio o referencia de transcripción",
       "transcript": "Transcripción de campo",
@@ -645,6 +657,13 @@
     "title": "Ajustes",
     "language": "Idioma",
     "model": "Nivel de modelo",
+    "modelAria": "Nivel de razonamiento del modelo",
+    "modelDevHint": "Solo en desarrollo — elija el modelo de inferencia local",
+    "modelLevels": {
+      "alta": "Razonamiento alto",
+      "media": "Razonamiento medio",
+      "medico": "Médico (MedPsy)"
+    },
     "lock": "Bloqueo por frase",
     "unlock": "Desbloquear bóveda",
     "passphrase": "Frase de acceso",
