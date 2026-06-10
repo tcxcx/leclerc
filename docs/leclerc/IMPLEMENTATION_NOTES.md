@@ -1140,9 +1140,53 @@ these client labels reliably in the initial HTML.
 
 ### Residual blockers
 
-- Server-side analyst prompt/report labels still contain deterministic English
-  and Spanish text in `apps/app/src/lib/agents/orchestrator.ts` and
-  `apps/app/src/lib/reports/export.tsx`; move those into the analyst story next.
+- Analyst tool schema descriptions in `apps/app/src/lib/agents/tools.ts` and
+  wallet-agent tool descriptions still contain deterministic English copy.
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
+
+## STATUS 2026-06-10 analyst runtime/report story copy
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Extended `packages/core/src/analyst-stories.ts` with localized analyst runtime
+  copy: RAG default query, default focus, MedPsy prompt, synthesizer prompt,
+  prompt section labels, tool-log note labels, and export report labels.
+- Rewired `apps/app/src/lib/agents/orchestrator.ts` so deterministic tool notes,
+  MedPsy fallback text, prompt content, and synthesizer section labels come from
+  the analyst story contract.
+- Rewired `apps/app/src/lib/reports/export.tsx` so PDF/DOCX report labels come
+  from `analystReportLabels()` instead of a local `pdfLabels()` table.
+- Added `@leclerc/core/analyst-stories` to package exports for direct consumers.
+
+### Verification
+
+```bash
+bun --filter @leclerc/core typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd packages/core && bun -e 'import { analystReportLabels, analystRuntimeCopy, countNote } from "./src/index.ts"; const en=analystRuntimeCopy("en"); const es=analystRuntimeCopy("es"); console.log(JSON.stringify({enReport: analystReportLabels("en"), esReport: analystReportLabels("es"), enNote: countNote(3,en.toolNotes.recordsRanked), esNote: countNote(2,es.toolNotes.placesClustered), enPrompt: en.synthSystemPrompt.includes("Respond in English"), esPrompt: es.synthSystemPrompt.includes("Responde en espanol")}));'
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+rg -n '"RAG unavailable; used posted records"|"MedPsy path completed"|"MedPsy medic mode requested|"MedPsy unavailable"|"Eres analista|"Eres el sintetizador|`Enfoque:|`Triaje \(|`Patrones/RAG|`Análisis médico|"Analyst desk"|"Generated"|"Findings with sources"|"Agent/tool log"|"Mesa de analisis"|"Registro de agentes' apps/app/src/lib/agents/orchestrator.ts apps/app/src/lib/reports/export.tsx
+```
+
+Results: all typecheck/lint/build commands exited 0. The analyst story smoke
+returned EN/ES report labels, localized count notes, and locale-specific
+synthesizer prompt markers. The exact phrase grep returned no matches in the
+app server files, proving those deterministic strings now live in the analyst
+story contract instead of the orchestrator/export modules.
+
+### Residual blockers
+
+- Analyst tool schema descriptions in `apps/app/src/lib/agents/tools.ts` and
+  wallet-agent tool descriptions still contain deterministic English copy.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.

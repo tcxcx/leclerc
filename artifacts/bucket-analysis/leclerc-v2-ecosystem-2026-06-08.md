@@ -23,13 +23,13 @@ yellow/Ignyte accent.
 | B1 | QVAC-only inference + RAG | 86% | RAG, chat, document, capture, and QVAC proxy failures now return stable API codes; OCR/translate/MedPsy still env-gated. |
 | B2 | Voice-first Cleo loop | 75% | Unchanged; real browser mic permission proof still missing. |
 | B3 | Capture, encrypted dossier, wipe | 88% | Finance and intel demo seeds now come from a dedicated field-demo story fixture instead of store-inline scenario copy. |
-| B4 | Analyst desk + brief export | 81% | Analyst progress/fallback copy now comes from a shared analyst story plus EN/ES message keys; true QVAC tool-call loop still TODO. |
+| B4 | Analyst desk + brief export | 82% | Analyst progress, fallback copy, runtime prompt copy, tool-log notes, and export labels now come from a shared analyst story; true QVAC tool-call loop still TODO. |
 | B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
 | B6 | P2P delegation + dead-drop | 80% | Ops console links missions to dead-drop intent, story-derived mission-funding notifications, story-derived global topology, and structured Link API errors; two-peer delegation proof still missing. |
 | B7 | WDK wallet + network-token selector | 85% | Rain card and mission-funding configs now derive from the shared mission-story catalog; wallet/card/station failures and native selector state now use stable network-token contracts. |
-| B8 | Monorepo ecosystem: PWA + desktop + mobile | 73% | Shared ops-console, ops-network, mission-story, wallet selector, and assistant-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, and SPY presets. Native adapters still missing. |
+| B8 | Monorepo ecosystem: PWA + desktop + mobile | 74% | Shared ops-console, ops-network, mission-story, wallet selector, assistant-story, and analyst-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, and SPY presets. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 90% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents. Native design mirror still missing. |
-| B10 | EN/ES localization | 97% | Operations story labels, notification copy, error/status states, console assistant copy, and analyst/capture/dossier fallback copy are localized in EN/ES. |
+| B10 | EN/ES localization | 98% | Operations story labels, notification copy, error/status states, console assistant copy, analyst/capture/dossier fallback copy, and analyst report/runtime copy are localized in EN/ES. |
 | B11 | Repro, artifacts, compliance gates | 88% | Updated status notes now track field-demo fixture extraction plus wallet/card/station and station/proxy structured-error smoke coverage. |
 
 ## New 100% criteria for B8: monorepo ecosystem
@@ -89,6 +89,11 @@ yellow/Ignyte accent.
   `packages/core/src/analyst-stories.ts`,
   `apps/app/src/app/[locale]/analisis/page.tsx`, and
   `apps/app/src/app/[locale]/capturar/page.tsx`.
+- ✓ Analyst runtime prompts, tool-log notes, and PDF/DOCX export labels use the
+  shared analyst story contract:
+  `packages/core/src/analyst-stories.ts`,
+  `apps/app/src/lib/agents/orchestrator.ts`, and
+  `apps/app/src/lib/reports/export.tsx`.
 - ◐ Desktop does not yet vendor Electron/Pear or render a window.
 - ◐ Mobile does not yet vendor Expo/React Native/Bare or render an installable app.
 - ◐ Native worklet still reports `missing-adapter`, so QVAC/WDK/Hyperswarm are

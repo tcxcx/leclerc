@@ -19,6 +19,7 @@ import {
 } from "docx";
 import type { IntelBrief } from "@/lib/agents/orchestrator";
 import type { IntelRecord } from "@/lib/intel/schema";
+import { analystReportLabels } from "@leclerc/core";
 
 export type BriefExportFormat = "pdf" | "docx";
 
@@ -104,7 +105,7 @@ const pdfStyles = StyleSheet.create({
 });
 
 function BriefPdf({ brief, records, locale }: BriefExportInput) {
-  const labels = pdfLabels(locale);
+  const labels = analystReportLabels(locale);
   return (
     <PdfDocument title={brief.titulo} author="LeClerc">
       <Page size="A4" style={pdfStyles.page}>
@@ -180,7 +181,7 @@ async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
 
 async function renderDocx(input: BriefExportInput): Promise<Buffer> {
   const { brief, records, locale } = input;
-  const labels = pdfLabels(locale);
+  const labels = analystReportLabels(locale);
   const children: Paragraph[] = [
     new Paragraph({
       heading: HeadingLevel.TITLE,
@@ -234,31 +235,4 @@ function text(value: string): Paragraph {
     spacing: { after: 80 },
     children: [new TextRun(value)],
   });
-}
-
-function pdfLabels(locale: "es" | "en") {
-  if (locale === "en") {
-    return {
-      analystDesk: "Analyst desk",
-      generated: "Generated",
-      threat: "Threat",
-      records: "Records",
-      bluf: "Bottom line",
-      findings: "Findings with sources",
-      geo: "Geo",
-      recommendations: "Recommendations",
-      toolLog: "Agent/tool log",
-    };
-  }
-  return {
-    analystDesk: "Mesa de analisis",
-    generated: "Generado",
-    threat: "Amenaza",
-    records: "Registros",
-    bluf: "Conclusion",
-    findings: "Hallazgos con fuentes",
-    geo: "Geo",
-    recommendations: "Recomendaciones",
-    toolLog: "Registro de agentes/herramientas",
-  };
 }

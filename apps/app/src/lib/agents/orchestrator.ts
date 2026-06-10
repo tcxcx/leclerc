@@ -23,6 +23,7 @@ import {
   extractLocations,
   type ToolContext,
 } from "./tools";
+import { analystRuntimeCopy, countNote } from "@leclerc/core";
 
 export interface BriefRequest {
   records: IntelRecord[];
@@ -86,6 +87,7 @@ export async function runAnalystDesk(
   onProgress?: BriefProgress,
 ): Promise<IntelBrief> {
   const ctx: ToolContext = { records: req.records, missionId: req.missionId };
+  const copy = analystRuntimeCopy(req.locale);
   const llm = await loadLLM("alta");
   const ran: string[] = [];
   const toolLog: BriefToolEvent[] = [];
@@ -98,10 +100,10 @@ export async function runAnalystDesk(
     agent: "triage",
     tool: listRecords.name,
     status: "ok",
-    note: `${triaged.length} records ranked`,
+    note: countNote(triaged.length, copy.toolNotes.recordsRanked),
   });
   ran.push("triage");
-  onProgress?.({ agent: "triage", status: "done", note: `${triaged.length} records` });
+  onProgress?.({ agent: "triage", status: "done", note: countNote(triaged.length, copy.toolNotes.records) });
 
   // ── Geo agent ─────────────────────────────────────────────────────────────
   onProgress?.({ agent: "geo", status: "start" });
@@ -110,17 +112,17 @@ export async function runAnalystDesk(
     agent: "geo",
     tool: extractLocations.name,
     status: "ok",
-    note: `${geo.length} places clustered`,
+    note: countNote(geo.length, copy.toolNotes.placesClustered),
   });
   ran.push("geo");
-  onProgress?.({ agent: "geo", status: "done", note: `${geo.length} places` });
+  onProgress?.({ agent: "geo", status: "done", note: countNote(geo.length, copy.toolNotes.places) });
 
   // ── Pattern agent (RAG-grounded) ──────────────────────────────────────────
   onProgress?.({ agent: "pattern", status: "start" });
   let patternNotes = "";
   try {
     const hits = await ragSearchTool.handler(
-      { query: req.focus ?? "amenazas, sujetos recurrentes, vínculos", k: 8 },
+      { query: req.focus ?? copy.ragDefaultQuery, k: 8 },
       ctx,
     );
     patternNotes = hits.map((h) => `(id=${h.id}) ${h.text}`).join("\n");
@@ -128,7 +130,7 @@ export async function runAnalystDesk(
       agent: "pattern",
       tool: ragSearchTool.name,
       status: "ok",
-      note: `${hits.length} RAG hits`,
+      note: countNote(hits.length, copy.toolNotes.ragHits),
     });
   } catch {
     // RAG not configured yet — fall back to raw records.
@@ -139,7 +141,7 @@ export async function runAnalystDesk(
       agent: "pattern",
       tool: ragSearchTool.name,
       status: "fallback",
-      note: "RAG unavailable; used posted records",
+      note: copy.toolNotes.ragFallback,
     });
   }
   ran.push("pattern");
@@ -154,10 +156,7 @@ export async function runAnalystDesk(
       const medMsgs: CompleteMessage[] = [
         {
           role: "system",
-          content:
-            "Eres analista médico (MedPsy). A partir SOLO de los registros, evalúa estado " +
-            "de salud/heridas/triaje del/los sujeto(s). Cita ids. Si no hay contenido médico, " +
-            "responde 'sin contenido médico'. /no_think",
+          content: copy.medicSystemPrompt,
         },
         { role: "user", content: summarizeRecords(req.records) },
       ];
@@ -166,17 +165,15 @@ export async function runAnalystDesk(
         agent: "medic",
         tool: "completion",
         status: "ok",
-        note: "MedPsy path completed",
+        note: copy.toolNotes.medpsyCompleted,
       });
     } catch (err) {
-      medicNote =
-        "MedPsy medic mode requested but no MedPsy model is configured. " +
-        "Set LECLERC_MEDPSY_SRC to a MedPsy GGUF model source.";
+      medicNote = copy.toolNotes.medpsyMissingModel;
       logTool({
         agent: "medic",
         tool: "completion",
         status: "fallback",
-        note: err instanceof Error ? err.message : "MedPsy unavailable",
+        note: err instanceof Error ? err.message : copy.toolNotes.medpsyUnavailable,
       });
     }
     ran.push("medic");
@@ -188,21 +185,16 @@ export async function runAnalystDesk(
   const synthMsgs: CompleteMessage[] = [
     {
       role: "system",
-      content:
-        "Eres el sintetizador de una mesa de análisis de inteligencia. Produce un informe " +
-        "de una página en JSON. CADA hallazgo DEBE citar los ids de los registros que lo " +
-        "respaldan en 'fuentes'. No inventes; si la evidencia es escasa, dilo. " +
-        (req.locale === "en" ? "Respond in English. " : "Responde en español. ") +
-        "/no_think",
+      content: copy.synthSystemPrompt,
     },
     {
       role: "user",
       content:
-        `Enfoque: ${req.focus ?? "panorama general"}\n\n` +
-        `Triaje (${triaged.length}):\n${triaged.map((t) => `- (id=${t.id}) [${t.amenaza}] ${t.resumen}`).join("\n")}\n\n` +
-        `Patrones/RAG:\n${patternNotes}\n\n` +
-        (medicNote ? `Análisis médico:\n${medicNote}\n\n` : "") +
-        `Geo: ${geo.map((g) => g.lugar).join(", ")}`,
+        `${copy.sectionLabels.focus}: ${req.focus ?? copy.defaultFocus}\n\n` +
+        `${copy.sectionLabels.triage} (${triaged.length}):\n${triaged.map((t) => `- (id=${t.id}) [${t.amenaza}] ${t.resumen}`).join("\n")}\n\n` +
+        `${copy.sectionLabels.patterns}:\n${patternNotes}\n\n` +
+        (medicNote ? `${copy.sectionLabels.medic}:\n${medicNote}\n\n` : "") +
+        `${copy.sectionLabels.geo}: ${geo.map((g) => g.lugar).join(", ")}`,
     },
   ];
 
@@ -216,7 +208,7 @@ export async function runAnalystDesk(
     agent: "synth",
     tool: "completion_json",
     status: "ok",
-    note: `${synth.hallazgos.length} findings synthesized`,
+    note: countNote(synth.hallazgos.length, copy.toolNotes.findingsSynthesized),
   });
   ran.push("synth");
   onProgress?.({ agent: "synth", status: "done" });
