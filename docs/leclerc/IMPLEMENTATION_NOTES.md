@@ -1146,6 +1146,46 @@ these client labels reliably in the initial HTML.
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
 
+## STATUS 2026-06-10 link notification store bridge
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Rewired `/[locale]/enlace` so mission funding `fund`, `confirm`, and
+  notification poll responses are converted with
+  `opsNotificationFromMissionFunding()` and persisted via the shared encrypted
+  ops console store.
+- Rewired dead-drop inbox polling so payloads of kind `notification` that match
+  `MissionFundingNotification` are also merged into the operations notification
+  feed.
+- Added localized Link-page sync status copy for successful and failed
+  operations-notification persistence.
+
+### Verification
+
+```bash
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun -e 'import { defaultOpsConsoleState, mergeOpsNotifications, opsNotificationFromMissionFunding } from "./packages/core/src/index.ts"; import en from "./apps/app/messages/en.json"; import es from "./apps/app/messages/es.json"; const state=defaultOpsConsoleState(10); const event={id:"fund-raven-test",kind:"mission_funding",missionId:"raven",assetId:"usdc",chainId:5042002,amount:"25.00",status:"blocked",reason:"missing env",createdAt:"2026-06-10T00:00:00.000Z"}; const notification=opsNotificationFromMissionFunding(event,state); const merged=mergeOpsNotifications(state,[notification],20); const get=(obj,key)=>key.split(".").reduce((acc,part)=>acc?.[part],obj); const keys=[notification.titleKey,notification.bodyKey,"link.notificationsSynced","link.notificationsSyncFailed"]; const missing=keys.filter((key)=>typeof get(en,key)!=="string"||typeof get(es,key)!=="string"); console.log(JSON.stringify({notification, count: merged.notifications.length, missing})); if (missing.length) process.exit(1);'
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+```
+
+Results: all typecheck/lint/build commands exited 0. The notification smoke
+converted a mission-funding event into an operations notification, merged it
+into the shared state, and verified the EN/ES notification/sync copy keys.
+
+### Residual blockers
+
+- The separate-device/two-process dead-drop notification proof is still missing;
+  this pass wires local persistence and payload conversion, not the peer proof.
+- Native runtime/rendering, native worklet adapter, real mic permission proof,
+  native install artifacts, and demo video artifact remain outstanding.
+
 ## STATUS 2026-06-10 analyst/wallet tool descriptor stories
 
 Branch: `feat/leclerc-scaffold`

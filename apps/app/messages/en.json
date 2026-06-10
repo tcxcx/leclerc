@@ -617,6 +617,8 @@
     "missionFundingFailed": "Mission funding failed.",
     "confirmFunding": "Confirm mission funding",
     "pollNotifications": "Poll notifications",
+    "notificationsSynced": "Operations notifications synced",
+    "notificationsSyncFailed": "Operations notification sync failed",
     "peers": "peers",
     "fundingStatus": {
       "submitted": "Funding submitted",

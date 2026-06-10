@@ -624,6 +624,8 @@
     "missionFundingFailed": "Falló el fondeo de misión.",
     "confirmFunding": "Confirmar fondeo de misión",
     "pollNotifications": "Revisar notificaciones",
+    "notificationsSynced": "Notificaciones de operaciones sincronizadas",
+    "notificationsSyncFailed": "Falló la sincronización de notificaciones de operaciones",
     "peers": "pares",
     "fundingStatus": {
       "submitted": "Fondeo enviado",

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useI18n } from "@/locales/client";
 import { OperationsGlobe } from "@/components/operations-globe";
 import { drop, isApiClientError, missionFunding, station } from "@/lib/api-client";
+import { loadOpsConsole, mergeOpsConsoleNotifications } from "@/lib/ops/store-client";
+import { opsNotificationFromMissionFunding } from "@leclerc/core";
 import { DEFAULT_MISSION_FUNDING_STORY_ID } from "@leclerc/transfer-core";
 import type { MissionFundingConfig, MissionFundingNotification, TransferProposal } from "@leclerc/transfers";
 
@@ -86,7 +88,18 @@ export default function LinkPage() {
     try {
       const res = await drop.read(dropId, secret.trim() || topic.trim());
       setInbox(res.payloads.map((p) => ({ kind: p.kind, value: p.value, ts: p.ts })));
-      setDropStatus(`${t("link.dropInbox")} · ${res.payloads.length}/${res.rawCount}`);
+      const fundingEvents = res.payloads
+        .filter((payload) => payload.kind === "notification" && isMissionFundingNotification(payload.value))
+        .map((payload) => payload.value as MissionFundingNotification);
+      const synced = await syncFundingNotifications(fundingEvents);
+      setDropStatus(
+        [
+          `${t("link.dropInbox")} · ${res.payloads.length}/${res.rawCount}`,
+          fundingEvents.length > 0 ? t(synced ? "link.notificationsSynced" : "link.notificationsSyncFailed") : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+      );
     } catch (e) {
       setDropStatus(apiErrorText(t, e, "link.dropFailed"));
     }
@@ -108,8 +121,11 @@ export default function LinkPage() {
         setFundingStatus(t("link.fundingReviewReady"));
         return;
       }
+      const synced = await syncFundingNotifications([res.notification]);
       setFundingStatus(
-        `${t(`link.fundingStatus.${res.notification.status}`)} · ${t("link.peers")} ${res.peers}`,
+        `${t(`link.fundingStatus.${res.notification.status}`)} · ${t("link.peers")} ${res.peers} · ${t(
+          synced ? "link.notificationsSynced" : "link.notificationsSyncFailed",
+        )}`,
       );
       setEvents((current) => [res.notification, ...current].slice(0, 20));
     } catch (e) {
@@ -128,8 +144,11 @@ export default function LinkPage() {
         secret: secret.trim() || topic.trim() || undefined,
       });
       setFundingProposal(null);
+      const synced = await syncFundingNotifications([res.notification]);
       setFundingStatus(
-        `${t(`link.fundingStatus.${res.notification.status}`)} · ${t("link.peers")} ${res.peers}`,
+        `${t(`link.fundingStatus.${res.notification.status}`)} · ${t("link.peers")} ${res.peers} · ${t(
+          synced ? "link.notificationsSynced" : "link.notificationsSyncFailed",
+        )}`,
       );
       setEvents((current) => [res.notification, ...current].slice(0, 20));
     } catch (e) {
@@ -140,7 +159,9 @@ export default function LinkPage() {
   }
   async function pollMissionEvents() {
     const res = await missionFunding.events();
+    const synced = await syncFundingNotifications(res.events);
     setEvents(res.events);
+    setFundingStatus(t(synced ? "link.notificationsSynced" : "link.notificationsSyncFailed"));
   }
 
   const selectedMission = missions.find((mission) => mission.missionId === missionId);
@@ -326,4 +347,30 @@ function apiErrorText(t: ReturnType<typeof useI18n>, error: unknown, fallbackKey
     return translateKey(t, `apiErrors.${error.code}`);
   }
   return translateKey(t, fallbackKey);
+}
+
+async function syncFundingNotifications(events: MissionFundingNotification[]): Promise<boolean> {
+  if (events.length === 0) return true;
+  try {
+    const baseState = await loadOpsConsole();
+    await mergeOpsConsoleNotifications(events.map((event) => opsNotificationFromMissionFunding(event, baseState)));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isMissionFundingNotification(value: unknown): value is MissionFundingNotification {
+  if (!value || typeof value !== "object") return false;
+  const event = value as Partial<MissionFundingNotification>;
+  return (
+    event.kind === "mission_funding" &&
+    typeof event.id === "string" &&
+    typeof event.missionId === "string" &&
+    typeof event.assetId === "string" &&
+    typeof event.chainId === "number" &&
+    typeof event.amount === "string" &&
+    (event.status === "submitted" || event.status === "blocked") &&
+    typeof event.createdAt === "string"
+  );
 }

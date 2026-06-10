@@ -19,18 +19,18 @@ yellow/Ignyte accent.
 
 | # | Bucket | Score | Evidence added in this pass |
 |---|---|---:|---|
-| HP1 | PWA judged surface | 85% | `/operaciones` route now gives the PWA the mission assigner, agent control center, story-backed defaults, and notification feed. |
+| HP1 | PWA judged surface | 86% | `/operaciones` route now gives the PWA the mission assigner, agent control center, story-backed defaults, notification feed, and Link-page notification sync. |
 | B1 | QVAC-only inference + RAG | 86% | RAG, chat, document, capture, and QVAC proxy failures now return stable API codes; OCR/translate/MedPsy still env-gated. |
 | B2 | Voice-first Cleo loop | 75% | Unchanged; real browser mic permission proof still missing. |
 | B3 | Capture, encrypted dossier, wipe | 88% | Finance and intel demo seeds now come from a dedicated field-demo story fixture instead of store-inline scenario copy. |
 | B4 | Analyst desk + brief export | 83% | Analyst progress, fallback copy, runtime prompt copy, tool-log notes, export labels, and tool descriptors now come from a shared analyst story; true QVAC tool-call loop still TODO. |
 | B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
-| B6 | P2P delegation + dead-drop | 80% | Ops console links missions to dead-drop intent, story-derived mission-funding notifications, story-derived global topology, and structured Link API errors; two-peer delegation proof still missing. |
+| B6 | P2P delegation + dead-drop | 81% | Ops console links missions to dead-drop intent; Link funding/drop notification payloads now persist into the ops notification feed; two-peer delegation proof still missing. |
 | B7 | WDK wallet + network-token selector | 86% | Rain card and mission-funding configs now derive from shared catalogs; wallet/card/station failures, native selector state, and wallet-agent tool copy use stable network-token/story contracts. |
-| B8 | Monorepo ecosystem: PWA + desktop + mobile | 75% | Shared ops-console, ops-network, mission-story, wallet selector, assistant-story, analyst-story, and wallet-tool-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, and SPY presets. Native adapters still missing. |
+| B8 | Monorepo ecosystem: PWA + desktop + mobile | 76% | Shared ops-console, ops-network, mission-story, wallet selector, assistant-story, analyst-story, and wallet-tool-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, and SPY presets. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 90% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents. Native design mirror still missing. |
 | B10 | EN/ES localization | 98% | Operations story labels, notification copy, error/status states, console assistant copy, analyst/capture/dossier fallback copy, and analyst report/runtime copy are localized in EN/ES. |
-| B11 | Repro, artifacts, compliance gates | 89% | Updated status notes now track field-demo fixture extraction, structured-error smoke coverage, and story-owned analyst/wallet tool descriptor verification. |
+| B11 | Repro, artifacts, compliance gates | 90% | Updated status notes now track field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, and notification-store bridge verification. |
 
 ## New 100% criteria for B8: monorepo ecosystem
 
@@ -51,6 +51,11 @@ yellow/Ignyte accent.
 - ✓ PWA route renders a local notification feed and can merge
   `/api/mission-funding` events:
   `apps/app/src/app/[locale]/operaciones/page.tsx`.
+- ✓ Link route mission funding and notification dead-drop payloads persist into
+  the same operations notification feed:
+  `apps/app/src/app/[locale]/enlace/page.tsx`,
+  `apps/app/src/lib/ops/store-client.ts`, and
+  `packages/core/src/ops-console.ts`.
 - ✓ Link mission funding defaults are story-derived without pulling transfer
   execution code into the browser bundle:
   `apps/app/src/app/[locale]/enlace/page.tsx`.
