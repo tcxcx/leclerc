@@ -1,4 +1,5 @@
 export * from "./agents";
+export * from "./assistant-stories";
 export * from "./finance";
 export * from "./intel";
 export * from "./landing";

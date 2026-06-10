@@ -1051,3 +1051,51 @@ exposes only `usdc` and `mxnb`; stale Arc-only token selections were coerced to
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-06-09 assistant console story copy
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/assistant-stories.ts` as the dedicated Cleo console
+  story contract for greeting keys, starter chips, action labels, tool labels,
+  and fallback error labels.
+- Reworked `packages/core/src/agents.ts` so `greeting()` and `starterChips()`
+  remain backward-compatible while deriving from the assistant story fixture.
+- Rewired the PWA console home page to resolve greeting, starter chips, action
+  bar labels, tool-call names, audio label, and finance fallback errors through
+  `messages/*.json` instead of page-local copy constants.
+- Added EN/ES message entries under `console.story`, `console.actions`,
+  `console.tools`, and `console.errors`.
+
+### Verification
+
+```bash
+bun --filter @leclerc/core typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+bun --filter app lint
+cd packages/core && bun -e 'import { DEFAULT_ASSISTANT_STORY, assistantActionLabels, greeting, greetingKey, starterChips, starterChipStories } from "./src/index.ts"; console.log(JSON.stringify({ story: DEFAULT_ASSISTANT_STORY.id, greetingKey: greetingKey(4), greeting: greeting("en",4), chips: starterChips("en").map(c => ({ labelKey: c.labelKey, intent: c.intent })), storyChipCount: starterChipStories().length, actionLabels: assistantActionLabels("en") }));'
+cd ../..
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+BROWSE_STATE_FILE=/tmp/leclerc-console-browse.json /Users/criptopoeta/.claude/skills/gstack/browse/dist/browse goto http://localhost:7001/en
+BROWSE_STATE_FILE=/tmp/leclerc-console-browse.json /Users/criptopoeta/.claude/skills/gstack/browse/dist/browse js '(() => { const text = document.body.innerText; return JSON.stringify({hasGreeting:text.includes("Hey you."),hasCard:text.includes("Card"),hasAsk:text.includes("Ask"),hasStarter:text.includes("this week"),leaksKeys:/console\\.(story|actions|tools|errors)/.test(text),text:text.slice(0,600)}); })()'
+BROWSE_STATE_FILE=/tmp/leclerc-console-browse.json /Users/criptopoeta/.claude/skills/gstack/browse/dist/browse goto http://localhost:7001/es
+BROWSE_STATE_FILE=/tmp/leclerc-console-browse.json /Users/criptopoeta/.claude/skills/gstack/browse/dist/browse js '(() => { const text = document.body.innerText; return JSON.stringify({hasGreeting:text.includes("Hola, operativo."),hasCard:text.includes("Tarjeta"),hasAsk:text.includes("Preguntar"),hasStarter:text.includes("gastos de la semana"),leaksKeys:/console\\.(story|actions|tools|errors)/.test(text),text:text.slice(0,600)}); })()'
+```
+
+Results: all typecheck/lint/build commands exited 0. The core smoke returned
+the `cleo-field-console` story with six starter chips and action labels. The
+browser smokes for `/en` and `/es` returned translated greeting/action/chip
+labels and `leaksKeys:false`.
+
+### Residual blockers
+
+- More page-level fallback strings remain outside the console home path and
+  should keep moving into story/message catalogs.
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

@@ -91,7 +91,43 @@
     "recent": "Expediente reciente",
     "stationStatus": "Estado de la estación",
     "peerStatus": "Estado del enlace",
-    "intelLayer": "Capa de inteligencia"
+    "intelLayer": "Capa de inteligencia",
+    "toggleAudio": "Alternar audio",
+    "actions": {
+      "card": "Tarjeta",
+      "ask": "Preguntar",
+      "send": "Enviar",
+      "stash": "Guardar",
+      "receive": "Recibir"
+    },
+    "story": {
+      "greetings": {
+        "0": "Hola, operativo.",
+        "1": "De vuelta en la estación.",
+        "2": "Te estaba esperando.",
+        "3": "Línea segura. Dime.",
+        "4": "Aquí LeClerc. ¿Qué movemos?",
+        "5": "Buenas, agente. Todo en local."
+      },
+      "starter": {
+        "spendWeek": "gastos de la semana",
+        "spendTop": "en qué se me va el dinero?",
+        "stashPlan": "armar un plan de ahorro",
+        "payInformant": "pagar a un informante",
+        "recallSubject": "qué tengo sobre un sujeto",
+        "dailyBrief": "informe del día"
+      }
+    },
+    "tools": {
+      "dossierRag": "Herramienta: RAG del expediente",
+      "dossierSearch": "Herramienta: búsqueda del expediente",
+      "automaticRoute": "Ruta automática"
+    },
+    "errors": {
+      "financeSeedFailed": "Falló la semilla financiera.",
+      "financeWriteFailed": "Falló la escritura financiera.",
+      "generic": "Algo falló."
+    }
   },
   "voice": {
     "connecting": "Abriendo canal de voz seguro",

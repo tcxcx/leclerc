@@ -91,7 +91,43 @@
     "recent": "Recent dossier",
     "stationStatus": "Station status",
     "peerStatus": "Link status",
-    "intelLayer": "Intel layer"
+    "intelLayer": "Intel layer",
+    "toggleAudio": "Toggle audio",
+    "actions": {
+      "card": "Card",
+      "ask": "Ask",
+      "send": "Send",
+      "stash": "Stash",
+      "receive": "Receive"
+    },
+    "story": {
+      "greetings": {
+        "0": "Hey you.",
+        "1": "Back on station.",
+        "2": "Secure line. Talk to me.",
+        "3": "Welcome back, operative.",
+        "4": "LeClerc here. What are we moving?",
+        "5": "Hey, agent. All on-device."
+      },
+      "starter": {
+        "spendWeek": "this week's spend",
+        "spendTop": "where's my money going?",
+        "stashPlan": "build a save plan",
+        "payInformant": "pay an informant",
+        "recallSubject": "what do I have on a subject",
+        "dailyBrief": "today's brief"
+      }
+    },
+    "tools": {
+      "dossierRag": "Tool: dossier RAG",
+      "dossierSearch": "Tool: dossier search",
+      "automaticRoute": "Automatic route"
+    },
+    "errors": {
+      "financeSeedFailed": "Finance seed failed.",
+      "financeWriteFailed": "Finance write failed.",
+      "generic": "Something failed."
+    }
   },
   "voice": {
     "connecting": "Opening secure voice channel",

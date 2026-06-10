@@ -1,4 +1,10 @@
 import type { IntelRecord, Locale, ThreatLevel } from "./intel";
+import {
+  DEFAULT_ASSISTANT_STORY,
+  assistantGreetingFallback,
+  assistantGreetingKey,
+  type AssistantStarterChipStory,
+} from "./assistant-stories";
 
 export type { Locale };
 
@@ -124,54 +130,28 @@ export function persona(locale: Locale, opts?: { spoken?: boolean }): string {
   return base + format + " /no_think";
 }
 
-const GREETINGS: Record<Locale, string[]> = {
-  es: [
-    "Hola, operativo.",
-    "De vuelta en la estacion.",
-    "Te estaba esperando.",
-    "Linea segura. Dime.",
-    "Aqui LeClerc. Que movemos?",
-    "Buenas, agente. Todo en local.",
-  ],
-  en: [
-    "Hey you.",
-    "Back on station.",
-    "Secure line. Talk to me.",
-    "Welcome back, operative.",
-    "LeClerc here. What are we moving?",
-    "Hey, agent. All on-device.",
-  ],
-};
+export function greetingKey(index = 0): string {
+  return assistantGreetingKey(index);
+}
 
 export function greeting(locale: Locale, index = 0): string {
-  const list = GREETINGS[locale];
-  const greetingIndex = ((index % list.length) + list.length) % list.length;
-  return list[greetingIndex] as string;
+  return assistantGreetingFallback(locale, index);
 }
 
 export interface StarterChip {
   label: string;
+  labelKey: string;
   intent: string;
 }
 
 export function starterChips(locale: Locale): StarterChip[] {
-  if (locale === "es") {
-    return [
-      { label: "gastos de la semana", intent: "finance.spend.week" },
-      { label: "en que se me va el dinero?", intent: "finance.spend.top" },
-      { label: "armar un plan de ahorro", intent: "finance.stash.plan" },
-      { label: "pagar a un informante", intent: "finance.request.pay" },
-      { label: "que tengo sobre un sujeto", intent: "intel.recall" },
-      { label: "informe del dia", intent: "intel.brief" },
-    ];
-  }
+  return starterChipStories().map((chip) => ({
+    label: chip.fallbackLabel[locale],
+    labelKey: chip.labelKey,
+    intent: chip.intent,
+  }));
+}
 
-  return [
-    { label: "this week's spend", intent: "finance.spend.week" },
-    { label: "where's my money going?", intent: "finance.spend.top" },
-    { label: "build a save plan", intent: "finance.stash.plan" },
-    { label: "pay an informant", intent: "finance.request.pay" },
-    { label: "what do I have on a subject", intent: "intel.recall" },
-    { label: "today's brief", intent: "intel.brief" },
-  ];
+export function starterChipStories(): AssistantStarterChipStory[] {
+  return DEFAULT_ASSISTANT_STORY.starterChips;
 }

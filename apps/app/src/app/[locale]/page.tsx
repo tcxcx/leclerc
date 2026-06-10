@@ -12,8 +12,13 @@ import { GlassIcon } from "@/components/glass-icon";
 import { SpyConsole } from "@/components/spy-console";
 import { useVoice } from "@/lib/voice/use-voice";
 import { chat, ragAskScoped, ragSearch } from "@/lib/api-client";
-import { routeOperatorQuery } from "@leclerc/core";
-import { greeting, starterChips } from "@/lib/agents/persona";
+import {
+  DEFAULT_ASSISTANT_STORY,
+  greetingKey,
+  routeOperatorQuery,
+  starterChipStories,
+  type AssistantActionId,
+} from "@leclerc/core";
 import {
   seedDemo,
   listTransactions,
@@ -39,11 +44,6 @@ type FinancePanel =
   | { kind: "spend"; summary: SpendSummary; txs: Transaction[] }
   | { kind: "stash"; goals: SavingsGoal[] }
   | { kind: "request" };
-
-const LABELS = {
-  es: { card: "Tarjeta", ask: "Preguntar", send: "Enviar", stash: "Guardar", receive: "Recibir" },
-  en: { card: "Card", ask: "Ask", send: "Send", stash: "Stash", receive: "Receive" },
-} as const;
 
 const VOICE_ICON = {
   connecting: "sync",
@@ -98,10 +98,13 @@ export default function ConsolePage() {
     seedDemo(locale).catch((e) => {
       setMessages((m) => [
         ...m,
-        { role: "assistant", content: e instanceof Error ? e.message : "finance seed failed" },
+        {
+          role: "assistant",
+          content: e instanceof Error ? e.message : translateKey(t, DEFAULT_ASSISTANT_STORY.errors.financeSeedFailedKey),
+        },
       ]);
     });
-  }, [locale]);
+  }, [locale, t]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -115,7 +118,7 @@ export default function ConsolePage() {
     setMessages([...next, { role: "assistant", content: "", pending: true }]);
     setBusy(true);
     try {
-      const tool = await maybeAutoInvoke(clean, locale);
+      const tool = await maybeAutoInvoke(clean, locale, t);
       if (tool) {
         setMessages([...next, { role: "assistant", content: t("spy.autoInvoked"), tool }]);
         refreshChips(clean);
@@ -130,7 +133,10 @@ export default function ConsolePage() {
       setMessages([...next, { role: "assistant", content: answer }]);
       refreshChips(clean);
     } catch (e) {
-      setMessages([...next, { role: "assistant", content: e instanceof Error ? e.message : "error" }]);
+      setMessages([
+        ...next,
+        { role: "assistant", content: e instanceof Error ? e.message : translateKey(t, DEFAULT_ASSISTANT_STORY.errors.genericKey) },
+      ]);
     } finally {
       setBusy(false);
     }
@@ -175,7 +181,10 @@ export default function ConsolePage() {
     } catch (e) {
       setMessages((m) => [
         ...m,
-        { role: "assistant", content: e instanceof Error ? e.message : "finance write failed" },
+        {
+          role: "assistant",
+          content: e instanceof Error ? e.message : translateKey(t, DEFAULT_ASSISTANT_STORY.errors.financeWriteFailedKey),
+        },
       ]);
     }
   }
@@ -202,7 +211,11 @@ export default function ConsolePage() {
   }
 
   const empty = messages.length === 0 && !voice.tokens;
-  const chips = starterChips(locale).map((c) => ({ label: c.label, onClick: () => sendText(c.label) }));
+  const chips = starterChipStories().map((chip) => {
+    const label = translateKey(t, chip.labelKey);
+    return { label, onClick: () => sendText(label) };
+  });
+  const actionLabels = assistantActionLabels(t);
   const voiceStatus =
     voice.error != null
       ? `${t("voice.error")}: ${voice.error}`
@@ -215,7 +228,7 @@ export default function ConsolePage() {
     <div className="mx-auto flex h-[calc(100dvh-8.5rem)] w-full max-w-md flex-col">
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto pb-2">
         <div className="flex items-start justify-between gap-3 pt-4">
-          <h1 className="anim-enter font-display-lg text-[30px] leading-tight">{greeting(locale)}</h1>
+          <h1 className="anim-enter font-display-lg text-[30px] leading-tight">{translateKey(t, greetingKey())}</h1>
           <button
             type="button"
             onClick={() => setIntelOpen((open) => !open)}
@@ -425,7 +438,7 @@ export default function ConsolePage() {
         />
         <button
           onClick={() => voice.toggleSpeak()}
-          aria-label="toggle audio"
+          aria-label={t("console.toggleAudio")}
           className={`material-symbols-outlined text-[22px] ${voice.speak ? "text-primary" : "text-on-surface-variant"}`}
         >
           {voice.speak ? "graphic_eq" : "volume_off"}
@@ -436,9 +449,9 @@ export default function ConsolePage() {
         voiceState={voice.state}
         onAsk={onAsk}
         onAction={onAction}
-        labels={LABELS[locale]}
+        labels={actionLabels}
         voiceLabels={{
-          idle: LABELS[locale].ask,
+          idle: actionLabels.ask,
           connecting: t("voice.connecting"),
           listening: t("voice.listening"),
           thinking: t("voice.thinking"),
@@ -447,6 +460,17 @@ export default function ConsolePage() {
       />
     </div>
   );
+}
+
+function assistantActionLabels(t: ReturnType<typeof useI18n>): Record<AssistantActionId, string> {
+  const actions = DEFAULT_ASSISTANT_STORY.actions;
+  return {
+    card: translateKey(t, actions.card.labelKey),
+    ask: translateKey(t, actions.ask.labelKey),
+    send: translateKey(t, actions.send.labelKey),
+    stash: translateKey(t, actions.stash.labelKey),
+    receive: translateKey(t, actions.receive.labelKey),
+  };
 }
 
 function IntelLink({ href, icon, label }: { href: string; icon: string; label: string }) {
@@ -475,7 +499,7 @@ function ToolCall({ name, result }: { name: string; result: string }) {
   );
 }
 
-async function maybeAutoInvoke(query: string, locale: "es" | "en") {
+async function maybeAutoInvoke(query: string, locale: "es" | "en", t: ReturnType<typeof useI18n>) {
   const route = routeOperatorQuery(query);
   if (route.intent === "chat") return null;
   if (route.intent === "dossier.answer") {
@@ -483,19 +507,23 @@ async function maybeAutoInvoke(query: string, locale: "es" | "en") {
       ragSearch(query, 4, route.missionId),
     );
     return {
-      name: locale === "es" ? "Herramienta: RAG del expediente" : "Tool: dossier RAG",
+      name: translateKey(t, DEFAULT_ASSISTANT_STORY.toolLabels.dossierRagKey),
       result: JSON.stringify(output, null, 2),
     };
   }
   if (route.intent === "dossier.search") {
     const output = await ragSearch(query, 6, route.missionId);
     return {
-      name: locale === "es" ? "Herramienta: búsqueda del expediente" : "Tool: dossier search",
+      name: translateKey(t, DEFAULT_ASSISTANT_STORY.toolLabels.dossierSearchKey),
       result: JSON.stringify(output, null, 2),
     };
   }
   return {
-    name: locale === "es" ? "Ruta automática" : "Automatic route",
+    name: translateKey(t, DEFAULT_ASSISTANT_STORY.toolLabels.automaticRouteKey),
     result: JSON.stringify(route, null, 2),
   };
+}
+
+function translateKey(t: ReturnType<typeof useI18n>, key: string): string {
+  return (t as unknown as (value: string) => string)(key);
 }
