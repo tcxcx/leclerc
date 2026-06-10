@@ -29,8 +29,8 @@ yellow/Ignyte accent.
 | B7 | WDK wallet + network-token selector | 86% | Rain card and mission-funding configs now derive from shared catalogs; wallet/card/station failures, native selector state, and wallet-agent tool copy use stable network-token/story contracts. |
 | B8 | Monorepo ecosystem: PWA + desktop + mobile | 76% | Shared ops-console, ops-network, mission-story, wallet selector, assistant-story, analyst-story, and wallet-tool-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, and SPY presets. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 90% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents. Native design mirror still missing. |
-| B10 | EN/ES localization | 98% | Operations story labels, notification copy, error/status states, console assistant copy, analyst/capture/dossier fallback copy, and analyst report/runtime copy are localized in EN/ES. |
-| B11 | Repro, artifacts, compliance gates | 90% | Updated status notes now track field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, and notification-store bridge verification. |
+| B10 | EN/ES localization | 98% | Operations story labels, notification copy, error/status states, Link protocol event/status labels, console assistant copy, analyst/capture/dossier fallback copy, and analyst report/runtime copy are localized in EN/ES. |
+| B11 | Repro, artifacts, compliance gates | 91% | Updated status notes now track field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, and Link i18n key coverage. |
 
 ## New 100% criteria for B8: monorepo ecosystem
 

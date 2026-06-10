@@ -609,6 +609,15 @@
     "dropInbox": "Entradas recibidas",
     "dropFailed": "Falló el buzón.",
     "dropTestTitle": "Prueba sellada de LeClerc",
+    "dropKinds": {
+      "brief": "Informe",
+      "record": "Registro",
+      "notification": "Notificación"
+    },
+    "dropSendStatus": {
+      "sent": "Enviado",
+      "pending": "Pendiente"
+    },
     "dropPlaceholder": "Frase de misión",
     "peerPlaceholder": "Clave pública del proveedor",
     "peerOnline": "Par en línea",

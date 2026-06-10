@@ -9,6 +9,8 @@ import { opsNotificationFromMissionFunding } from "@leclerc/core";
 import { DEFAULT_MISSION_FUNDING_STORY_ID } from "@leclerc/transfer-core";
 import type { MissionFundingConfig, MissionFundingNotification, TransferProposal } from "@leclerc/transfers";
 
+type DropPayloadKind = "brief" | "record" | "notification";
+
 /**
  * P2P link/pairing. Shows the station's stable peer key for delegation, and a
  * mission dead-drop topic. Full QR pairing + swarm wiring is the Codex overnight
@@ -23,7 +25,7 @@ export default function LinkPage() {
   const [secret, setSecret] = useState("");
   const [dropId, setDropId] = useState("");
   const [dropStatus, setDropStatus] = useState("");
-  const [inbox, setInbox] = useState<Array<{ kind: string; value: unknown; ts: number }>>([]);
+  const [inbox, setInbox] = useState<Array<{ kind: DropPayloadKind; value: unknown; ts: number }>>([]);
   const [missions, setMissions] = useState<MissionFundingConfig[]>([]);
   const [missionId, setMissionId] = useState(DEFAULT_MISSION_FUNDING_STORY_ID);
   const [fundSeed, setFundSeed] = useState("");
@@ -78,7 +80,7 @@ export default function LinkPage() {
         title: t("link.dropTestTitle"),
         sentAt: Date.now(),
       });
-      setDropStatus(`${t("link.dropSent")} · ${res.status} · ${t("link.peers")} ${res.peers}`);
+      setDropStatus(`${t("link.dropSent")} · ${t(`link.dropSendStatus.${res.status}`)} · ${t("link.peers")} ${res.peers}`);
     } catch (e) {
       setDropStatus(apiErrorText(t, e, "link.dropFailed"));
     }
@@ -241,7 +243,7 @@ export default function LinkPage() {
           <ul className="space-y-1">
             {inbox.map((item, index) => (
               <li key={`${item.ts}-${index}`} className="rounded-lg bg-surface p-2 text-caption">
-                {item.kind} · {new Date(item.ts).toLocaleTimeString()}
+                {t(`link.dropKinds.${item.kind}`)} · {new Date(item.ts).toLocaleTimeString()}
               </li>
             ))}
           </ul>
@@ -326,7 +328,8 @@ export default function LinkPage() {
           <ul className="space-y-1">
             {events.map((event) => (
               <li key={event.id} className="rounded-lg bg-surface p-2 text-caption">
-                <span className="font-mono text-primary">{event.missionId}</span> · {event.status} ·{" "}
+                <span className="font-mono text-primary">{event.missionId}</span> ·{" "}
+                {t(`link.fundingStatus.${event.status}`)} ·{" "}
                 {event.amount} {event.assetId.toUpperCase()}
                 {event.hash ? ` · ${event.hash}` : event.reason ? ` · ${event.reason}` : ""}
               </li>

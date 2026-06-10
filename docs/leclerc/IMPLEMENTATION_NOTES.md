@@ -1140,8 +1140,42 @@ these client labels reliably in the initial HTML.
 
 ### Residual blockers
 
-- Analyst tool schema descriptions in `apps/app/src/lib/agents/tools.ts` and
-  wallet-agent tool descriptions still contain deterministic English copy.
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
+
+## STATUS 2026-06-10 link event i18n cleanup
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Replaced raw Link-page dead-drop payload kind rendering with localized
+  `link.dropKinds.*` labels.
+- Replaced raw dead-drop send protocol status rendering with localized
+  `link.dropSendStatus.*` labels.
+- Replaced raw mission-funding event status rendering with the existing
+  localized `link.fundingStatus.*` labels.
+
+### Verification
+
+```bash
+bun -e 'import en from "./apps/app/messages/en.json"; import es from "./apps/app/messages/es.json"; const get=(obj,key)=>key.split(".").reduce((acc,part)=>acc?.[part],obj); const keys=["link.dropKinds.brief","link.dropKinds.record","link.dropKinds.notification","link.dropSendStatus.sent","link.dropSendStatus.pending","link.fundingStatus.submitted","link.fundingStatus.blocked"]; const missing=keys.filter((key)=>typeof get(en,key)!=="string"||typeof get(es,key)!=="string"); console.log(JSON.stringify({keys,missing})); if (missing.length) process.exit(1);'
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+```
+
+Results: all typecheck/lint/build commands exited 0. The key-resolution smoke
+returned `missing: []` for EN/ES Link drop-kind, drop-send-status, and funding
+status labels.
+
+### Residual blockers
+
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.

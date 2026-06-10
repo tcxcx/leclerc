@@ -602,6 +602,15 @@
     "dropInbox": "Received entries",
     "dropFailed": "Dead-drop failed.",
     "dropTestTitle": "LeClerc dead-drop test",
+    "dropKinds": {
+      "brief": "Brief",
+      "record": "Record",
+      "notification": "Notification"
+    },
+    "dropSendStatus": {
+      "sent": "Sent",
+      "pending": "Pending"
+    },
     "dropPlaceholder": "Mission passphrase",
     "peerPlaceholder": "Provider public key",
     "peerOnline": "Peer online",
