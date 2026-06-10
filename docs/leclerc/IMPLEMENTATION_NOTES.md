@@ -1144,6 +1144,45 @@ these client labels reliably in the initial HTML.
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
 
+## STATUS 2026-06-10 RAG answer story copy
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/rag-stories.ts` as the dedicated grounded-dossier
+  RAG story contract for empty-answer text, system prompt constraints, and
+  user prompt labels.
+- Rewired `apps/app/src/lib/rag/server.ts` so the empty answer, grounding
+  prompt, citation/missing-answer instruction, and question/excerpts labels come
+  from `ragAnswerCopy()`, `ragSystemPrompt()`, and `ragUserPrompt()`.
+- Added `@leclerc/core/rag-stories` to package exports for direct consumers.
+
+### Verification
+
+```bash
+rg -n "No data in the dossier|Sin datos en el expediente|Answer ONLY|Responde ÚNICAMENTE|Responde UNICAMENTE|Cite record ids|Cita ids|Do not invent|No inventes|If the answer is not|Si la respuesta|Pregunta:|Question:|Extractos:|Excerpts:" apps/app/src/lib/rag packages/core/src -g '*.ts'
+bun -e 'import { DEFAULT_RAG_STORY, ragAnswerCopy, ragSystemPrompt, ragUserPrompt } from "./packages/core/src/index.ts"; const en=ragSystemPrompt("en"); const es=ragSystemPrompt("es"); console.log(JSON.stringify({story:DEFAULT_RAG_STORY.id,enEmpty:ragAnswerCopy("en").emptyAnswer,esEmpty:ragAnswerCopy("es").emptyAnswer,enHas:en.includes("Respond in English"),esHas:es.includes("Responde en espanol"),user:ragUserPrompt("en",{query:"q",context:"ctx"})})); if (!en.includes("No data in the dossier.") || !es.includes("Sin datos en el expediente.")) process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+```
+
+Results: all typecheck/lint/build commands exited 0. The exact-string grep
+showed the moved RAG answer copy only in core story files, not in the app RAG
+server. The story smoke returned `grounded-dossier-rag` and proved EN/ES system
+and user prompt generation.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
+
 ## STATUS 2026-06-10 link event i18n cleanup
 
 Branch: `feat/leclerc-scaffold`

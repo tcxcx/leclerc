@@ -7,7 +7,7 @@ import "server-only";
  */
 import { ragIngestDocs, ragQuery, completeText, type RagHit } from "@repo/qvacs";
 import { RAG_WORKSPACE, loadEmbed, loadLLM } from "@/lib/qvac/server";
-import { missionMatchesMeta } from "@leclerc/core";
+import { missionMatchesMeta, ragAnswerCopy, ragSystemPrompt, ragUserPrompt } from "@leclerc/core";
 
 export interface IngestDoc {
   id: string;
@@ -56,7 +56,7 @@ export async function answer(
   const embed = await loadEmbed();
   const rawHits: RagHit[] = await ragQuery(RAG_WORKSPACE, embed, query, missionId ? Math.max(k * 3, 12) : k);
   const hits = rawHits.filter((hit) => missionMatchesMeta(hit.meta, missionId)).slice(0, k);
-  const emptyAnswer = locale === "en" ? "No data in the dossier." : "Sin datos en el expediente.";
+  const emptyAnswer = ragAnswerCopy(locale).emptyAnswer;
 
   if (hits.length === 0) {
     return { answer: emptyAnswer, sources: [] };
@@ -70,15 +70,9 @@ export async function answer(
   const prompt = [
     {
       role: "system" as const,
-      content:
-        (locale === "en"
-          ? "Answer ONLY with information from the provided dossier excerpts. Respond in English. "
-          : "Responde ÚNICAMENTE con la información de los extractos del expediente proporcionados. Responde en español. ") +
-        "Cite record ids in brackets, e.g. [id=...]. " +
-        `If the answer is not in the excerpts, say exactly: '${emptyAnswer}' ` +
-        "No inventes. /no_think",
+      content: ragSystemPrompt(locale),
     },
-    { role: "user" as const, content: `Pregunta: ${query}\n\nExtractos:\n${context}` },
+    { role: "user" as const, content: ragUserPrompt(locale, { query, context }) },
   ];
 
   const text = await completeText({ modelId: llm, history: prompt, stream: true });

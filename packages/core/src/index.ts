@@ -10,6 +10,7 @@ export * from "./ops-console";
 export * from "./ops-stories";
 export * from "./p2p";
 export * from "./rag";
+export * from "./rag-stories";
 export * from "./rpc";
 export * from "./surfaces";
 export * from "./tool-router";

@@ -18,6 +18,7 @@
     "./ops-stories": "./src/ops-stories.ts",
     "./p2p": "./src/p2p.ts",
     "./rag": "./src/rag.ts",
+    "./rag-stories": "./src/rag-stories.ts",
     "./rain-cards": "./src/rain-cards.ts",
     "./rpc": "./src/rpc.ts",
     "./surfaces": "./src/surfaces.ts",
