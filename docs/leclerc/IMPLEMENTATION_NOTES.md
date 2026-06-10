@@ -1099,3 +1099,50 @@ labels and `leaksKeys:false`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-06-10 analyst story fallback copy
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/analyst-stories.ts` as the dedicated analyst/dossier
+  story contract for progress labels and fallback error keys.
+- Rewired `/[locale]/analisis`, `/[locale]/capturar`,
+  `/[locale]/expediente`, and `/[locale]/expediente/[id]` so RAG, brief,
+  capture, and vault fallback strings resolve through the analyst story and
+  EN/ES message catalogs.
+- Moved the hardcoded analyst progress steps (`triage`, `geo`, `pattern`,
+  `synth`) into the story contract and localized `brief.progress.*`.
+
+### Verification
+
+```bash
+bun --filter @leclerc/core typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+rg -n 'demo seed failed|brief failed|RAG error|Fuente vacía|fallo de inferencia|vault write failed|\["triage", "geo", "pattern", "synth"\]' apps/app/src packages/core/src -g '*.ts' -g '*.tsx'
+cd packages/core && bun -e 'import { DEFAULT_ANALYST_STORY } from "./src/index.ts"; console.log(JSON.stringify({story: DEFAULT_ANALYST_STORY.id, steps: DEFAULT_ANALYST_STORY.progressSteps.map(s => s.labelKey), errors: DEFAULT_ANALYST_STORY.errors}));'
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+bun -e 'import { DEFAULT_ANALYST_STORY } from "./packages/core/src/index.ts"; import en from "./apps/app/messages/en.json"; import es from "./apps/app/messages/es.json"; const get=(obj,key)=>key.split(".").reduce((acc,part)=>acc?.[part], obj); const keys=[...DEFAULT_ANALYST_STORY.progressSteps.map(s=>s.labelKey),...Object.values(DEFAULT_ANALYST_STORY.errors)]; const missing=keys.filter(k=>typeof get(en,k)!=="string"||typeof get(es,k)!=="string"); console.log(JSON.stringify({story:DEFAULT_ANALYST_STORY.id,keyCount:keys.length,missing,enProgress:DEFAULT_ANALYST_STORY.progressSteps.map(s=>get(en,s.labelKey)),esProgress:DEFAULT_ANALYST_STORY.progressSteps.map(s=>get(es,s.labelKey))})); if (missing.length) process.exit(1);'
+```
+
+Results: all typecheck/lint/build commands exited 0. The targeted raw-string
+grep returned no matches. The story smoke returned `field-analyst-desk` with
+progress/error keys, and the EN/ES key-resolution smoke returned `missing: []`
+with localized progress labels. A direct HTML grep was not used as proof because
+the middleware redirected locale paths to the client shell, which did not expose
+these client labels reliably in the initial HTML.
+
+### Residual blockers
+
+- Server-side analyst prompt/report labels still contain deterministic English
+  and Spanish text in `apps/app/src/lib/agents/orchestrator.ts` and
+  `apps/app/src/lib/reports/export.tsx`; move those into the analyst story next.
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

@@ -7,6 +7,7 @@ import { listRecords } from "@/lib/intel/store-client";
 import { ragAsk } from "@/lib/api-client";
 import type { IntelRecord, ThreatLevel } from "@/lib/intel/schema";
 import { ThreatChip } from "@/components/threat-chip";
+import { DEFAULT_ANALYST_STORY } from "@leclerc/core";
 
 const FILTERS: (ThreatLevel | "ALL")[] = ["ALL", "CRITICO", "ELEVADO", "RUTINARIO"];
 
@@ -32,7 +33,10 @@ export default function DossierPage() {
     try {
       setAnswer(await ragAsk(q.trim(), 6, locale as "es" | "en"));
     } catch (e) {
-      setAnswer({ answer: e instanceof Error ? e.message : "RAG error", sources: [] });
+      setAnswer({
+        answer: e instanceof Error ? e.message : translateKey(t, DEFAULT_ANALYST_STORY.errors.ragFailedKey),
+        sources: [],
+      });
     } finally {
       setAsking(false);
     }
@@ -123,4 +127,8 @@ export default function DossierPage() {
       )}
     </div>
   );
+}
+
+function translateKey(t: ReturnType<typeof useI18n>, key: string): string {
+  return (t as unknown as (value: string) => string)(key);
 }

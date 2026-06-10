@@ -427,7 +427,12 @@
     "extracting": "Extrayendo ficha…",
     "typeInstead": "Escribir en su lugar",
     "addDocument": "Añadir documento",
-    "review": "Revisar y confirmar"
+    "review": "Revisar y confirmar",
+    "errors": {
+      "emptySource": "La fuente está vacía o no tiene contenido útil.",
+      "inferenceFailed": "Falló la inferencia.",
+      "vaultWriteFailed": "Falló la escritura en la bóveda."
+    }
   },
   "dossier": {
     "title": "Expediente",
@@ -436,7 +441,10 @@
     "filterThreat": "Filtrar por amenaza",
     "all": "Todos",
     "groundedAnswer": "Respuesta fundamentada",
-    "sources": "Fuentes"
+    "sources": "Fuentes",
+    "errors": {
+      "ragFailed": "Falló el RAG del expediente."
+    }
   },
   "record": {
     "summary": "Resumen",
@@ -480,6 +488,16 @@
     "noRecords": "Sin registros confirmados. Cargue el demo o capture inteligencia.",
     "exportReady": "Exportación lista.",
     "exportFailed": "Falló la exportación.",
+    "progress": {
+      "triage": "Triaje",
+      "geo": "Geo",
+      "pattern": "Patrones",
+      "synth": "Síntesis"
+    },
+    "errors": {
+      "demoSeedFailed": "Falló la carga del expediente demo.",
+      "briefFailed": "Falló la generación del informe."
+    },
     "agents": {
       "triage": "Triaje",
       "dedup": "Deduplicación",

@@ -8,6 +8,7 @@ import { documentIntel, ragIngest } from "@/lib/api-client";
 import { ragText } from "@/lib/intel/assemble";
 import type { IntelRecord } from "@/lib/intel/schema";
 import { ThreatChip } from "@/components/threat-chip";
+import { DEFAULT_ANALYST_STORY } from "@leclerc/core";
 
 export default function RecordPage() {
   const t = useI18n();
@@ -57,7 +58,9 @@ export default function RecordPage() {
     const updated = await updateEstado(r.id, "CONFIRMADO");
     if (!updated) return;
     setR(updated);
-    await ingestRecord(updated).catch((e) => setErr(e instanceof Error ? e.message : "RAG error"));
+    await ingestRecord(updated).catch((e) =>
+      setErr(e instanceof Error ? e.message : translateKey(t, DEFAULT_ANALYST_STORY.errors.ragFailedKey)),
+    );
   }
 
   async function addDocument(file: File | null) {
@@ -85,7 +88,9 @@ export default function RecordPage() {
       await putRecord(updated);
       setR(updated);
       if (updated.estado === "CONFIRMADO") {
-        await ingestRecord(updated).catch((e) => setErr(e instanceof Error ? e.message : "RAG error"));
+        await ingestRecord(updated).catch((e) =>
+          setErr(e instanceof Error ? e.message : translateKey(t, DEFAULT_ANALYST_STORY.errors.ragFailedKey)),
+        );
       }
       setStatus(t("record.documentAdded"));
     } catch (e) {
@@ -221,4 +226,8 @@ function Section({ label, children }: { label: string; children: React.ReactNode
       {children}
     </section>
   );
+}
+
+function translateKey(t: ReturnType<typeof useI18n>, key: string): string {
+  return (t as unknown as (value: string) => string)(key);
 }

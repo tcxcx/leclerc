@@ -427,7 +427,12 @@
     "extracting": "Extracting card…",
     "typeInstead": "Type instead",
     "addDocument": "Add document",
-    "review": "Review & confirm"
+    "review": "Review & confirm",
+    "errors": {
+      "emptySource": "Source is empty or has no usable content.",
+      "inferenceFailed": "Inference failed.",
+      "vaultWriteFailed": "Vault write failed."
+    }
   },
   "dossier": {
     "title": "Dossier",
@@ -436,7 +441,10 @@
     "filterThreat": "Filter by threat",
     "all": "All",
     "groundedAnswer": "Grounded answer",
-    "sources": "Sources"
+    "sources": "Sources",
+    "errors": {
+      "ragFailed": "Dossier RAG failed."
+    }
   },
   "record": {
     "summary": "Summary",
@@ -480,6 +488,16 @@
     "noRecords": "No confirmed records. Load the demo or capture intelligence.",
     "exportReady": "Export ready.",
     "exportFailed": "Export failed.",
+    "progress": {
+      "triage": "Triage",
+      "geo": "Geo",
+      "pattern": "Pattern",
+      "synth": "Synthesis"
+    },
+    "errors": {
+      "demoSeedFailed": "Demo dossier seed failed.",
+      "briefFailed": "Brief generation failed."
+    },
     "agents": {
       "triage": "Triage",
       "dedup": "Dedup",

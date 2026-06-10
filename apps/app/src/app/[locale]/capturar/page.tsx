@@ -14,7 +14,7 @@ import { putRecord } from "@/lib/intel/store-client";
 import { captureExtract, ragIngest } from "@/lib/api-client";
 import { ragText } from "@/lib/intel/assemble";
 import type { IntelRecord } from "@/lib/intel/schema";
-import { inferMissionIdsForText } from "@leclerc/core";
+import { DEFAULT_ANALYST_STORY, inferMissionIdsForText } from "@leclerc/core";
 
 type Phase = "idle" | "transcribing" | "extracting" | "review" | "error";
 
@@ -43,7 +43,7 @@ export default function CapturePage() {
         transcript = await inferTranscribe(mode, source, { language: ASR_LANGUAGE });
       }
       if (!isMeaningful(transcript)) {
-        setErr("Fuente vacía o sin contenido.");
+        setErr(translateKey(t, DEFAULT_ANALYST_STORY.errors.emptySourceKey));
         setPhase("error");
         return;
       }
@@ -56,7 +56,7 @@ export default function CapturePage() {
       setDraft(record);
       setPhase("review");
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "fallo de inferencia");
+      setErr(e instanceof Error ? e.message : translateKey(t, DEFAULT_ANALYST_STORY.errors.inferenceFailedKey));
       setPhase("error");
     }
   }
@@ -83,7 +83,7 @@ export default function CapturePage() {
       ]).catch(() => {});
       router.push(`/${locale}/expediente/${confirmed.id}`);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "vault write failed");
+      setErr(e instanceof Error ? e.message : translateKey(t, DEFAULT_ANALYST_STORY.errors.vaultWriteFailedKey));
       setPhase("review");
     }
   }
@@ -171,6 +171,10 @@ export default function CapturePage() {
       )}
     </div>
   );
+}
+
+function translateKey(t: ReturnType<typeof useI18n>, key: string): string {
+  return (t as unknown as (value: string) => string)(key);
 }
 
 function ReviewCard({

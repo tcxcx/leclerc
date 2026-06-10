@@ -7,6 +7,7 @@ import { exportBrief, runBrief, type BriefExportFormat } from "@/lib/api-client"
 import type { IntelRecord } from "@/lib/intel/schema";
 import type { IntelBrief } from "@/lib/agents/orchestrator";
 import { ThreatChip } from "@/components/threat-chip";
+import { DEFAULT_ANALYST_STORY } from "@leclerc/core";
 
 export default function AnalysisPage() {
   const t = useI18n();
@@ -32,7 +33,7 @@ export default function AnalysisPage() {
       setRecords(nextRecords);
       setStatus(t("brief.seeded"));
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "demo seed failed");
+      setErr(e instanceof Error ? e.message : translateKey(t, DEFAULT_ANALYST_STORY.errors.demoSeedFailedKey));
     }
   }
 
@@ -55,7 +56,7 @@ export default function AnalysisPage() {
       });
       setBrief(b);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "brief failed");
+      setErr(e instanceof Error ? e.message : translateKey(t, DEFAULT_ANALYST_STORY.errors.briefFailedKey));
     } finally {
       setRunning(false);
     }
@@ -126,9 +127,9 @@ export default function AnalysisPage() {
           </p>
           {running && (
             <div className="grid grid-cols-4 gap-1 text-center text-caption text-on-surface-variant">
-              {["triage", "geo", "pattern", "synth"].map((agent) => (
-                <span key={agent} className="rounded-full bg-surface-container px-2 py-1">
-                  {agent}
+              {DEFAULT_ANALYST_STORY.progressSteps.map((step) => (
+                <span key={step.id} className="rounded-full bg-surface-container px-2 py-1">
+                  {translateKey(t, step.labelKey)}
                 </span>
               ))}
             </div>
@@ -268,4 +269,8 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
       {children}
     </section>
   );
+}
+
+function translateKey(t: ReturnType<typeof useI18n>, key: string): string {
+  return (t as unknown as (value: string) => string)(key);
 }
