@@ -14,4 +14,5 @@ export * from "./rpc";
 export * from "./surfaces";
 export * from "./tool-router";
 export * from "./voice";
+export * from "./wallet-tool-stories";
 export * from "./wallet-networks";

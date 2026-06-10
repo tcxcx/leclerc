@@ -7,6 +7,13 @@ import {
   listLeclercTransferAssetsForChain,
   type LeclercAssetId,
 } from "@leclerc/transfer-core";
+import {
+  walletAgentToolDescriptor,
+  walletAgentToolDescriptors,
+  walletAmountDescription,
+  walletSwapBlockedReason,
+  type WalletAgentToolName,
+} from "@leclerc/core";
 import { balances } from "@leclerc/wallet";
 import { proposeTransfer } from "@leclerc/transfers";
 
@@ -21,17 +28,17 @@ const sendSchema = z.object({
   seed: z.string().min(1),
   assetId: z.enum(SENDABLE_ASSETS),
   recipient: z.string().min(1),
-  amount: z.string().min(1).describe("Decimal amount, not atomic units."),
+  amount: z.string().min(1).describe(walletAmountDescription()),
 });
 
 const swapSchema = z.object({
   seed: z.string().min(1),
   fromAssetId: z.enum(["usdc", "eurc", "mxnb", "qcad", "audf", "jpyc", "cirbtc"]),
   toAssetId: z.enum(["usdc", "eurc", "mxnb", "qcad", "audf", "jpyc", "cirbtc"]),
-  amount: z.string().min(1).describe("Decimal amount, not atomic units."),
+  amount: z.string().min(1).describe(walletAmountDescription()),
 });
 
-export type WalletAgentToolName = "wallet_balances" | "wallet_send" | "wallet_swap";
+export type { WalletAgentToolName } from "@leclerc/core";
 
 export const WALLET_AGENT_TOOL_NAMES = [
   "wallet_balances",
@@ -40,23 +47,11 @@ export const WALLET_AGENT_TOOL_NAMES = [
 ] as const satisfies readonly WalletAgentToolName[];
 
 export function walletAgentToolDefs() {
-  return [
-    {
-      name: "wallet_balances",
-      description: "Read catalog-backed WDK wallet balances for the local wallet.",
-      schema: balanceSchema,
-    },
-    {
-      name: "wallet_send",
-      description: "Propose an Arc Testnet EVM token transfer. Confirmation is required before execution.",
-      schema: sendSchema,
-    },
-    {
-      name: "wallet_swap",
-      description: "Prepare a local wallet swap intent. Execution is blocked until a verified venue is wired.",
-      schema: swapSchema,
-    },
-  ];
+  return walletAgentToolDescriptors().map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    schema: walletAgentSchema(tool.name),
+  }));
 }
 
 export function createWalletMcpServer() {
@@ -74,31 +69,34 @@ export function createWalletMcpServer() {
     cb: (args: Record<string, unknown>) => Promise<ReturnType<typeof textResult>>,
   ) => unknown;
 
+  const balancesTool = walletAgentToolDescriptor("wallet_balances");
   registerTool(
-    "wallet_balances",
+    balancesTool.name,
     {
-      title: "Wallet balances",
-      description: "Read catalog-backed WDK wallet balances.",
+      title: balancesTool.title,
+      description: balancesTool.mcpDescription,
       inputSchema: balanceSchema.shape,
     },
     async (args) => textResult(await callWalletAgentTool("wallet_balances", args)),
   );
 
+  const sendTool = walletAgentToolDescriptor("wallet_send");
   registerTool(
-    "wallet_send",
+    sendTool.name,
     {
-      title: "Wallet send",
-      description: "Submit an Arc Testnet EVM token transfer through WDK.",
+      title: sendTool.title,
+      description: sendTool.mcpDescription,
       inputSchema: sendSchema.shape,
     },
     async (args) => textResult(await callWalletAgentTool("wallet_send", args)),
   );
 
+  const swapTool = walletAgentToolDescriptor("wallet_swap");
   registerTool(
-    "wallet_swap",
+    swapTool.name,
     {
-      title: "Wallet swap intent",
-      description: "Prepare a swap intent; execution is blocked until venue wiring is verified.",
+      title: swapTool.title,
+      description: swapTool.mcpDescription,
       inputSchema: swapSchema.shape,
     },
     async (args) => textResult(await callWalletAgentTool("wallet_swap", args)),
@@ -133,7 +131,7 @@ export async function callWalletAgentTool(name: WalletAgentToolName, args: unkno
       const parsed = swapSchema.parse(args);
       return {
         status: "blocked",
-        reason: "No verified Arc Testnet swap venue has been wired into LeClerc yet.",
+        reason: walletSwapBlockedReason(),
         intent: {
           fromAssetId: parsed.fromAssetId,
           toAssetId: parsed.toAssetId,
@@ -143,6 +141,17 @@ export async function callWalletAgentTool(name: WalletAgentToolName, args: unkno
         availableAssets: listLeclercTransferAssetsForChain(TESTNET_CHAIN_ID).map((asset) => asset.id),
       };
     }
+  }
+}
+
+function walletAgentSchema(name: WalletAgentToolName) {
+  switch (name) {
+    case "wallet_balances":
+      return balanceSchema;
+    case "wallet_send":
+      return sendSchema;
+    case "wallet_swap":
+      return swapSchema;
   }
 }
 

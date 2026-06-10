@@ -4,7 +4,7 @@ import { z } from "zod";
 import type { IntelRecord } from "@/lib/intel/schema";
 import { ragQuery, type RagHit } from "@repo/qvacs";
 import { RAG_WORKSPACE, loadEmbed } from "@/lib/qvac/server";
-import { missionMatchesMeta } from "@leclerc/core";
+import { analystToolDescription, missionMatchesMeta } from "@leclerc/core";
 
 /**
  * Tool registry for the analyst desk (docs/leclerc/04). Single source of truth.
@@ -33,7 +33,7 @@ export const listRecords: ToolDef<
   { id: string; resumen: string; amenaza: string; createdAt: number }[]
 > = {
   name: "list_records",
-  description: "List dossier records, newest first, optionally filtered by threat level.",
+  description: analystToolDescription("list_records"),
   schema: z.object({
     amenaza: z.enum(["CRITICO", "ELEVADO", "RUTINARIO"]).optional(),
     limit: z.number().default(20),
@@ -52,14 +52,14 @@ export const listRecords: ToolDef<
 
 export const getRecord: ToolDef<{ id: string }, IntelRecord | null> = {
   name: "get_record",
-  description: "Fetch one dossier record by id.",
+  description: analystToolDescription("get_record"),
   schema: z.object({ id: z.string() }),
   handler: async (a, ctx) => ctx.records.find((r) => r.id === a.id) ?? null,
 };
 
 export const ragSearchTool: ToolDef<{ query: string; k?: number }, RagHit[]> = {
   name: "rag_search",
-  description: "Semantic search across the dossier. Returns excerpts + record ids.",
+  description: analystToolDescription("rag_search"),
   schema: z.object({ query: z.string(), k: z.number().default(6) }),
   handler: async (a, ctx) => {
     const embed = await loadEmbed();
@@ -74,7 +74,7 @@ export const extractLocations: ToolDef<
   { lugar: string; registros: string[] }[]
 > = {
   name: "extract_locations",
-  description: "Aggregate geo entities mentioned across records.",
+  description: analystToolDescription("extract_locations"),
   schema: z.object({ query: z.string().optional() }),
   handler: async (_a, ctx) => {
     const map = new Map<string, Set<string>>();

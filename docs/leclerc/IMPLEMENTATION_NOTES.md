@@ -1146,6 +1146,55 @@ these client labels reliably in the initial HTML.
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
 
+## STATUS 2026-06-10 analyst/wallet tool descriptor stories
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Extended `packages/core/src/analyst-stories.ts` with analyst tool descriptor
+  copy for `list_records`, `get_record`, `rag_search`, and
+  `extract_locations`.
+- Rewired both analyst tool registries (`apps/app/src/lib/agents/tools.ts` and
+  `packages/core/src/agents.ts`) so descriptions derive from
+  `analystToolDescription()` instead of local string literals.
+- Added `packages/core/src/wallet-tool-stories.ts` as the wallet agent story
+  contract for tool titles, tool descriptions, MCP descriptions, amount schema
+  copy, and the blocked swap reason.
+- Rewired `apps/app/src/lib/agents/wallet-tools.ts` so wallet tool definitions,
+  MCP registration copy, schema descriptions, and the swap blocked response use
+  the shared wallet story contract.
+- Added `@leclerc/core/wallet-tool-stories` to package exports for direct
+  consumers.
+
+### Verification
+
+```bash
+rg -n "List dossier records|Fetch one dossier|Semantic search across|Aggregate geo|Read catalog-backed WDK|Propose an Arc Testnet|Prepare a local wallet|Wallet balances|Wallet send|Wallet swap intent|No verified Arc Testnet swap venue|Decimal amount, not atomic units" apps/app/src/lib/agents packages/core/src -g '*.ts'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+cd packages/core && bun -e 'import { analystToolDescription, walletAgentToolDescriptors, walletAgentToolDescriptor, walletAmountDescription, walletSwapBlockedReason } from "./src/index.ts"; console.log(JSON.stringify({list: analystToolDescription("list_records"), wallet: walletAgentToolDescriptors().map((t)=>({name:t.name,title:t.title})), send: walletAgentToolDescriptor("wallet_send").description, amount: walletAmountDescription(), reason: walletSwapBlockedReason()}));'
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+```
+
+Results: all typecheck/lint/build commands exited 0. The exact-phrase grep now
+returns those descriptors only in `packages/core/src/analyst-stories.ts` and
+`packages/core/src/wallet-tool-stories.ts`, proving the app/local registries no
+longer own the copy. The core smoke returned analyst and wallet descriptors,
+the decimal amount schema description, and the blocked swap reason from the
+shared story contracts.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
+
 ## STATUS 2026-06-10 analyst runtime/report story copy
 
 Branch: `feat/leclerc-scaffold`

@@ -5,6 +5,7 @@ import {
   assistantGreetingKey,
   type AssistantStarterChipStory,
 } from "./assistant-stories";
+import { analystToolDescription } from "./analyst-stories";
 
 export type { Locale };
 
@@ -60,7 +61,7 @@ export interface CoreToolContract {
 export const ANALYST_TOOL_CONTRACTS: CoreToolContract[] = [
   {
     name: "list_records",
-    description: "List dossier records, newest first, optionally filtered by threat level.",
+    description: analystToolDescription("list_records"),
     sideEffect: "read",
     inputSchema: {
       type: "object",
@@ -73,7 +74,7 @@ export const ANALYST_TOOL_CONTRACTS: CoreToolContract[] = [
   },
   {
     name: "get_record",
-    description: "Fetch one dossier record by id.",
+    description: analystToolDescription("get_record"),
     sideEffect: "read",
     inputSchema: {
       type: "object",
@@ -84,7 +85,7 @@ export const ANALYST_TOOL_CONTRACTS: CoreToolContract[] = [
   },
   {
     name: "rag_search",
-    description: "Semantic search across the dossier. Returns excerpts plus record ids.",
+    description: analystToolDescription("rag_search"),
     sideEffect: "read",
     inputSchema: {
       type: "object",
@@ -95,7 +96,7 @@ export const ANALYST_TOOL_CONTRACTS: CoreToolContract[] = [
   },
   {
     name: "extract_locations",
-    description: "Aggregate geo entities mentioned across records.",
+    description: analystToolDescription("extract_locations"),
     sideEffect: "read",
     inputSchema: {
       type: "object",

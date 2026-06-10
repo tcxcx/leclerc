@@ -44,11 +44,19 @@ export interface AnalystRuntimeCopy {
   };
 }
 
+export type AnalystToolName = "list_records" | "get_record" | "rag_search" | "extract_locations";
+
+export interface AnalystToolDescriptor {
+  name: AnalystToolName;
+  description: string;
+}
+
 export interface AnalystStory {
   id: string;
   progressSteps: AnalystProgressStep[];
   reportLabels: Record<Locale, AnalystReportLabels>;
   runtimeCopy: Record<Locale, AnalystRuntimeCopy>;
+  toolDescriptions: Record<AnalystToolName, string>;
   errors: {
     demoSeedFailedKey: string;
     briefFailedKey: string;
@@ -165,6 +173,12 @@ export const DEFAULT_ANALYST_STORY: AnalystStory = {
       },
     },
   },
+  toolDescriptions: {
+    list_records: "List dossier records, newest first, optionally filtered by threat level.",
+    get_record: "Fetch one dossier record by id.",
+    rag_search: "Semantic search across the dossier. Returns excerpts + record ids.",
+    extract_locations: "Aggregate geo entities mentioned across records.",
+  },
   errors: {
     demoSeedFailedKey: "brief.errors.demoSeedFailed",
     briefFailedKey: "brief.errors.briefFailed",
@@ -187,6 +201,20 @@ export function analystRuntimeCopy(
   story: AnalystStory = DEFAULT_ANALYST_STORY,
 ): AnalystRuntimeCopy {
   return story.runtimeCopy[locale];
+}
+
+export function analystToolDescription(
+  name: AnalystToolName,
+  story: AnalystStory = DEFAULT_ANALYST_STORY,
+): string {
+  return story.toolDescriptions[name];
+}
+
+export function analystToolDescriptors(story: AnalystStory = DEFAULT_ANALYST_STORY): AnalystToolDescriptor[] {
+  return (Object.entries(story.toolDescriptions) as [AnalystToolName, string][]).map(([name, description]) => ({
+    name,
+    description,
+  }));
 }
 
 export function countNote(count: number, label: string): string {
