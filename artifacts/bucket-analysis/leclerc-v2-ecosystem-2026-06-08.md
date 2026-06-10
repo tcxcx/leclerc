@@ -25,12 +25,12 @@ yellow/Ignyte accent.
 | B3 | Capture, encrypted dossier, wipe | 89% | Finance and intel demo seeds plus intel extraction prompt/defaults now come from dedicated story fixtures/contracts instead of app-local copy. |
 | B4 | Analyst desk + brief export | 83% | Analyst progress, fallback copy, runtime prompt copy, tool-log notes, export labels, and tool descriptors now come from a shared analyst story; true QVAC tool-call loop still TODO. |
 | B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
-| B6 | P2P delegation + dead-drop | 81% | Ops console links missions to dead-drop intent; Link funding/drop notification payloads now persist into the ops notification feed; two-peer delegation proof still missing. |
+| B6 | P2P delegation + dead-drop | 82% | Ops console links missions to dead-drop intent; Link funding/drop notification payloads persist into the ops notification feed; station delegate smoke prompt is story-owned; two-peer delegation proof still missing. |
 | B7 | WDK wallet + network-token selector | 86% | Rain card and mission-funding configs now derive from shared catalogs; wallet/card/station failures, native selector state, and wallet-agent tool copy use stable network-token/story contracts. |
-| B8 | Monorepo ecosystem: PWA + desktop + mobile | 78% | Shared ops-console, ops-network, mission-story, wallet selector, assistant-story, analyst-story, wallet-tool-story, RAG-story, and intel-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, and SPY presets. Native adapters still missing. |
+| B8 | Monorepo ecosystem: PWA + desktop + mobile | 79% | Shared ops-console, ops-network, mission-story, wallet selector, assistant-story, analyst-story, wallet-tool-story, RAG-story, intel-story, and station-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, and SPY presets. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 90% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents. Native design mirror still missing. |
 | B10 | EN/ES localization | 99% | Operations story labels, notification copy, error/status states, Link protocol event/status labels, console assistant copy, voice/settings/SPY fallback copy, analyst/capture/dossier fallback copy, and analyst report/runtime copy are localized in EN/ES. |
-| B11 | Repro, artifacts, compliance gates | 94% | Updated status notes now track field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, Link/voice/settings/SPY i18n key coverage, RAG-story prompt verification, and intel extraction story verification. |
+| B11 | Repro, artifacts, compliance gates | 95% | Updated status notes now track field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, Link/voice/settings/SPY i18n key coverage, RAG/intel/station story prompt verification. |
 
 ## New 100% criteria for B8: monorepo ecosystem
 
@@ -102,6 +102,9 @@ yellow/Ignyte accent.
   labels use the shared RAG story contract:
   `packages/core/src/rag-stories.ts` and
   `apps/app/src/lib/rag/server.ts`.
+- ✓ P2P station delegate smoke prompt uses the shared station story contract:
+  `packages/core/src/station-stories.ts` and
+  `apps/app/src/app/api/station/route.ts`.
 - ✓ Analyst runtime prompts, tool-log notes, and PDF/DOCX export labels use the
   shared analyst story contract:
   `packages/core/src/analyst-stories.ts`,

@@ -8,6 +8,7 @@ import {
   peerAlive,
 } from "@/lib/p2p/delegate";
 import { apiError, apiErrorBody, apiErrorFromUnknown, type LeclercApiError } from "@/lib/api-errors";
+import { stationDelegateTestPrompt } from "@leclerc/core";
 
 export const runtime = "nodejs";
 
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
       case "delegateTest": {
         const provider = body.peer?.trim() || (await startStation()).publicKey;
         const text = await delegateCompletion(provider, QWEN3_1_7B_INST_Q4, [
-          { role: "user", content: "Responde exactamente: enlace operativo listo" },
+          { role: "user", content: stationDelegateTestPrompt() },
         ]);
         return NextResponse.json({ providerPublicKey: provider, text });
       }

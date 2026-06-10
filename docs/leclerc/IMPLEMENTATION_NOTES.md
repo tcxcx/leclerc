@@ -1144,6 +1144,43 @@ these client labels reliably in the initial HTML.
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
 
+## STATUS 2026-06-10 station delegate story copy
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/station-stories.ts` as the dedicated P2P station
+  story contract for the delegate-completion smoke prompt.
+- Rewired `/api/station` `delegateTest` so the provider probe prompt comes from
+  `stationDelegateTestPrompt()` instead of an app-route string literal.
+- Added `@leclerc/core/station-stories` to package exports for direct
+  consumers.
+
+### Verification
+
+```bash
+rg -n "Responde exactamente: enlace operativo listo|p2p-station-delegate-smoke|stationDelegateTestPrompt" apps/app/src/app/api/station packages/core/src -g '*.ts'
+bun -e 'import { DEFAULT_STATION_STORY, stationDelegateTestPrompt } from "./packages/core/src/index.ts"; console.log(JSON.stringify({story:DEFAULT_STATION_STORY.id,prompt:stationDelegateTestPrompt()})); if (!stationDelegateTestPrompt().includes("enlace operativo listo")) process.exit(1);'
+bun --filter @leclerc/core typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+```
+
+Results: all typecheck/lint/build commands exited 0. The exact-string grep
+shows the delegate smoke phrase only in the core station story, and the route
+now references `stationDelegateTestPrompt()`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
+
 ## STATUS 2026-06-10 intel extraction story copy
 
 Branch: `feat/leclerc-scaffold`
