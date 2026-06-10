@@ -3,6 +3,7 @@ export * from "./analyst-stories";
 export * from "./assistant-stories";
 export * from "./finance";
 export * from "./intel";
+export * from "./intel-stories";
 export * from "./landing";
 export * from "./mission-dossier";
 export * from "./ops-network";

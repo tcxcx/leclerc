@@ -1144,6 +1144,49 @@ these client labels reliably in the initial HTML.
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
 
+## STATUS 2026-06-10 intel extraction story copy
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/intel-stories.ts` as the dedicated field-intel
+  extraction story contract for system prompt lines, user-message labels, date
+  labels, default extraction shape, and draft status.
+- Rewired `packages/core/src/intel.ts` so `SYSTEM_PROMPT`,
+  `emptyExtraction()`, `longDate()`, `buildExtractionUserMessage()`, and
+  `buildRecord()` derive deterministic copy/defaults from the story contract.
+- Replaced `apps/app/src/lib/intel/assemble.ts` with a thin compatibility
+  wrapper over the core helpers, preserving the existing capture API imports
+  while removing duplicated app-local prompt/date/default-extraction copy.
+- Added `@leclerc/core/intel-stories` to package exports for direct consumers.
+
+### Verification
+
+```bash
+rg -n "Convierte la fuente|Regla absoluta|Responde en el idioma|Fecha del registro|Fuente:|enero|domingo|BORRADOR" apps/app/src/lib/intel packages/core/src -g '*.ts'
+bun -e 'import { DEFAULT_INTEL_EXTRACTION_STORY, SYSTEM_PROMPT, buildExtractionUserMessage, buildRecord, emptyExtraction, intelExtractionSystemPrompt, recordToRagText } from "./packages/core/src/index.ts"; const extraction=emptyExtraction(); const record=buildRecord("source", extraction, {kind:"observacion", sector:null, capturedAt:0, durationMs:null, locale:"es"}, {id:"record-test", createdAt:1}); console.log(JSON.stringify({story:DEFAULT_INTEL_EXTRACTION_STORY.id,prompt:SYSTEM_PROMPT.includes("Campos:"),same:SYSTEM_PROMPT===intelExtractionSystemPrompt(),user:buildExtractionUserMessage("fuente",0).split("\n").slice(0,3),status:record.estado,rag:recordToRagText(record)})); if (record.estado!=="BORRADOR") process.exit(1);'
+bun --filter @leclerc/core typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+```
+
+Results: all typecheck/lint/build commands exited 0. The exact-string grep
+showed the moved intel extraction copy only in `packages/core/src/intel-stories.ts`
+or stable enum/type definitions, not in the app assemble wrapper. The core smoke
+returned `faithful-field-intel-extraction`, proved the exported prompt matches
+the story prompt, and built a draft record with story-backed status/defaults.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
+
 ## STATUS 2026-06-10 RAG answer story copy
 
 Branch: `feat/leclerc-scaffold`

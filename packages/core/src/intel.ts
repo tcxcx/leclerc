@@ -1,3 +1,11 @@
+import {
+  DEFAULT_INTEL_EXTRACTION_STORY,
+  intelDateLabels,
+  intelEmptyExtraction,
+  intelExtractionSystemPrompt,
+  intelUserMessageLabels,
+} from "./intel-stories";
+
 export type Locale = "es" | "en";
 export type ThreatLevel = "CRITICO" | "ELEVADO" | "RUTINARIO";
 export type RecordKind = "observacion" | "contacto" | "documento" | "incidente";
@@ -106,27 +114,10 @@ export const EXTRACTION_JSON_SCHEMA: Record<string, unknown> = {
   additionalProperties: false,
 };
 
-export const SYSTEM_PROMPT = [
-  "Convierte la fuente en una ficha de inteligencia estructurada.",
-  "Regla absoluta: extrae EXCLUSIVAMENTE lo que aparece en la fuente. No inventes datos, nombres, lugares, fechas ni evaluaciones.",
-  "Si un campo no se menciona, deja \"\" o [].",
-  "Si la fuente es una prueba o no contiene informacion operativa, dilo en el resumen y deja el resto vacio.",
-  "Responde en el idioma de la fuente. /no_think",
-].join("\n");
+export const SYSTEM_PROMPT = intelExtractionSystemPrompt();
 
 export function emptyExtraction(): IntelExtraction {
-  return {
-    resumen: "",
-    amenaza: "RUTINARIO",
-    entidades: { personas: [], organizaciones: [], lugares: [], fechas: [] },
-    accionesPendientes: [],
-    datos: {
-      sujeto: { alias: "", descripcion: "", afiliacion: "" },
-      ubicacion: { lugar: "", coordenadas: "", contexto: "" },
-      evaluacion: { fiabilidad: "", corroboracion: "", riesgos: [] },
-      narrativa: "",
-    },
-  };
+  return intelEmptyExtraction();
 }
 
 export function mergeExtraction(extraction: Partial<IntelExtraction> | undefined): IntelExtraction {
@@ -146,26 +137,10 @@ export function mergeExtraction(extraction: Partial<IntelExtraction> | undefined
   };
 }
 
-const MONTHS = [
-  "enero",
-  "febrero",
-  "marzo",
-  "abril",
-  "mayo",
-  "junio",
-  "julio",
-  "agosto",
-  "septiembre",
-  "octubre",
-  "noviembre",
-  "diciembre",
-] as const;
-
-const DAYS = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"] as const;
-
 export function longDate(ms: number): string {
   const date = new Date(ms);
-  return `${DAYS[date.getDay()]}, ${date.getDate()} de ${MONTHS[date.getMonth()]} de ${date.getFullYear()}`;
+  const labels = intelDateLabels();
+  return `${labels.days[date.getDay()]}, ${date.getDate()} de ${labels.months[date.getMonth()]} de ${date.getFullYear()}`;
 }
 
 const BLANK_PATTERNS = ["[no speech detected]", "[blank_audio]", "[silence]"];
@@ -179,7 +154,8 @@ export function isMeaningfulText(text: string): boolean {
 }
 
 export function buildExtractionUserMessage(source: string, capturedAt: number): string {
-  return `Fecha del registro: ${longDate(capturedAt)}.\n\nFuente:\n${source}`;
+  const labels = intelUserMessageLabels();
+  return `${labels.recordDate}: ${longDate(capturedAt)}.\n\n${labels.source}:\n${source}`;
 }
 
 export function recordToRagText(record: IntelRecord): string {
@@ -226,7 +202,7 @@ export function buildRecord(
     accionesPendientes: merged.accionesPendientes,
     datos: merged.datos,
     metadatos: metadata,
-    estado: "BORRADOR",
+    estado: DEFAULT_INTEL_EXTRACTION_STORY.draftStatus,
     createdAt: options.createdAt ?? Date.now(),
   };
 }
