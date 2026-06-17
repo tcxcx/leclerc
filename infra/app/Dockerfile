@@ -43,7 +43,11 @@ RUN apt-get update \
 # OOM-killed the shared builder); start Next with plain node instead.
 COPY --from=builder /app /app
 
-ENV NODE_ENV=production REGISTRY_STORAGE=/data/qvac
+# Persist models on the mounted volume: the in-process @qvac/sdk caches models
+# under $HOME/.qvac/models (NOT REGISTRY_STORAGE), so point HOME at /data. The
+# volume mounts over /data at runtime, so ~/.qvac/models survives restarts and
+# the ~1.5GB+ download happens once, not every cold start.
+ENV NODE_ENV=production HOME=/data REGISTRY_STORAGE=/data/qvac
 RUN mkdir -p /data/qvac
 
 EXPOSE 7001

@@ -165,13 +165,19 @@ docs/leclerc/       Product, architecture, design, and overnight build brief
 artifacts/          Smoke logs, screenshots, profiler data, export proof
 ```
 
-## Current Partials
+## Known limitations
 
-- Live document OCR requires `LECLERC_OCR_SRC`.
-- Translate requires `LECLERC_TRANSLATE_SRC`.
-- MedPsy requires `LECLERC_MEDPSY_SRC`.
-- P2P delegated completion needs a second DHT-reachable provider process/device;
-  the encrypted dead-drop path is proven.
-- Desktop and mobile shells compile as scaffolds and share `@leclerc/core`, but
-  the native QVAC/WDK/Hyperswarm adapter plus Electron/Pear and Expo/Bare
-  runtime dependencies are not vendored yet.
+MedPsy ("Our Psy" track) now runs by default: the analyst desk's medic agent
+loads QVAC's MedGemma-4B (`MEDGEMMA_4B_IT_Q4_1`, override via `LECLERC_MEDPSY_SRC`).
+
+Remaining, by design:
+
+- **Document OCR + translate** are wired behind `/api/document` but gated on a
+  QVAC OCR model source. QVAC's OCR moved to a multimodal projector
+  (`MMPROJ_OCR_0_6B`); set `LECLERC_OCR_SRC` to enable. Translate reuses an LLM
+  when `LECLERC_TRANSLATE_MODEL_TYPE=llm`, else needs `LECLERC_TRANSLATE_SRC`.
+- **P2P delegated completion** needs a second DHT-reachable provider device; the
+  encrypted dead-drop path is proven between two clients.
+- **Desktop/mobile shells** (Pear+Electron, Expo+Bare) compile and share
+  `@leclerc/core`, but the native QVAC/WDK/Hyperswarm adapter and native runtime
+  deps are not vendored — these are native targets, not part of the web deploy.
