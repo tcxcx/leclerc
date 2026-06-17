@@ -8,9 +8,11 @@
 # ---- builder: toolchain + full install + next build (discarded after) ----
 FROM node:22-bookworm-slim AS builder
 WORKDIR /app
+# No compiler toolchain: @qvac ships linux-x64 prebuilds (the QVAC server image
+# installs none either), so bun install just downloads binaries — far less peak
+# memory than a from-source build (which was OOM-killing the shared builder).
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends \
-     ca-certificates curl git python3 build-essential cmake \
+  && apt-get install -y --no-install-recommends ca-certificates curl git \
   && rm -rf /var/lib/apt/lists/*
 RUN npm i -g bun@1.3.10
 COPY . .
@@ -32,13 +34,17 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends \
      libatomic1 libgomp1 libvulkan1 mesa-vulkan-drivers ffmpeg ca-certificates \
   && rm -rf /var/lib/apt/lists/*
-RUN npm i -g bun@1.3.10
 
 # Built app + node_modules (native @qvac addons intact) from the builder stage.
+# No bun in the runtime stage (it added concurrent build-memory pressure that
+# OOM-killed the shared builder); start Next with plain node instead.
 COPY --from=builder /app /app
 
 ENV NODE_ENV=production REGISTRY_STORAGE=/data/qvac
 RUN mkdir -p /data/qvac
 
 EXPOSE 7001
-CMD sh -c 'cd apps/app && bunx next start -p "${PORT:-7001}" -H 0.0.0.0'
+# npm (bundled with the node base) resolves the `next` bin from any ancestor
+# node_modules/.bin regardless of bun's hoisting. The app's start script binds
+# 7001, matching fly.toml internal_port — no $PORT juggling needed.
+CMD sh -c 'cd apps/app && npm run start'
