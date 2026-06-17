@@ -63,8 +63,17 @@ also a wallet agent with MCP/x402 tool access.
 | Field | Value |
 |---|---|
 | GitHub repo | `https://github.com/tcxcx/leclerc` |
-| Project website (optional) | *(leave blank, or a Vercel landing URL if deployed)* |
+| Project website | `https://leclerc-intel.vercel.app` |
 | Demo video (required) | *(paste YouTube link after recording — see DEMO_SCRIPT)* |
+
+**Live deployment note.** `leclerc-intel.vercel.app` is the PWA running in *online*
+mode: the browser falls back from a local `qvac serve` to the same-origin
+`/api/qvac` proxy, which forwards to an operator-controlled QVAC station on
+Railway. So the live link does **real QVAC inference** (chat, capture extraction,
+transcription) with no third-party model API. The SDK-only features (multi-agent
+RAG brief, P2P delegation/dead-drop, WDK wallet) and the true *offline* story run
+locally per the README — that's the point of local-first. Mirror aliases:
+`leclerc-station`, `leclerc-field`, `leclerc-app` `.vercel.app`.
 
 ## Social links (at least one)
 
