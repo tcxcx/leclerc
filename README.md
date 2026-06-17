@@ -92,6 +92,64 @@ grep -rE "huggingface|openai|anthropic|@google/gen|langchain|chromadb|pinecone" 
 
 It should return no matches.
 
+## Reproducibility & hardware
+
+**Run locally (fast, full feature set — recommended for judging):**
+
+```bash
+bun install
+cp apps/app/.env.example apps/app/.env.local   # fill only the optional vars you want
+bun run dev:qvac     # terminal 1 — PWA + local QVAC station → http://localhost:7001/es
+bun run voice        # terminal 2 — voice WS service
+```
+
+Proofs / gates:
+
+```bash
+cd apps/app && bunx tsc --noEmit
+grep -rE "huggingface|openai|anthropic|@google/gen|langchain|chromadb|pinecone" apps packages services   # QVAC-only → no matches
+bun run qvac:artifacts     # regenerates the structured audit log (model load + TTFT/tokens-sec)
+bun run wallet:smoke       # WDK testnet (skips live pay unless an invoice is set)
+```
+
+**Hosted (no install):** [`leclerc-intel.vercel.app`](https://leclerc-intel.vercel.app)
+— UI + QVAC chat/transcribe/capture via the station proxy. The full server-side
+feature set (RAG, multi-agent brief, wallet) runs on the Fly deployment
+(`leclerc-app.fly.dev`), which executes the native `@qvac/sdk` in-process.
+
+**Devices used in the demo:**
+
+| Device / role | CPU | GPU | RAM | Storage | OS / runtime |
+|---|---|---|---|---|---|
+| **Station laptop** — primary inference, artifact capture, fast demo | Apple M4 Pro, 14-core (10P + 4E) | Apple M4 Pro, 20-core, Metal 3 | 48 GB unified | Internal NVMe SSD; model cache `~/.qvac/models` ≈ 4–6 GB | macOS 15.7.1 (Mac16,8), Node v23.11.0, Bun 1.3.10 — `backendDevice: gpu` |
+| **Cloud QVAC station (Railway)** — powers the Vercel link's `/api/qvac` proxy | Linux x64 container, shared vCPU, CPU-only (software Vulkan / lavapipe) | none | ~8 GB container | Persistent volume; model cache (whisper-base, llama-1b, qwen3-1.7b) | `qvac serve` OpenAI-compatible; ≈ 3.4 tok/s |
+| **Cloud app server (Fly.io)** — full app online, in-process `@qvac/sdk` | shared-cpu-4x (4 vCPU), CPU-only (software Vulkan) | none | 8 GB | 8 GB persistent volume `/data` (model cache), region `ord` | Debian bookworm, Node 22; runs RAG/brief/wallet server-side |
+| **Demo client (PWA)** — phone used to record the video | _fill: handset chip_ | — | _fill_ | — | mobile browser, portrait ≤480px (installable PWA) |
+
+Models (≤32 GiB target): Qwen3 0.6B–1.7B Q4 (LLM/agents), Whisper (ASR),
+EmbeddingGemma 300M (RAG); optional OCR / translation / MedPsy. The reproducible
+audit run uses Qwen3-0.6B-Q4. Fill the phone row with the exact handset you
+record on (model, chip, RAM).
+
+## Remote APIs
+
+LeClerc is local-first: **all AI inference and RAG go through QVAC** — no
+third-party model API and no external vector database in the judged path (the
+compliance grep above returns no matches). Full structured reference:
+[`docs/leclerc/REMOTE_APIS.md`](docs/leclerc/REMOTE_APIS.md). Every variable is
+documented in `apps/app/.env.example`.
+
+| Remote API | Purpose | Who runs it | Auth | Callers |
+|---|---|---|---|---|
+| **QVAC station** (OpenAI-compatible HTTP) | All HTTP inference: `/v1/chat/completions`, `/v1/audio/transcriptions`, `/v1/models` | The operator — local `qvac serve`, else `QVAC_BASE_URL` (Railway/Fly box), optional `QVAC_NGROK_URL` | `Bearer QVAC_API_KEY` (injected server-side; never in the browser bundle) | browser `lib/qvac/client.ts` → same-origin `/api/qvac` proxy |
+| **QVAC native SDK** (in-process, no HTTP) | `completion`, `embed`, `rag*` (HyperDB), `ocr`, `translate`, `textToSpeech`, profiler/logging | In-process on the station / Fly app server | n/a (local) | `@repo/qvacs` → server Route Handlers |
+| **Tether WDK** indexer + EVM RPC | Self-custodial wallet: balances + broadcast (Spark/Lightning, EVM USDT) | `WDK_INDEXER_BASE_URL` (`wdk-api.tether.io`), `EVM_RPC_URL` | optional key; `SPARK_NETWORK=TESTNET` enforced | `/api/wallet` |
+| **Circle / Rain** (optional, off by default) | Fund an agent card with USDC (testnet) | Circle API | `CIRCLE_*` | `/api/rain-cards` |
+| **Google Fonts** | UI web fonts (no data sent) | fonts.googleapis.com | none | root layout |
+
+**Not used:** ❌ third-party LLM/model APIs (OpenAI, Anthropic, Google, HF) · ❌
+external/hosted vector database · ❌ analytics or telemetry in the judged path.
+
 ## Repository
 
 ```text
