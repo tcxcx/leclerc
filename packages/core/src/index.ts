@@ -1,6 +1,7 @@
 export * from "./agents";
 export * from "./analyst-stories";
 export * from "./assistant-stories";
+export * from "./brand-stories";
 export * from "./finance";
 export * from "./intel";
 export * from "./intel-stories";

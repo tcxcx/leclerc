@@ -7,6 +7,7 @@
     ".": "./src/index.ts",
     "./agents": "./src/agents.ts",
     "./analyst-stories": "./src/analyst-stories.ts",
+    "./brand-stories": "./src/brand-stories.ts",
     "./asset-catalog": "./src/asset-catalog.ts",
     "./finance": "./src/finance.ts",
     "./intel": "./src/intel.ts",
