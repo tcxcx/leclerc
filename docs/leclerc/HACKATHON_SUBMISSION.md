@@ -187,15 +187,29 @@ Profiler proof uses the small reproducible Qwen3-600M-Q4 run.
 
 One Bun monorepo ships a **Next.js 16 PWA** (the judged surface) plus scaffolded
 **desktop** (Pear + Electron) and **mobile** (Expo + Bare) shells over a shared
-`@leclerc/core`. Smoke logs, screenshots, profiler/logging exports, and PDF/DOCX
-output live under `artifacts/`. Bilingual **EN / ES** via locale middleware.
+`@leclerc/core`. Smoke logs, screenshots, QVAC profiler + logging-stream exports,
+hardware capture, and PDF/DOCX output live under `artifacts/`. Bilingual
+**EN / ES** via locale middleware.
 
-**Proven:** voice loop, finance cards, capture → encrypted dossier → RAG recall,
-multi-agent brief + export, WDK testnet wallet (with a guarded live-payment
-smoke), and an encrypted Hyperswarm dead-drop between two clients.
-**Partial / wired:** live OCR/translate/MedPsy (need local model sources); P2P
-delegated completion (needs a second DHT-reachable provider to fully prove);
-native shells compile and smoke to the expected `missing-adapter` state.
+**Proven (local run, artifact-backed):** voice loop; finance cards; capture →
+structured intel card → encrypted dossier → QVAC RAG recall with citations;
+multi-agent analyst brief with PDF/DOCX export; Tether WDK testnet wallet with a
+guarded live-payment smoke; encrypted Hyperswarm dead-drop between two clients;
+QVAC profiler/logging audit (model load + per-call TTFT/tokens-sec).
+
+**Proven online (hosted link `leclerc-intel.vercel.app`):** full UI across all
+routes; QVAC chat, transcription, and **capture → intel card** via the same-origin
+`/api/qvac` proxy to an operator-controlled station (no third-party model API).
+Extraction is ~60–90s on the shared CPU station, near-instant on a local
+`qvac serve`.
+
+**Partial / wired:** OCR, translation, and MedPsy are wired and gated on local
+model sources (`LECLERC_OCR_SRC` / `LECLERC_TRANSLATE_SRC` / `LECLERC_MEDPSY_SRC`);
+P2P delegated completion is wired and needs a second DHT-reachable provider to
+fully prove; desktop/mobile shells compile and smoke to the expected
+`missing-adapter` state. These heavy paths use the native `@qvac/sdk` (llama.cpp,
+HyperDB RAG, Holepunch, WDK) and run on the operative's machine or a trusted
+station — local-first by design, not on Vercel serverless.
 
 ### Run it
 
@@ -249,3 +263,63 @@ flat vector, lots of negative space, centered, 1:1 safe.
 **Brand palette (keep the logo on-brand):** canvas `#0a0e14` · intel/primary
 steel-blue `#5b8cff` · money/data ember-amber `#ffb95f` · text `#e6ebf5`. Two
 accents, period.
+
+---
+
+# Judging questions (answers)
+
+## Q1 — Reproducibility instructions + hardware specs for all devices
+
+**Run it (one machine, full feature set, fast):**
+
+```bash
+bun install
+cp apps/app/.env.example apps/app/.env.local   # fill only the optional vars you want
+bun run dev:qvac     # terminal 1 — PWA + local QVAC station (http://localhost:7001/es)
+bun run voice        # terminal 2 — voice WS service
+```
+
+Gates / proofs:
+
+```bash
+cd apps/app && bunx tsc --noEmit                       # typecheck
+grep -rE "huggingface|openai|anthropic|@google/gen|langchain|chromadb|pinecone" apps packages services   # QVAC-only: no matches
+bun run qvac:artifacts                                 # regenerate the audit log (Q3)
+bun run wallet:smoke                                   # WDK testnet (skips live pay unless invoice set)
+```
+
+Hosted preview (no install): `https://leclerc-intel.vercel.app` (UI + QVAC chat /
+transcribe / capture via the operator-controlled station proxy).
+
+**Devices used in the demo:**
+
+| Device / role | CPU | GPU | RAM | Storage | OS / runtime |
+|---|---|---|---|---|---|
+| Station laptop (primary inference, artifact capture) | Apple M4 Pro, 14-core (10P+4E) | Apple M4 Pro, 20-core, Metal 3 | 48 GB unified | ~1 TB SSD; model cache `~/.qvac/models` ~4–6 GB | macOS 15.7.1 (Mac16,8), Node v23.11.0, Bun 1.3.10 — `backendDevice: gpu` |
+| Cloud QVAC station (powers the hosted link) | Railway Linux x64 container, **CPU-only** (no GPU) | none | container default | container volume model cache | `qvac serve` OpenAI-compatible; ~3.4 tok/s on llama-1b (why hosted extraction is ~60–90s) |
+| Demo client (PWA) | _phone used to record the video_ | — | — | — | mobile browser, portrait ≤480px (install as PWA) |
+
+Models (≤32 GiB laptop target): Qwen3 0.6B–1.7B Q4 (LLM/agents), Whisper (ASR),
+EmbeddingGemma 300M (RAG); optional OCR / translation / MedPsy model sources.
+The reproducible profiler run uses **Qwen3-0.6B-Q4** (`QWEN3_600M_INST_Q4`).
+> Fill the phone row with the exact handset (model, chip, RAM) you record on.
+
+## Q2 — Clear structured explanation of all remote APIs?
+
+**Yes.** See [`docs/leclerc/REMOTE_APIS.md`](./REMOTE_APIS.md) — a structured table
+of every remote endpoint (QVAC station, Tether WDK indexer + EVM RPC, optional
+Circle/Rain, Google Fonts), with base URL, auth, callers, and what is explicitly
+NOT used (no third-party LLM API, no external vector DB). Every variable is also
+documented in `apps/app/.env.example`.
+
+## Q3 — Structured audit log (model loads/unloads + inference perf: prompt, tokens, TTFT, tokens/sec) for one demo run?
+
+**Yes.** See [`docs/leclerc/AUDIT_LOG.md`](./AUDIT_LOG.md). Captured via QVAC
+`profiler` + `loggingStream` + `getLoadedModelInfo` + completion `stats`;
+regenerate with `bun run qvac:artifacts`. Demo run (`artifacts/logs/m8-qvac-run-*.json`):
+
+- **Model load** (`artifacts/hardware/m8-loaded-model-info-*.json`):
+  `QWEN3_600M_INST_Q4`, `llamacpp-completion`, `loadedAt 2026-06-07T04:48:19.362Z`,
+  load TTFB 302.8 ms (profiler).
+- **Inference call**: TTFT **28.085 ms**, **246.8 tok/s**, promptTokens **62**,
+  generatedTokens **24**, `backendDevice: gpu`, plus per-token deltas.
