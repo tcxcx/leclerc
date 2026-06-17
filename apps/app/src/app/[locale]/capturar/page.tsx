@@ -5,14 +5,18 @@ import { useRouter } from "next/navigation";
 import { useI18n, useCurrentLocale } from "@/locales/client";
 import { useRecorder, type RecordingResult } from "@/lib/use-recorder";
 import { useInferenceMode } from "@/lib/inference/mode";
-import { inferTranscribe } from "@/lib/inference";
+import { inferTranscribe, inferExtract } from "@/lib/inference";
 import {
   ASR_LANGUAGE,
   isMeaningful,
+  ragText,
+  SYSTEM_PROMPT,
+  EXTRACTION_JSON_SCHEMA,
+  buildUserMessage,
+  buildRecord,
 } from "@/lib/intel/assemble";
 import { putRecord } from "@/lib/intel/store-client";
-import { captureExtract, ragIngest } from "@/lib/api-client";
-import { ragText } from "@/lib/intel/assemble";
+import { ragIngest } from "@/lib/api-client";
 import type { IntelRecord } from "@/lib/intel/schema";
 import { DEFAULT_ANALYST_STORY, inferMissionIdsForText } from "@leclerc/core";
 
@@ -50,8 +54,23 @@ export default function CapturePage() {
         return;
       }
       setPhase("extracting");
-      const { record } = await captureExtract({
-        transcript,
+      // Run structured extraction client-side through the QVAC inference router
+      // (local `qvac serve` if reachable, else the same-origin `/api/qvac`
+      // proxy). This mirrors the /api/capture Route Handler but keeps the hot
+      // path off the native @qvac/sdk, so it works on a hosted PWA too.
+      const capturedAt = Date.now();
+      const extraction = await inferExtract(
+        mode,
+        [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: buildUserMessage(transcript, capturedAt) },
+        ],
+        EXTRACTION_JSON_SCHEMA,
+      );
+      const record = buildRecord(transcript, extraction, {
+        kind: "observacion",
+        sector: null,
+        capturedAt,
         durationMs,
         locale: locale as "es" | "en",
       });
