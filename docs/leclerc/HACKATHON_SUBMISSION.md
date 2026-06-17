@@ -13,8 +13,12 @@ LeClerc
 
 ## Profile → BUIDL logo
 
-Generate at **480 × 480 px**, export **PNG** (< 2 MB). Prompt is in
-[§ Logo generation prompt](#logo-generation-prompt) below.
+**Ready to upload:** `docs/leclerc/leclerc-logo-480.png` (480×480 PNG, < 2 MB) —
+the navy-disc mark (steel-blue "L" bracket + radar arc + ember dot, field-reporter
+motif). Also wired throughout the app (favicons, PWA/Apple icons, manifest,
+in-app header). Source: `apps/app/public/leclerc-logo-full.png`. The
+[§ Logo generation prompt](#logo-generation-prompt) below is kept as a fallback if
+a clean-IP redraw is wanted.
 
 ## Profile → Category
 
@@ -66,14 +70,24 @@ also a wallet agent with MCP/x402 tool access.
 | Project website | `https://leclerc-intel.vercel.app` |
 | Demo video (required) | *(paste YouTube link after recording — see DEMO_SCRIPT)* |
 
-**Live deployment note.** `leclerc-intel.vercel.app` is the PWA running in *online*
-mode: the browser falls back from a local `qvac serve` to the same-origin
-`/api/qvac` proxy, which forwards to an operator-controlled QVAC station on
-Railway. So the live link does **real QVAC inference** (chat, capture extraction,
-transcription) with no third-party model API. The SDK-only features (multi-agent
-RAG brief, P2P delegation/dead-drop, WDK wallet) and the true *offline* story run
-locally per the README — that's the point of local-first. Mirror aliases:
-`leclerc-station`, `leclerc-field`, `leclerc-app` `.vercel.app`.
+**Live deployment note (tested with browser QA).** `leclerc-intel.vercel.app` is
+the PWA UI plus a live, same-origin `/api/qvac` proxy that forwards to an
+operator-controlled QVAC station on Railway — verified end-to-end (the proxy
+returns the model list and a real chat completion, no third-party model API). What
+to know before demoing on the link:
+
+- **Works on the hosted link:** full UI across all routes, and the `/api/qvac`
+  proxy (OpenAI-compatible chat/transcribe) → real QVAC inference.
+- **Local-only (by design):** the SDK-backed route handlers (`/api/capture`,
+  `/api/rag`, `/api/brief`, `/api/wallet`, …) load the native `@qvac/sdk` *bare*
+  binary, which cannot run on Vercel serverless — they return 500 on the hosted
+  link. Voice uses a localhost WebSocket. **Run locally per the README to demo
+  capture → RAG → brief → pay → dead-drop and the true offline story.** That's the
+  local-first point: the real product runs on the operative's machine.
+
+Treat the hosted link as a UI + inference-proxy preview; record the demo video
+locally. Mirror aliases: `leclerc-station`, `leclerc-field`, `leclerc-app`
+`.vercel.app`.
 
 ## Social links (at least one)
 

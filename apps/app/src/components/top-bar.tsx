@@ -11,7 +11,14 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between gap-2 bg-surface/90 px-4 py-3 backdrop-blur">
       <Link href={`/${locale}`} className="flex items-center gap-2">
-        <GlassIcon icon="shield_person" active size="sm" />
+        {/* eslint-disable-next-line @next/next/no-img-element -- static brand mark, no layout shift */}
+        <img
+          src="/leclerc-mark.png"
+          alt={t("app.name")}
+          width={28}
+          height={28}
+          className="h-7 w-7 rounded-full object-cover ring-1 ring-white/10"
+        />
         <span className="font-display-lg text-[19px] font-extrabold tracking-tight">
           {t("app.name")}
         </span>
