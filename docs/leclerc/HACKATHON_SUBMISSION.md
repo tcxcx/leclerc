@@ -76,18 +76,23 @@ operator-controlled QVAC station on Railway — verified end-to-end (the proxy
 returns the model list and a real chat completion, no third-party model API). What
 to know before demoing on the link:
 
-- **Works on the hosted link:** full UI across all routes, and the `/api/qvac`
-  proxy (OpenAI-compatible chat/transcribe) → real QVAC inference.
-- **Local-only (by design):** the SDK-backed route handlers (`/api/capture`,
-  `/api/rag`, `/api/brief`, `/api/wallet`, …) load the native `@qvac/sdk` *bare*
-  binary, which cannot run on Vercel serverless — they return 500 on the hosted
-  link. Voice uses a localhost WebSocket. **Run locally per the README to demo
-  capture → RAG → brief → pay → dead-drop and the true offline story.** That's the
-  local-first point: the real product runs on the operative's machine.
+- **Works on the hosted link:** full UI across all routes; the `/api/qvac` proxy
+  (OpenAI-compatible chat/transcribe) → real QVAC inference; and **capture →
+  structured intel card** (the capturar page runs extraction client-side through
+  the proxy, so it no longer needs the native SDK). On the Railway CPU station
+  extraction takes ~60–90s; on a local `qvac serve` it is near-instant.
+- **Local-only (by design):** the remaining SDK-backed routes (`/api/rag`,
+  `/api/brief`, `/api/wallet`, `/api/drop`) load the native `@qvac/sdk` *bare*
+  binary (HyperDB RAG workspaces, Holepunch, WDK) and cannot run on Vercel
+  serverless. Voice uses a localhost WebSocket. **Run locally per the README to
+  demo RAG recall → multi-agent brief → pay → dead-drop and the true offline
+  story.** That's the local-first point: the real product runs on the operative's
+  machine.
 
-Treat the hosted link as a UI + inference-proxy preview; record the demo video
-locally. Mirror aliases: `leclerc-station`, `leclerc-field`, `leclerc-app`
-`.vercel.app`.
+Treat the hosted link as a UI + inference-proxy preview (capture works, slowly,
+on the shared CPU station); record the demo video locally where everything is fast
+and fully featured. Mirror aliases: `leclerc-station`, `leclerc-field`,
+`leclerc-app` `.vercel.app`.
 
 ## Social links (at least one)
 
