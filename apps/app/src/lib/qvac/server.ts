@@ -18,6 +18,7 @@ import {
   QWEN3_4B_INST_Q4_K_M,
   EMBEDDINGGEMMA_300M_Q8_0,
   WHISPER_BASE_Q8_0,
+  MEDGEMMA_4B_IT_Q4_1,
 } from "@repo/qvacs";
 
 type ModelType =
@@ -53,10 +54,12 @@ export function loadLLM(level: "media" | "alta" | "medico" = "media"): Promise<s
     );
   }
   if (level === "medico") {
+    // "Our Psy" track: default to QVAC's MedGemma-4B; override with a custom
+    // GGUF/registry source via LECLERC_MEDPSY_SRC. No tools (the medic agent
+    // uses plain completeText, and MedGemma isn't tool-tuned).
     const src = process.env.LECLERC_MEDPSY_SRC;
-    if (!src) throw new Error("LECLERC_MEDPSY_SRC not set (MedPsy medic mode).");
     return getModel("llm-medico", () =>
-      load(src, "llamacpp-completion", { tools: true }),
+      load(src ?? MEDGEMMA_4B_IT_Q4_1, "llamacpp-completion"),
     );
   }
   return getModel("llm-media", () =>

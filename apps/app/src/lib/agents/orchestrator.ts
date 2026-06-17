@@ -88,7 +88,10 @@ export async function runAnalystDesk(
 ): Promise<IntelBrief> {
   const ctx: ToolContext = { records: req.records, missionId: req.missionId };
   const copy = analystRuntimeCopy(req.locale);
-  const llm = await loadLLM("alta");
+  // Brief reasoning model. Defaults to Qwen3-4B ("alta"); a CPU-only cloud box
+  // can set LECLERC_BRIEF_LEVEL=media (Qwen3-1.7B) to keep the brief usable.
+  const briefLevel = process.env.LECLERC_BRIEF_LEVEL === "media" ? "media" : "alta";
+  const llm = await loadLLM(briefLevel);
   const ran: string[] = [];
   const toolLog: BriefToolEvent[] = [];
   const logTool = (event: BriefToolEvent) => toolLog.push(event);
