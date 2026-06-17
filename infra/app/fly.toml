@@ -1,0 +1,48 @@
+# LeClerc full PWA on Fly.io — runs the native @qvac/sdk in-process so the
+# SDK-backed Route Handlers (RAG recall, multi-agent brief, wallet, document,
+# chat) work online, not just the UI + proxy. CPU-only (slow but correct).
+#
+# Deploy (from repo root):
+#   fly apps create leclerc-app
+#   fly volumes create leclerc_models --size 8 --region ord -a leclerc-app
+#   fly secrets set -a leclerc-app QVAC_API_KEY=<key>
+#   fly deploy -c infra/app/fly.toml --dockerfile infra/app/Dockerfile
+
+app = "leclerc-app"
+primary_region = "ord"
+
+[build]
+  dockerfile = "infra/app/Dockerfile"
+
+[env]
+  PORT = "7001"
+  NODE_ENV = "production"
+  REGISTRY_STORAGE = "/data/qvac"        # in-process model cache (persistent)
+  LECLERC_RAG_WORKSPACE = "dossier"
+  SPARK_NETWORK = "TESTNET"
+  LECLERC_ALLOW_NONQVAC = "false"
+  WDK_INDEXER_BASE_URL = "https://wdk-api.tether.io"
+  # Browser proxy upstream for chat/transcribe/capture (same Railway station).
+  QVAC_BASE_URL = "https://halketon-qvac-production.up.railway.app"
+
+[mounts]
+  source = "leclerc_models"
+  destination = "/data"                  # REGISTRY_STORAGE=/data/qvac
+
+[http_service]
+  internal_port = 7001
+  force_https = true
+  auto_stop_machines = "stop"            # scale-to-zero between demos
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 6
+    hard_limit = 12
+
+# Models live in RAM while loaded; give the box room for Qwen3-1.7B + embed +
+# whisper. Brief "alta" (Qwen3-4B) would want more — default path is "media".
+[[vm]]
+  size = "shared-cpu-4x"
+  memory = "8gb"
