@@ -173,6 +173,13 @@ wss.on("connection", (ws) => {
       case "speaking": // client echoes its playback state (mic-gate mirror)
         micGated = !!msg.value;
         break;
+      case "flush": // push-to-talk: commit the buffered utterance as a final segment
+        try {
+          session?.end?.();
+        } catch {
+          /* session already ending */
+        }
+        break;
       case "audio": {
         // Drop mic frames while our own TTS is playing (anti self-hear).
         if (micGated) break;

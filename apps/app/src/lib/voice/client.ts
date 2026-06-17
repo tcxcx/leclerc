@@ -41,7 +41,8 @@ export interface VoiceClientOptions extends VoiceClientEvents {
 
 export interface VoiceClient {
   start(): Promise<void>; // connect WS + start mic
-  stop(): Promise<void>; // stop mic + close WS + free audio contexts
+  stop(): Promise<void>; // flush the pending utterance, await the answer, then tear down (push-to-talk)
+  abort(): Promise<void>; // tear down immediately, discard pending audio (unmount/error)
   setSpeak(on: boolean): void;
   state: VoiceState;
 }
@@ -84,6 +85,11 @@ export function createVoiceClient(opts: VoiceClientOptions = {}): VoiceClient {
 
   let state: VoiceState = "idle";
   let stopped = true;
+  // Push-to-talk finish: after the user taps stop we flush the buffered
+  // utterance, wait for the assistant answer (+ a little TTS playtime), then
+  // tear down. finishTimer is the safety/teardown timer.
+  let finishing = false;
+  let finishTimer: ReturnType<typeof setTimeout> | null = null;
 
   function setState(s: VoiceState) {
     if (state === s) return;
@@ -114,7 +120,7 @@ export function createVoiceClient(opts: VoiceClientOptions = {}): VoiceClient {
     if (cooldownTimer) clearTimeout(cooldownTimer);
     cooldownTimer = setTimeout(() => {
       cooldownTimer = null;
-      if (stopped) return;
+      if (stopped || finishing) return; // finishing: don't resume listening
       if (playingCount > 0 || serverSpeaking) return; // still busy
       gated = false;
       send({ type: "speaking", value: false });
@@ -168,6 +174,12 @@ export function createVoiceClient(opts: VoiceClientOptions = {}): VoiceClient {
         break;
       case "answer":
         opts.onAnswer?.(msg.text);
+        // Push-to-talk: the utterance was transcribed + answered (onTurn fired).
+        // Give short TTS a moment to play, then tear the session down.
+        if (finishing) {
+          if (finishTimer) clearTimeout(finishTimer);
+          finishTimer = setTimeout(() => void teardown(), 3500);
+        }
         break;
       case "speaking":
         serverSpeaking = msg.value;
@@ -289,6 +301,30 @@ export function createVoiceClient(opts: VoiceClientOptions = {}): VoiceClient {
     playingCount = 0;
   }
 
+  // Full teardown: stop mic + playback, close WS, reset state. Used by abort()
+  // and by stop() once the pending utterance has been answered.
+  async function teardown() {
+    if (finishTimer) {
+      clearTimeout(finishTimer);
+      finishTimer = null;
+    }
+    stopped = true;
+    finishing = false;
+    stopMic();
+    stopPlayback();
+    if (ws) {
+      try {
+        ws.close();
+      } catch {
+        /* already closing */
+      }
+      ws = null;
+    }
+    gated = false;
+    serverSpeaking = false;
+    setState("idle");
+  }
+
   // ── Public API ───────────────────────────────────────────────────────────
 
   const api: VoiceClient = {
@@ -308,26 +344,31 @@ export function createVoiceClient(opts: VoiceClientOptions = {}): VoiceClient {
         const msg = err instanceof Error ? err.message : opts.startError ?? "";
         console.error(`${LOG} start failed:`, err);
         opts.onError?.(msg);
-        await this.stop();
+        await teardown();
         throw err;
       }
     },
 
+    // Push-to-talk finish. While listening, flush the buffered utterance so the
+    // server transcribes + answers it (onTurn fires), then tear down once the
+    // answer lands. Outside "listening" (connecting/thinking/speaking) just
+    // tear down — there's nothing fresh to commit.
     async stop() {
-      stopped = true;
-      stopMic();
-      stopPlayback();
-      if (ws) {
-        try {
-          ws.close();
-        } catch {
-          /* already closing */
-        }
-        ws = null;
+      if (stopped) return;
+      if (state !== "listening" || !ws || ws.readyState !== WebSocket.OPEN) {
+        await teardown();
+        return;
       }
-      gated = false;
-      serverSpeaking = false;
-      setState("idle");
+      finishing = true;
+      stopMic(); // stop capturing; already-sent frames stay buffered server-side
+      send({ type: "flush" }); // → server session.end() commits the final segment
+      setState("thinking");
+      if (finishTimer) clearTimeout(finishTimer);
+      finishTimer = setTimeout(() => void teardown(), 12000); // safety if no answer
+    },
+
+    abort() {
+      return teardown();
     },
 
     setSpeak(on: boolean) {

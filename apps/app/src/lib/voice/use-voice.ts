@@ -105,10 +105,10 @@ export function useVoice(opts: UseVoiceOptions = {}): UseVoice {
     });
   }, []);
 
-  // Tear down on unmount.
+  // Tear down on unmount — abort immediately (don't wait to flush an utterance).
   useEffect(() => {
     return () => {
-      void clientRef.current?.stop();
+      void clientRef.current?.abort();
       clientRef.current = null;
     };
   }, []);
