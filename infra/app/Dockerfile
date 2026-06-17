@@ -16,7 +16,10 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 RUN npm i -g bun@1.3.10
 COPY . .
-RUN bun install --frozen-lockfile
+# Throttle install concurrency: bun defaults to 48 parallel fetches, and
+# extracting that many large native @qvac tarballs at once OOM-kills the shared
+# remote builder (exit 137). Serializing keeps peak memory low (slower, fine).
+RUN bun install --frozen-lockfile --network-concurrency 2 --concurrent-scripts 1
 ENV NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production
 RUN cd apps/app && bun run build
 # Prune devDependencies (tailwind, eslint, typescript, babel, types) now that
