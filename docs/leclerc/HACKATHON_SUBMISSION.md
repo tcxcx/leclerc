@@ -67,27 +67,28 @@ also a wallet agent with MCP/x402 tool access.
 | Field | Value |
 |---|---|
 | GitHub repo | `https://github.com/tcxcx/leclerc` |
-| Project website | `https://leclerc-intel.vercel.app` |
+| Project website (fast UI) | `https://leclerc-intel.vercel.app` |
+| Full-feature instance | `https://leclerc-app.fly.dev` |
 | Demo video (required) | *(paste YouTube link after recording — see DEMO_SCRIPT)* |
 
-**Live deployment note (tested with browser QA).** `leclerc-intel.vercel.app` is
-the PWA UI plus a live, same-origin `/api/qvac` proxy that forwards to an
-operator-controlled QVAC station on Railway — verified end-to-end (the proxy
-returns the model list and a real chat completion, no third-party model API). What
-to know before demoing on the link:
+**Live deployment note (tested with browser + API QA).** Two cloud instances, both
+QVAC-only:
 
-- **Works on the hosted link:** full UI across all routes; the `/api/qvac` proxy
-  (OpenAI-compatible chat/transcribe) → real QVAC inference; and **capture →
-  structured intel card** (the capturar page runs extraction client-side through
-  the proxy, so it no longer needs the native SDK). On the Railway CPU station
-  extraction takes ~60–90s; on a local `qvac serve` it is near-instant.
-- **Local-only (by design):** the remaining SDK-backed routes (`/api/rag`,
-  `/api/brief`, `/api/wallet`, `/api/drop`) load the native `@qvac/sdk` *bare*
-  binary (HyperDB RAG workspaces, Holepunch, WDK) and cannot run on Vercel
-  serverless. Voice uses a localhost WebSocket. **Run locally per the README to
-  demo RAG recall → multi-agent brief → pay → dead-drop and the true offline
-  story.** That's the local-first point: the real product runs on the operative's
-  machine.
+- **Vercel** (`leclerc-intel.vercel.app`) — fast UI across all routes; the
+  `/api/qvac` proxy (OpenAI-compatible chat/transcribe) → real QVAC inference; and
+  **capture → structured intel card** (extraction runs client-side through the
+  proxy). Snappy; best for a first look. Vercel serverless can't load the native
+  `@qvac/sdk`, so the heavier SDK routes 500 here — use the Fly instance for those.
+- **Fly** (`leclerc-app.fly.dev`) — the full app running the native `@qvac/sdk`
+  **in-process**. Verified online via API: **RAG ingest + grounded recall (cited)**,
+  the **multi-agent brief** (triage→geo→pattern→synth), the **WDK wallet**, and the
+  **MedPsy medic agent** (MedGemma-4B). CPU-only, so it's slow (RAG ~4 min, brief
+  ~3 min) and models persist on a volume after a one-time download.
+
+For the **video, record locally** (`bun run dev:qvac`): a local `qvac serve` with
+GPU runs the same features near-instantly and adds the true offline (airplane-mode)
+story + voice + P2P dead-drop. The cloud links are "try it live" bonuses; only the
+P2P *delegated* path and native desktop/mobile shells stay local/native by design.
 
 Treat the hosted link as a UI + inference-proxy preview (capture works, slowly,
 on the shared CPU station); record the demo video locally where everything is fast
@@ -197,11 +198,19 @@ multi-agent analyst brief with PDF/DOCX export; Tether WDK testnet wallet with a
 guarded live-payment smoke; encrypted Hyperswarm dead-drop between two clients;
 QVAC profiler/logging audit (model load + per-call TTFT/tokens-sec).
 
-**Proven online (hosted link `leclerc-intel.vercel.app`):** full UI across all
-routes; QVAC chat, transcription, and **capture → intel card** via the same-origin
-`/api/qvac` proxy to an operator-controlled station (no third-party model API).
-Extraction is ~60–90s on the shared CPU station, near-instant on a local
-`qvac serve`.
+**Proven online — two deployments:**
+- **Vercel** (`leclerc-intel.vercel.app`) — full UI; QVAC chat, transcription, and
+  **capture → intel card** via the same-origin `/api/qvac` proxy to an
+  operator-controlled station (no third-party model API).
+- **Fly** (`leclerc-app.fly.dev`) — the full app running the native `@qvac/sdk`
+  **in-process**, so the SDK-backed features work server-side online (verified via
+  API): **RAG ingest + grounded recall with citations**, the **multi-agent brief**
+  (triage → geo → pattern → synth, cited findings), the **WDK wallet** (seed/
+  balances), and the **MedPsy medic agent** (MedGemma-4B, Our Psy track).
+
+CPU-only cloud boxes (no GPU) so inference is slow (RAG query ~4 min, brief ~3 min,
+MedPsy 4B slower); near-instant on a local `qvac serve` with GPU. Models persist on
+a Fly volume (one-time download).
 
 **Partial / wired:** OCR, translation, and MedPsy are wired and gated on local
 model sources (`LECLERC_OCR_SRC` / `LECLERC_TRANSLATE_SRC` / `LECLERC_MEDPSY_SRC`);
