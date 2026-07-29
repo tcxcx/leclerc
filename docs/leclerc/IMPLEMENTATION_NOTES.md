@@ -1651,3 +1651,49 @@ chat system header, and recent transaction note preservation. `git diff
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 QVAC story error wiring
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/qvac-stories.ts` as the dedicated QVAC story
+  contract for optional model-source setup errors and browser HTTP-client error
+  formats.
+- Rewired `apps/app/src/lib/qvac/server.ts` so missing MedPsy, OCR, and
+  translate model-source errors come from `qvacMissingModelSourceMessage()`
+  instead of route-local literals.
+- Rewired `apps/app/src/lib/qvac/client.ts` so transcription, chat completion,
+  and invalid JSON errors use the shared QVAC story helpers.
+- Added `@leclerc/core/qvac-stories` to package exports and updated the
+  bucket-analysis artifact with B1/B8/B11 evidence.
+
+### Verification
+
+```bash
+rg -n "LECLERC_MEDPSY_SRC not set|LECLERC_OCR_SRC not set|LECLERC_TRANSLATE_SRC not set|transcriptions \\{status\\}|chat/completions \\{status\\}|LLM did not return JSON" apps/app/src packages/core/src -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_QVAC_STORY, qvacChatCompletionError, qvacInvalidJsonMessage, qvacMissingModelSourceMessage, qvacTranscriptionError } from "./packages/core/src/index.ts"; const med=qvacMissingModelSourceMessage("medpsy"); const ocr=qvacMissingModelSourceMessage("ocr"); const tr=qvacTranscriptionError(503,"downstream unavailable"); const chat=qvacChatCompletionError(500,"bad gateway"); const json=qvacInvalidJsonMessage("{nope}"); console.log(JSON.stringify({story:DEFAULT_QVAC_STORY.id,med,ocr,tr,chat,json})); if (!med.includes("LECLERC_MEDPSY_SRC") || !ocr.includes("LECLERC_OCR_SRC") || !tr.includes("transcriptions 503") || !chat.includes("chat/completions 500") || !json.includes("LLM did not return JSON")) process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The exact QVAC-copy scan
+now returns the moved setup/client text only in
+`packages/core/src/qvac-stories.ts`, not in the app QVAC server/client modules.
+The QVAC story smoke returned the shared story ID and preserved the MedPsy/OCR,
+transcription, chat completion, and invalid JSON error formats. `git diff
+--check` exited 0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

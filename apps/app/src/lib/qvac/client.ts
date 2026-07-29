@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  qvacChatCompletionError,
+  qvacInvalidJsonMessage,
+  qvacTranscriptionError,
+} from "@leclerc/core/qvac-stories";
+
 /**
  * Browser-side QVAC client. Talks to QVAC's HTTP station endpoint
  * endpoint — NOT @qvac/sdk (which needs the native bare runtime and can't run
@@ -137,7 +143,7 @@ export async function transcribe(
     body: form,
   });
   if (!res.ok) {
-    throw new Error(`transcriptions ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    throw new Error(qvacTranscriptionError(res.status, await res.text()));
   }
   const data = (await res.json()) as { text?: string };
   return (data.text ?? "").trim();
@@ -172,7 +178,7 @@ export async function chatJSON<T = unknown>(
     }),
   });
   if (!res.ok) {
-    throw new Error(`chat/completions ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    throw new Error(qvacChatCompletionError(res.status, await res.text()));
   }
   const data = (await res.json()) as {
     choices?: Array<{ message?: { content?: string } }>;
@@ -187,6 +193,6 @@ function parseJson<T>(content: string): T {
   } catch {
     const match = content.match(/\{[\s\S]*\}/);
     if (match) return JSON.parse(match[0]) as T;
-    throw new Error(`LLM did not return JSON: ${content.slice(0, 200)}`);
+    throw new Error(qvacInvalidJsonMessage(content));
   }
 }

@@ -19,6 +19,7 @@ import {
   EMBEDDINGGEMMA_300M_Q8_0,
   WHISPER_BASE_Q8_0,
 } from "@repo/qvacs";
+import { qvacMissingModelSourceMessage } from "@leclerc/core/qvac-stories";
 
 type ModelType =
   | "llamacpp-completion"
@@ -54,7 +55,7 @@ export function loadLLM(level: "media" | "alta" | "medico" = "media"): Promise<s
   }
   if (level === "medico") {
     const src = process.env.LECLERC_MEDPSY_SRC;
-    if (!src) throw new Error("LECLERC_MEDPSY_SRC not set (MedPsy medic mode).");
+    if (!src) throw new Error(qvacMissingModelSourceMessage("medpsy"));
     return getModel("llm-medico", () =>
       load(src, "llamacpp-completion", { tools: true }),
     );
@@ -78,14 +79,14 @@ export function loadEmbed(): Promise<string> {
 /** OCR model (document intel). Set LECLERC_OCR_SRC to a QVAC OCR model. */
 export function loadOcr(): Promise<string> {
   const src = process.env.LECLERC_OCR_SRC;
-  if (!src) throw new Error("LECLERC_OCR_SRC not set (document-intel feature).");
+  if (!src) throw new Error(qvacMissingModelSourceMessage("ocr"));
   return getModel("ocr", () => load(src, "onnx-ocr"));
 }
 
 /** Translate model. Set LECLERC_TRANSLATE_SRC to a QVAC NMT model. */
 export function loadTranslate(): Promise<string> {
   const src = process.env.LECLERC_TRANSLATE_SRC;
-  if (!src) throw new Error("LECLERC_TRANSLATE_SRC not set (translate feature).");
+  if (!src) throw new Error(qvacMissingModelSourceMessage("translate"));
   const kind = process.env.LECLERC_TRANSLATE_MODEL_TYPE === "llm" ? "llm" : "nmt";
   const type = kind === "llm" ? "llamacpp-completion" : "nmtcpp-translation";
   return getModel(`translate-${kind}`, () => load(src, type));
