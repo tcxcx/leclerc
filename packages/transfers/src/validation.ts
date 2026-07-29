@@ -1,5 +1,7 @@
 import {
   assertWritableTestnetChain,
+  assetNotConfiguredOnChainMessage,
+  assetNotEnabledForEvmTestnetMessage,
   getLeclercAsset,
   tokenAddress,
   type LeclercAssetId,
@@ -15,10 +17,10 @@ export function validateTransferAsset(assetId: LeclercAssetId, chainId: LeclercC
   const chain = assertWritableTestnetChain(chainId);
   const asset = getLeclercAsset(assetId);
   if (asset.transferPolicy !== "testnet-only") {
-    throw new Error(`${asset.displaySymbol} is not enabled for EVM testnet transfers`);
+    throw new Error(assetNotEnabledForEvmTestnetMessage(asset.displaySymbol));
   }
   if (!tokenAddress(assetId, chainId)) {
-    throw new Error(`${asset.displaySymbol} is not configured on ${chain.name}`);
+    throw new Error(assetNotConfiguredOnChainMessage(asset.displaySymbol, chain.name));
   }
   return { asset, chain };
 }

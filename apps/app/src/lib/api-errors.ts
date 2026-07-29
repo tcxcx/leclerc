@@ -1,3 +1,5 @@
+import { networkTokenErrorMarkers } from "@leclerc/transfer-core";
+
 export type ApiErrorCode =
   | "unknown_action"
   | "drop_failed"
@@ -81,6 +83,7 @@ export function apiErrorFromUnknown(error: unknown, fallbackCode: ApiErrorCode):
 
 function codeForMessage(message: string): ApiErrorCode | null {
   const normalized = message.toLowerCase();
+  const transferMarkers = networkTokenErrorMarkers();
   if (normalized.includes("unknown action")) return "unknown_action";
   if (normalized.includes("drop passphrase required")) return "drop_passphrase_required";
   if (normalized.includes("drop not joined")) return "drop_not_joined";
@@ -94,11 +97,14 @@ function codeForMessage(message: string): ApiErrorCode | null {
   if (normalized.includes("transfer confirmation expired")) return "transfer_confirmation_expired";
   if (normalized.includes("transfer confirmation failed integrity check")) return "transfer_confirmation_integrity_failed";
   if (normalized.includes("must be configured for live rain card funding")) return "rain_card_deposit_unconfigured";
-  if (normalized.includes("is read-only in leclerc")) return "chain_read_only";
-  if (normalized.includes("unsupported chainid")) return "unsupported_chain";
-  if (normalized.includes("is not enabled for evm testnet transfers")) return "asset_not_enabled";
-  if (normalized.includes("is not configured on")) return "asset_not_configured";
-  if (normalized.includes("evm_chain_id must be arc testnet")) return "evm_chain_mismatch";
+  if (
+    normalized.includes(transferMarkers.chainReadOnlyForWallet) ||
+    normalized.includes(transferMarkers.chainReadOnlyForTransfers)
+  ) return "chain_read_only";
+  if (normalized.includes(transferMarkers.unsupportedChainId)) return "unsupported_chain";
+  if (normalized.includes(transferMarkers.assetNotEnabledForEvmTestnet)) return "asset_not_enabled";
+  if (normalized.includes(transferMarkers.assetNotConfiguredOnChain)) return "asset_not_configured";
+  if (normalized.includes(transferMarkers.evmWritableChainRequired)) return "evm_chain_mismatch";
   if (normalized.includes("spark_network must be testnet")) return "spark_network_mismatch";
   if (normalized.includes("startqvacprovider returned no publickey")) return "station_key_missing";
   if (normalized.includes("no records")) return "brief_records_required";

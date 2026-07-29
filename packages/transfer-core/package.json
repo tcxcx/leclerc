@@ -10,6 +10,7 @@
     "./asset-catalog": "./src/asset-catalog.ts",
     "./chains": "./src/chains.ts",
     "./mission-stories": "./src/mission-stories.ts",
+    "./network-token-stories": "./src/network-token-stories.ts",
     "./rpc": "./src/rpc.ts"
   },
   "scripts": {

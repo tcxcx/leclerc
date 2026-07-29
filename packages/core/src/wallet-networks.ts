@@ -1,7 +1,9 @@
 import {
+  emptyWalletNetworkCatalogMessage,
   isWritableChain,
   listLeclercAssetsForChain,
   listLeclercChains,
+  missingTokenAddressMessage,
   tokenAddress,
   type LeclercAssetId,
   type LeclercChainId,
@@ -54,7 +56,7 @@ export function walletNetworkOptions(): WalletNetworkOption[] {
     const tokens = listLeclercAssetsForChain(chain.chainId).map((asset) => {
       const address = tokenAddress(asset.id, chain.chainId);
       if (!address) {
-        throw new Error(`missing ${asset.id} token address for ${chain.name}`);
+        throw new Error(missingTokenAddressMessage(asset.id, chain.name));
       }
       return {
         id: asset.id,
@@ -90,7 +92,7 @@ export function createWalletNetworkSelector(
   networks: WalletNetworkOption[] = walletNetworkOptions(),
 ): WalletNetworkSelectorModel {
   if (networks.length === 0) {
-    throw new Error("wallet network catalog is empty");
+    throw new Error(emptyWalletNetworkCatalogMessage());
   }
 
   const selectedNetwork =

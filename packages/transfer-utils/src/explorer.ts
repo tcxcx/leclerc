@@ -1,4 +1,9 @@
-import { chainById, type ChainCatalogEntry, type LeclercChainId } from "@leclerc/transfer-core";
+import {
+  chainById,
+  unsupportedChainIdMessage,
+  type ChainCatalogEntry,
+  type LeclercChainId,
+} from "@leclerc/transfer-core";
 
 export function txUrl(chainOrId: ChainCatalogEntry | LeclercChainId, hash: string): string {
   const chain = resolveChain(chainOrId);
@@ -21,6 +26,6 @@ export function explorerAddressUrl(chainOrId: ChainCatalogEntry | LeclercChainId
 function resolveChain(chainOrId: ChainCatalogEntry | LeclercChainId): ChainCatalogEntry {
   if (typeof chainOrId !== "number") return chainOrId;
   const chain = chainById(chainOrId);
-  if (!chain) throw new Error(`unsupported chainId ${chainOrId}`);
+  if (!chain) throw new Error(unsupportedChainIdMessage(chainOrId));
   return chain;
 }

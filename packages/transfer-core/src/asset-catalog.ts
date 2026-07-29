@@ -1,3 +1,8 @@
+import {
+  chainReadOnlyForTransfersMessage,
+  unsupportedChainIdMessage,
+} from "./network-token-stories";
+
 export type HexAddress = `0x${string}`;
 
 export type LeclercChainId = 5042002 | 42161;
@@ -358,9 +363,9 @@ export function isWritableChain(chain: ChainCatalogEntry): boolean {
 
 export function assertWritableTestnetChain(chainId: LeclercChainId): ChainCatalogEntry {
   const chain = chainById(chainId);
-  if (!chain) throw new Error(`unsupported chainId ${chainId}`);
+  if (!chain) throw new Error(unsupportedChainIdMessage(chainId));
   if (!isWritableChain(chain)) {
-    throw new Error(`${chain.name} is read-only for LeClerc transfers; choose an allowed testnet`);
+    throw new Error(chainReadOnlyForTransfersMessage(chain.name));
   }
   return chain;
 }

@@ -1697,3 +1697,56 @@ transcription, chat completion, and invalid JSON error formats. `git diff
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 network-token story errors
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/transfer-core/src/network-token-stories.ts` as the dedicated
+  network-token story contract for unsupported-chain, read-only-chain,
+  asset-not-configured, missing-token-address, EVM-chain, empty-catalog, and
+  transfer-policy errors.
+- Rewired `packages/transfer-core/src/asset-catalog.ts`,
+  `packages/transfer-utils/src/explorer.ts`, `packages/wallet/src/evm.ts`,
+  `packages/transfers/src/validation.ts`, and
+  `packages/core/src/wallet-networks.ts` to use the shared story helpers.
+- Rewired `apps/app/src/lib/api-errors.ts` to use story-owned normalized markers
+  for network-token error-code mapping, including both wallet read-only and
+  transfer read-only wording.
+- Added `@leclerc/transfer-core/network-token-stories` to package exports and
+  updated the bucket-analysis artifact with B7/B8/B11 evidence.
+
+### Verification
+
+```bash
+rg -n "unsupported chainId|unsupported chainid|is read-only for LeClerc transfers|is read-only for leclerc transfers|is read-only in LeClerc|is read-only in leclerc|is not configured on|missing .*token address|wallet network catalog is empty|EVM_CHAIN_ID must|evm_chain_id must|not enabled for EVM testnet|not enabled for evm testnet" packages apps -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_NETWORK_TOKEN_STORY, assetNotConfiguredOnChainMessage, assetNotEnabledForEvmTestnetMessage, chainReadOnlyForTransfersMessage, chainReadOnlyForWalletMessage, emptyWalletNetworkCatalogMessage, evmWritableChainRequiredMessage, missingTokenAddressMessage, networkTokenErrorMarkers, unsupportedChainIdMessage } from "./packages/transfer-core/src/index.ts"; const markers=networkTokenErrorMarkers(); const values={story:DEFAULT_NETWORK_TOKEN_STORY.id, unsupported:unsupportedChainIdMessage(999), transferReadOnly:chainReadOnlyForTransfersMessage("Arbitrum One"), walletReadOnly:chainReadOnlyForWalletMessage("Arbitrum One"), notConfigured:assetNotConfiguredOnChainMessage("USDC","Arc Testnet"), missing:missingTokenAddressMessage("usdc","Arc Testnet"), evm:evmWritableChainRequiredMessage(), empty:emptyWalletNetworkCatalogMessage(), disabled:assetNotEnabledForEvmTestnetMessage("USDT"), markers}; console.log(JSON.stringify(values)); if (!values.unsupported.includes("unsupported chainId 999") || !values.transferReadOnly.includes("choose an allowed testnet") || !values.walletReadOnly.includes("writes are testnet-only") || !values.notConfigured.includes("USDC is not configured on Arc Testnet") || !values.missing.includes("missing usdc token address") || !values.evm.includes("EVM_CHAIN_ID") || !values.empty.includes("wallet network catalog") || !values.disabled.includes("not enabled for EVM testnet") || markers.chainReadOnlyForTransfers !== "is read-only for leclerc transfers") process.exit(1);'
+bun --filter @leclerc/transfer-core typecheck
+bun --filter @leclerc/transfer-utils typecheck
+bun --filter @leclerc/wallet typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The exact network-token
+scan now returns the moved messages and normalized markers only in
+`packages/transfer-core/src/network-token-stories.ts`. The story smoke returned
+the shared story ID, old-compatible error strings, and the read-only transfer
+marker used by API-code mapping. `git diff --check` exited 0. `lsof` returned
+no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

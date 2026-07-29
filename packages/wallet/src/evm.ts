@@ -1,12 +1,16 @@
 import WalletManagerEvm from "@tetherto/wdk-wallet-evm";
 import {
   ARC_TESTNET_CHAIN_ID,
+  assetNotConfiguredOnChainMessage,
   assertWritableTestnetChain,
+  chainReadOnlyForWalletMessage,
   chainById,
+  evmWritableChainRequiredMessage,
   getLeclercAsset,
   isWritableChain,
   rpcUrlForChain,
   tokenAddress,
+  unsupportedChainIdMessage,
   type LeclercAssetId,
   type LeclercChainId,
 } from "@leclerc/transfer-core";
@@ -15,19 +19,21 @@ const DEFAULT_EVM_CHAIN_ID: LeclercChainId = ARC_TESTNET_CHAIN_ID;
 
 export function requiredTokenAddress(assetId: LeclercAssetId, chainId: LeclercChainId): string {
   const chain = chainById(chainId);
-  if (!chain) throw new Error(`unsupported chainId ${chainId}`);
+  if (!chain) throw new Error(unsupportedChainIdMessage(chainId));
   if (!isWritableChain(chain)) {
-    throw new Error(`${chain.name} is read-only in LeClerc; writes are testnet-only`);
+    throw new Error(chainReadOnlyForWalletMessage(chain.name));
   }
   const token = tokenAddress(assetId, chainId);
-  if (!token) throw new Error(`${getLeclercAsset(assetId).displaySymbol} is not configured on ${chain.name}`);
+  if (!token) {
+    throw new Error(assetNotConfiguredOnChainMessage(getLeclercAsset(assetId).displaySymbol, chain.name));
+  }
   return token;
 }
 
 export function evmChainId(env: Partial<Record<string, string | undefined>> = process.env): LeclercChainId {
   const chainId = Number(env.EVM_CHAIN_ID ?? DEFAULT_EVM_CHAIN_ID);
   if (chainId !== ARC_TESTNET_CHAIN_ID) {
-    throw new Error("EVM_CHAIN_ID must be Arc Testnet (5042002) for writable wallet flows");
+    throw new Error(evmWritableChainRequiredMessage());
   }
   return chainId;
 }
