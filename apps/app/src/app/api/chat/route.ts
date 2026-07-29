@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { completeText, type CompleteMessage } from "@repo/qvacs";
+import { financeChatSystemContent } from "@leclerc/core/finance";
 import { loadLLM } from "@/lib/qvac/server";
 import { persona, type Locale } from "@/lib/agents/persona";
 import { apiErrorBody, apiErrorFromUnknown, type LeclercApiError } from "@/lib/api-errors";
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
     const sys: CompleteMessage = { role: "system", content: persona(locale, { spoken: false }) };
     const history: CompleteMessage[] = [sys];
     if (body.financeContext) {
-      history.push({ role: "system", content: `Contexto financiero local:\n${body.financeContext}` });
+      history.push({ role: "system", content: financeChatSystemContent(locale, body.financeContext) });
     }
     for (const m of body.messages.slice(-12)) history.push({ role: m.role, content: m.content });
 

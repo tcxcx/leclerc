@@ -1603,3 +1603,51 @@ returned no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 finance story wiring
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/finance-stories.ts` as the dedicated finance story
+  contract for spend roast copy, finance-context labels, recent-transaction
+  formatting, and the chat finance system-message wrapper.
+- Rewired `packages/core/src/finance.ts` so `sassySummary()` and
+  `financeContext()` derive deterministic copy from the finance story contract.
+- Rewired the Cleo home to pass locale into `financeContext()` so chat context
+  follows the active locale.
+- Rewired `/api/chat` so the finance system-message wrapper comes from
+  `financeChatSystemContent()` instead of route-local copy.
+- Added `@leclerc/core/finance-stories` to package exports and updated the
+  bucket-analysis artifact with B8/B10/B11 evidence.
+
+### Verification
+
+```bash
+rg -n "Semana limpia|Clean week|FINANCE CONTEXT|CONTEXTO FINANCIERO|Contexto financiero local|Local finance context|Keep going or do we intervene|Vigilado, operativo" packages/core/src/finance.ts packages/core/src/finance-stories.ts apps/app/src/app/api/chat/route.ts
+bun -e 'import { DEFAULT_FINANCE_STORY, financeChatSystemContent, financeContext, sassySummary, summarizeSpend } from "./packages/core/src/index.ts"; const now=Date.UTC(2026,6,29); const txs=[{id:"1",ts:now-1000,amount:12.5,currency:"USDC",kind:"spend",category:"gear",merchant:"Quartermaster",note:"field kit"},{id:"2",ts:now-2000,amount:50,currency:"USDC",kind:"income",category:"stipend",merchant:"Station"}]; const summary=summarizeSpend(txs,now); const es=sassySummary(summary,"es"); const ctx=financeContext(txs,now,"es"); const sys=financeChatSystemContent("es",ctx); console.log(JSON.stringify({story:DEFAULT_FINANCE_STORY.id, es, ctxFirst:ctx.split("\n")[0], sysFirst:sys.split("\n")[0], hasNote:ctx.includes("field kit")})); if (!es.includes("Llevas") || !ctx.startsWith("CONTEXTO FINANCIERO") || !sys.startsWith("Contexto financiero local") || !ctx.includes("field kit")) process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The exact finance-copy scan
+now returns deterministic finance copy only in
+`packages/core/src/finance-stories.ts`, not `packages/core/src/finance.ts` or
+`apps/app/src/app/api/chat/route.ts`. The finance smoke returned the finance
+story ID, localized Spanish roast, localized finance context heading, localized
+chat system header, and recent transaction note preservation. `git diff
+--check` exited 0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

@@ -126,7 +126,7 @@ export default function ConsolePage() {
         return;
       }
       const txs = await listTransactions().catch(() => []);
-      const ctx = txs.length ? financeContext(txs) : undefined;
+      const ctx = txs.length ? financeContext(txs, Date.now(), locale) : undefined;
       const { text: answer } = await chat(
         next.map((m) => ({ role: m.role, content: m.content })),
         { locale, financeContext: ctx },

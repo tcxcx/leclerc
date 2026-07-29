@@ -1,3 +1,11 @@
+import type { Locale } from "./intel";
+import {
+  financeContextCopy,
+  financeRoastCopy,
+  renderFinanceTemplate,
+} from "./finance-stories";
+export { financeChatSystemContent } from "./finance-stories";
+
 export type TxKind = "spend" | "income" | "transfer";
 
 export interface Transaction {
@@ -92,58 +100,75 @@ export function formatAmount(amount: number, currency: string): string {
 }
 
 export function sassySummary(summary: SpendSummary, locale: "es" | "en"): string {
+  const copy = financeRoastCopy(locale);
   if (summary.txCount === 0) {
-    return locale === "es"
-      ? "Semana limpia: ni un gasto registrado. Sospechosamente disciplinado."
-      : "Clean week: not a single spend logged. Suspiciously disciplined.";
+    return copy.cleanWeek;
   }
 
   const spend = formatAmount(summary.weekSpend, summary.currency);
   if (summary.topCategory) {
     const top = formatAmount(summary.topCategory.amount, summary.currency);
-    return locale === "es"
-      ? `Llevas ${spend} esta semana y "${summary.topCategory.category}" se come ${top}. Seguimos asi o intervenimos?`
-      : `${spend} this week, and "${summary.topCategory.category}" is eating ${top} of it. Keep going or do we intervene?`;
+    return renderFinanceTemplate(copy.topCategory, {
+      spend,
+      category: summary.topCategory.category,
+      top,
+    });
   }
 
-  return locale === "es"
-    ? `Llevas ${spend} esta semana. Vigilado, operativo.`
-    : `${spend} this week. I'm watching, operative.`;
+  return renderFinanceTemplate(copy.watched, { spend });
 }
 
-export function financeContext(transactions: Transaction[], now: number = Date.now()): string {
+export function financeContext(
+  transactions: Transaction[],
+  now: number = Date.now(),
+  locale: Locale = "en",
+): string {
   const summary = summarizeSpend(transactions, now);
+  const copy = financeContextCopy(locale);
   const lines: string[] = [];
-  lines.push("FINANCE CONTEXT (local, last 7 days):");
-  lines.push(`- currency: ${summary.currency}`);
+  lines.push(copy.heading);
+  lines.push(renderFinanceTemplate(copy.currencyLine, { currency: summary.currency }));
   lines.push(
-    `- total spend: ${formatAmount(summary.weekSpend, summary.currency)} across ${summary.txCount} tx`,
+    renderFinanceTemplate(copy.totalSpendLine, {
+      spend: formatAmount(summary.weekSpend, summary.currency),
+      txCount: summary.txCount,
+    }),
   );
   if (summary.topCategory) {
     lines.push(
-      `- top category: ${summary.topCategory.category} (${formatAmount(
-        summary.topCategory.amount,
-        summary.currency,
-      )})`,
+      renderFinanceTemplate(copy.topCategoryLine, {
+        category: summary.topCategory.category,
+        amount: formatAmount(summary.topCategory.amount, summary.currency),
+      }),
     );
   }
   if (summary.weekByCategory.length) {
+    const categories = summary.weekByCategory
+      .map((category) => `${category.category} ${formatAmount(category.amount, summary.currency)}`)
+      .join("; ");
     lines.push(
-      `- by category: ${summary.weekByCategory
-        .map((category) => `${category.category} ${formatAmount(category.amount, summary.currency)}`)
-        .join("; ")}`,
+      renderFinanceTemplate(copy.byCategoryLine, {
+        categories,
+      }),
     );
   }
 
   const recent = [...transactions].sort((left, right) => right.ts - left.ts).slice(0, 5);
   if (recent.length) {
-    lines.push("- recent:");
+    lines.push(copy.recentLabel);
     for (const transaction of recent) {
       const sign = transaction.kind === "income" ? "+" : transaction.kind === "spend" ? "-" : "~";
       const date = new Date(transaction.ts).toISOString().slice(0, 10);
-      const note = transaction.note ? ` (${transaction.note})` : "";
+      const note = transaction.note ? renderFinanceTemplate(copy.note, { note: transaction.note }) : "";
       lines.push(
-        `  ${date} ${sign}${formatAmount(transaction.amount, transaction.currency)} ${transaction.category} @ ${transaction.merchant}${note}`,
+        renderFinanceTemplate(copy.transactionLine, {
+          date,
+          sign,
+          amount: formatAmount(transaction.amount, transaction.currency),
+          category: transaction.category,
+          merchant: transaction.merchant,
+          note,
+        }),
       );
     }
   }

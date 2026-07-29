@@ -10,6 +10,7 @@
     "./brand-stories": "./src/brand-stories.ts",
     "./asset-catalog": "./src/asset-catalog.ts",
     "./finance": "./src/finance.ts",
+    "./finance-stories": "./src/finance-stories.ts",
     "./intel": "./src/intel.ts",
     "./intel-stories": "./src/intel-stories.ts",
     "./landing": "./src/landing.ts",
