@@ -2493,3 +2493,50 @@ unrelated operation buttons/status classes. `git diff --check` exited 0.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 navigation story wiring
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/navigation-stories.ts` as the shared navigation
+  story for the Cleo home link, top-bar shortcuts, bottom navigation, Intel
+  layer toggle metadata, Intel layer links, route segments, icons, and label
+  keys.
+- Rewired `apps/app/src/components/bottom-nav.tsx`,
+  `apps/app/src/components/top-bar.tsx`, and
+  `apps/app/src/app/[locale]/page.tsx` to use shared navigation helpers
+  instead of app-local route/icon arrays and inline Intel links.
+- Added `@leclerc/core/navigation-stories` to package exports and updated the
+  bucket-analysis artifact with B8 navigation evidence.
+
+### Verification
+
+```bash
+rg -n 'const ITEMS|assignment_ind|shield_person|folder_shared|fiber_manual_record|folder_open|query_stats|href=\{`/\$\{locale\}/(operaciones|ajustes|capturar|expediente|analisis|enlace|billetera)|nav\.console|bottomNavigationItems|topBarNavigationItems|intelLayerNavigationItems|intelLayerToggle|localizedNavigationHref' apps/app/src/components apps/app/src/app/[[]locale[]]/page.tsx packages/core/src/navigation-stories.ts -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_NAVIGATION_STORY, bottomNavigationItems, intelLayerNavigationItems, intelLayerToggle, localizedNavigationHref, navigationHome, topBarNavigationItems } from "./packages/core/src/index.ts"; const bottom=bottomNavigationItems(); const top=topBarNavigationItems(); const intel=intelLayerNavigationItems(); const home=navigationHome(); const toggle=intelLayerToggle(); const values={story:DEFAULT_NAVIGATION_STORY.id,home:`${home.icon}:${localizedNavigationHref(home,"es")}`,toggle:`${toggle.icon}:${toggle.labelKey}`,bottom:bottom.map((item)=>`${item.id}:${item.icon}:${localizedNavigationHref(item,"en")}`),top:top.map((item)=>`${item.id}:${item.icon}:${localizedNavigationHref(item,"es")}`),intel:intel.map((item)=>`${item.id}:${item.icon}:${localizedNavigationHref(item,"en")}`)}; console.log(JSON.stringify(values)); if (values.story!=="cleo-surface-navigation" || values.home!=="shield_person:/es" || values.toggle!=="shield_person:console.intelLayer" || values.bottom.join(",")!=="console:credit_card:/en,capture:mic:/en/capturar,dossier:folder_shared:/en/expediente,analysis:analytics:/en/analisis,wallet:account_balance_wallet:/en/billetera" || values.top.join(",")!=="operations:assignment_ind:/es/operaciones,settings:settings:/es/ajustes" || values.intel.join(",")!=="capture:fiber_manual_record:/en/capturar,dossier:folder_open:/en/expediente,analysis:query_stats:/en/analisis,link:hub:/en/enlace") process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The navigation story smoke
+returned the shared story ID, home link, Intel-layer toggle, bottom-nav items,
+top-bar shortcuts, Intel-layer links, icons, and localized EN/ES hrefs. The
+focused scan now returns navigation route/icon metadata only in
+`packages/core/src/navigation-stories.ts` plus helper calls in the app
+consumers. `git diff --check` exited 0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

@@ -22,6 +22,7 @@
     "./model-level-stories": "./src/model-level-stories.ts",
     "./mission-funding": "./src/mission-funding.ts",
     "./mission-dossier": "./src/mission-dossier.ts",
+    "./navigation-stories": "./src/navigation-stories.ts",
     "./ops-network": "./src/ops-network.ts",
     "./ops-console": "./src/ops-console.ts",
     "./ops-stories": "./src/ops-stories.ts",

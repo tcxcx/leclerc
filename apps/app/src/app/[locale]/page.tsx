@@ -15,6 +15,9 @@ import { chat, ragAskScoped, ragSearch } from "@/lib/api-client";
 import {
   DEFAULT_ASSISTANT_STORY,
   greetingKey,
+  intelLayerNavigationItems,
+  intelLayerToggle,
+  localizedNavigationHref,
   routeOperatorQuery,
   starterChipStories,
   type AssistantActionId,
@@ -46,6 +49,9 @@ type FinancePanel =
   | { kind: "spend"; summary: SpendSummary; txs: Transaction[] }
   | { kind: "stash"; goals: SavingsGoal[] }
   | { kind: "request" };
+
+const INTEL_LINKS = intelLayerNavigationItems();
+const INTEL_TOGGLE = intelLayerToggle();
 
 export default function ConsolePage() {
   const t = useI18n();
@@ -229,10 +235,15 @@ export default function ConsolePage() {
           <button
             type="button"
             onClick={() => setIntelOpen((open) => !open)}
-            aria-label={t("console.intelLayer")}
+            aria-label={translateKey(t, INTEL_TOGGLE.labelKey)}
             className="rounded-full"
           >
-            <GlassIcon icon="shield_person" label={t("console.intelLayer")} active={intelOpen} size="md" />
+            <GlassIcon
+              icon={INTEL_TOGGLE.icon}
+              label={translateKey(t, INTEL_TOGGLE.labelKey)}
+              active={intelOpen}
+              size="md"
+            />
           </button>
         </div>
 
@@ -240,10 +251,14 @@ export default function ConsolePage() {
 
         {intelOpen && (
           <div className="grid grid-cols-2 gap-2 rounded-lg border border-outline-variant bg-surface-container-low/90 p-3">
-            <IntelLink href={`/${locale}/capturar`} icon="fiber_manual_record" label={t("nav.capture")} />
-            <IntelLink href={`/${locale}/expediente`} icon="folder_open" label={t("nav.dossier")} />
-            <IntelLink href={`/${locale}/analisis`} icon="query_stats" label={t("nav.analysis")} />
-            <IntelLink href={`/${locale}/enlace`} icon="hub" label={t("nav.link")} />
+            {INTEL_LINKS.map((item) => (
+              <IntelLink
+                key={item.id}
+                href={localizedNavigationHref(item, locale)}
+                icon={item.icon}
+                label={translateKey(t, item.labelKey)}
+              />
+            ))}
           </div>
         )}
 

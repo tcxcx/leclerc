@@ -2,37 +2,44 @@
 
 import Link from "next/link";
 import { useI18n, useCurrentLocale } from "@/locales/client";
+import { localizedNavigationHref, navigationHome, topBarNavigationItems } from "@leclerc/core";
 import { ModeBadge } from "./mode-badge";
 import { GlassIcon } from "./glass-icon";
 
+const HOME_LINK = navigationHome();
+const TOP_LINKS = topBarNavigationItems();
+
 export function TopBar() {
   const t = useI18n();
-  const locale = useCurrentLocale();
+  const locale = useCurrentLocale() as "es" | "en";
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between gap-2 bg-surface/90 px-4 py-3 backdrop-blur">
-      <Link href={`/${locale}`} className="flex items-center gap-2">
-        <GlassIcon icon="shield_person" active size="sm" />
+      <Link href={localizedNavigationHref(HOME_LINK, locale)} className="flex items-center gap-2">
+        <GlassIcon icon={HOME_LINK.icon} active size="sm" />
         <span className="font-display-lg text-[19px] font-extrabold tracking-tight">
-          {t("app.name")}
+          {translateKey(t, HOME_LINK.labelKey)}
         </span>
       </Link>
       <div className="flex items-center gap-2">
         <ModeBadge />
-        <Link
-          href={`/${locale}/operaciones`}
-          className="flex h-9 w-9 items-center justify-center rounded-full"
-          aria-label={t("nav.operations")}
-        >
-          <GlassIcon icon="assignment_ind" label={t("nav.operations")} size="sm" />
-        </Link>
-        <Link
-          href={`/${locale}/ajustes`}
-          className="flex h-9 w-9 items-center justify-center rounded-full"
-          aria-label={t("nav.settings")}
-        >
-          <GlassIcon icon="settings" label={t("nav.settings")} size="sm" />
-        </Link>
+        {TOP_LINKS.map((item) => {
+          const label = translateKey(t, item.labelKey);
+          return (
+            <Link
+              key={item.id}
+              href={localizedNavigationHref(item, locale)}
+              className="flex h-9 w-9 items-center justify-center rounded-full"
+              aria-label={label}
+            >
+              <GlassIcon icon={item.icon} label={label} size="sm" />
+            </Link>
+          );
+        })}
       </div>
     </header>
   );
+}
+
+function translateKey(t: ReturnType<typeof useI18n>, key: string): string {
+  return (t as unknown as (value: string) => string)(key);
 }
