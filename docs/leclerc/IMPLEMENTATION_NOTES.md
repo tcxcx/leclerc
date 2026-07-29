@@ -2126,3 +2126,49 @@ rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 inference-mode story routing
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/inference-mode-stories.ts` as the shared QVAC
+  inference-mode story contract for client storage, default mode, allowed modes,
+  and Material Symbols badge icons.
+- Rewired `apps/app/src/lib/inference/mode.ts` so mode persistence and
+  validation use the shared story contract instead of PWA-local literals.
+- Rewired `apps/app/src/components/mode-badge.tsx` so the visible inference
+  mode icon comes from the same shared story contract.
+- Added `@leclerc/core/inference-mode-stories` to package exports and updated
+  the bucket-analysis artifact with B1/B8/B11 evidence.
+
+### Verification
+
+```bash
+rg -n 'leclerc-inference-mode|export type InferenceMode = "station" \| "delegate" \| "ondevice"|station: "dns"|delegate: "lan"|ondevice: "smartphone"|v === "station"|v === "delegate"|v === "ondevice"' apps/app/src packages/core/src -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_INFERENCE_MODE_STORY, defaultInferenceMode, inferenceModeIcon, inferenceModeOptions, inferenceModeStorageKey, isInferenceMode } from "./packages/core/src/index.ts"; const values={story:DEFAULT_INFERENCE_MODE_STORY.id, storage:inferenceModeStorageKey(), defaultMode:defaultInferenceMode(), modes:inferenceModeOptions(), station:inferenceModeIcon("station"), delegate:inferenceModeIcon("delegate"), ondevice:inferenceModeIcon("ondevice"), valid:isInferenceMode("delegate"), invalid:isInferenceMode("remote")}; console.log(JSON.stringify(values)); if (values.story!=="qvac-inference-mode-routing" || values.storage!=="leclerc-inference-mode" || values.defaultMode!=="station" || values.modes.join(",")!=="station,delegate,ondevice" || values.station!=="dns" || values.delegate!=="lan" || values.ondevice!=="smartphone" || !values.valid || values.invalid) process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The focused scan now
+returns the inference-mode storage key, union, and badge icon mapping only in
+`packages/core/src/inference-mode-stories.ts`. The inference-mode story smoke
+returned the shared story ID, storage key, default mode, allowed mode list,
+badge icons, and valid/invalid mode checks. `git diff --check` exited 0. `lsof`
+returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

@@ -17,6 +17,7 @@
     "./finance-stories": "./src/finance-stories.ts",
     "./intel": "./src/intel.ts",
     "./intel-stories": "./src/intel-stories.ts",
+    "./inference-mode-stories": "./src/inference-mode-stories.ts",
     "./landing": "./src/landing.ts",
     "./model-level-stories": "./src/model-level-stories.ts",
     "./mission-funding": "./src/mission-funding.ts",

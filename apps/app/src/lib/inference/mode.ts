@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  defaultInferenceMode,
+  inferenceModeStorageKey,
+  isInferenceMode,
+} from "@leclerc/core/inference-mode-stories";
+import type { InferenceMode } from "@leclerc/core/inference-mode-stories";
 import { createContext, createElement, useContext, useEffect, useState } from "react";
 
 /**
@@ -18,15 +24,15 @@ import { createContext, createElement, useContext, useEffect, useState } from "r
  * The PWA primarily uses "station". "delegate"/"ondevice" are surfaced for the
  * P2P / mobile story and routed through Route Handlers (Node).
  */
-export type InferenceMode = "station" | "delegate" | "ondevice";
+export type { InferenceMode } from "@leclerc/core/inference-mode-stories";
 
-const KEY = "leclerc-inference-mode";
-const DEFAULT: InferenceMode = "station";
+const KEY = inferenceModeStorageKey();
+const DEFAULT = defaultInferenceMode();
 
 export function getStoredMode(): InferenceMode {
   if (typeof window === "undefined") return DEFAULT;
   const v = window.localStorage.getItem(KEY);
-  return v === "station" || v === "delegate" || v === "ondevice" ? v : DEFAULT;
+  return isInferenceMode(v) ? v : DEFAULT;
 }
 
 interface ModeContextValue {
