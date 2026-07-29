@@ -39,6 +39,7 @@
     "./station-stories": "./src/station-stories.ts",
     "./surfaces": "./src/surfaces.ts",
     "./tool-router": "./src/tool-router.ts",
+    "./tool-router-stories": "./src/tool-router-stories.ts",
     "./transfers": "./src/transfers.ts",
     "./vault-stories": "./src/vault-stories.ts",
     "./voice": "./src/voice.ts",

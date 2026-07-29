@@ -2634,3 +2634,49 @@ returned no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 tool router story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/tool-router-stories.ts` as the dedicated operator
+  tool-routing story for assistant route intents, target hrefs, bilingual
+  keywords, and mission-dossier keyword expansion.
+- Rewired `packages/core/src/tool-router.ts` so `routeOperatorQuery()` consumes
+  resolved story rules instead of route-local keyword arrays.
+- Exported `@leclerc/core/tool-router-stories` and the root `@leclerc/core`
+  story helpers.
+- Updated the bucket-analysis artifact with B8/B11 tool-router-story evidence.
+
+### Verification
+
+```bash
+bun -e 'import { DEFAULT_OPERATOR_TOOL_ROUTER_STORY, operatorToolRouteRules, routeOperatorQuery } from "./packages/core/src/index.ts"; const rules=operatorToolRouteRules(); const dossier=rules.find((rule)=>rule.intent==="dossier.answer"); const values={story:DEFAULT_OPERATOR_TOOL_ROUTER_STORY.id,ruleCount:rules.length,dossierHasFallback:dossier?.keywords.includes("expediente"),card:routeOperatorQuery("rain card"),wallet:routeOperatorQuery("enviar balance"),link:routeOperatorQuery("peer station drop"),analysis:routeOperatorQuery("informe analyst"),search:routeOperatorQuery("buscar expediente"),dossier:routeOperatorQuery("expediente"),chat:routeOperatorQuery("hola cleo")}; console.log(JSON.stringify(values)); if (values.story!=="operator-tool-router" || values.ruleCount!==6 || values.dossierHasFallback!==true || values.card.intent!=="cards.open" || values.card.targetHref!=="card" || values.wallet.intent!=="wallet.open" || values.wallet.targetHref!=="billetera" || values.link.intent!=="link.open" || values.link.targetHref!=="enlace" || values.analysis.intent!=="analysis.open" || values.analysis.targetHref!=="analisis" || values.search.intent!=="dossier.search" || values.dossier.intent!=="dossier.answer" || values.chat.intent!=="chat") process.exit(1);'
+rg -n 'DOSSIER_ROUTE_KEYWORDS|ROUTE_RULES|tarjeta|allowance|asignacion|dead-drop|buzon|estacion|hallar|operator-tool-router' packages/core/src/tool-router.ts packages/core/src/tool-router-stories.ts -g '*.ts'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The router story smoke
+returned the shared story ID, six resolved rules, mission-dossier fallback
+keyword expansion, unchanged card/wallet/link/analysis/search/dossier routing,
+and the chat fallback. The focused scan now returns route keywords only in
+`packages/core/src/tool-router-stories.ts`; `tool-router.ts` keeps only the
+matcher and public route result shape. `git diff --check` exited 0. `lsof`
+returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
