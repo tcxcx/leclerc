@@ -2777,3 +2777,50 @@ page-local `ragSearch(query, 4)`, `ragSearch(query, 6)`,
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 display limit stories
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Extended `packages/core/src/pwa-notification-stories.ts` with the operations
+  notification feed visible row count and `opsNotificationFeedVisibleRows()`.
+- Extended `packages/core/src/analyst-stories.ts` with analyst finding source
+  preview length and `analystFindingSourcePreviewLength()`.
+- Rewired `apps/app/src/app/[locale]/operaciones/page.tsx` and
+  `apps/app/src/app/[locale]/analisis/page.tsx` so feed/source preview display
+  limits come from shared stories.
+- Updated the bucket-analysis artifact with B4/B8/B11 display-limit evidence.
+
+### Verification
+
+```bash
+bun -e 'import { DEFAULT_ANALYST_STORY, DEFAULT_PWA_NOTIFICATION_STORY, analystFindingSourcePreviewLength, opsNotificationFeedVisibleRows } from "./packages/core/src/index.ts"; const values={analyst:DEFAULT_ANALYST_STORY.id,sourcePreview:analystFindingSourcePreviewLength(),notifications:DEFAULT_PWA_NOTIFICATION_STORY.id,visibleRows:opsNotificationFeedVisibleRows()}; console.log(JSON.stringify(values)); if (values.analyst!=="field-analyst-desk" || values.sourcePreview!==8 || values.notifications!=="pwa-ops-notification-wire" || values.visibleRows!==8) process.exit(1);'
+rg -n 'notifications\.slice\(0, 8\)|f\.slice\(0, 8\)|visibleRows|findingSourcePreviewLength|opsNotificationFeedVisibleRows|analystFindingSourcePreviewLength|NOTIFICATION_FEED_VISIBLE_ROWS|FINDING_SOURCE_PREVIEW_LENGTH' apps/app/src/app/[[]locale[]]/operaciones/page.tsx apps/app/src/app/[[]locale[]]/analisis/page.tsx packages/core/src/pwa-notification-stories.ts packages/core/src/analyst-stories.ts -g '*.ts' -g '*.tsx'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The display-limit smoke
+returned the shared analyst/PWA notification story IDs, analyst source preview
+length, and notification visible row count. The focused scan now returns
+display limit values only in `packages/core/src/analyst-stories.ts` and
+`packages/core/src/pwa-notification-stories.ts`, with helper-derived constants
+in the consuming pages; no direct `notifications.slice(0, 8)` or
+`f.slice(0, 8)` remains. `git diff --check` exited 0. `lsof` returned no rows
+on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

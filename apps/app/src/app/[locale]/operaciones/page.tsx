@@ -23,6 +23,7 @@ import {
   opsNotificationFromMissionFunding,
   opsNotificationFeedIcon,
   opsNotificationFeedIconClass,
+  opsNotificationFeedVisibleRows,
   opsNotificationRefreshIcon,
   opsConsoleCounts,
   type MissionBounty,
@@ -31,6 +32,8 @@ import {
   type OpsConsoleState,
   type WorkspaceInvite,
 } from "@leclerc/core";
+
+const NOTIFICATION_FEED_VISIBLE_ROWS = opsNotificationFeedVisibleRows();
 
 export default function OperationsPage() {
   const t = useI18n();
@@ -548,7 +551,7 @@ function NotificationFeed({
         <p className="text-body-md text-on-surface-variant">{t("opsConsole.notifications.empty")}</p>
       ) : (
         <div className="space-y-2">
-          {notifications.slice(0, 8).map((notification) => (
+          {notifications.slice(0, NOTIFICATION_FEED_VISIBLE_ROWS).map((notification) => (
             <NotificationRow
               key={notification.id}
               notification={notification}

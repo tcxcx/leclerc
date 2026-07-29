@@ -7,7 +7,9 @@ import { exportBrief, runBrief, type BriefExportFormat } from "@/lib/api-client"
 import type { IntelRecord } from "@/lib/intel/schema";
 import type { IntelBrief } from "@/lib/agents/orchestrator";
 import { ThreatChip } from "@/components/threat-chip";
-import { DEFAULT_ANALYST_STORY } from "@leclerc/core";
+import { DEFAULT_ANALYST_STORY, analystFindingSourcePreviewLength } from "@leclerc/core";
+
+const FINDING_SOURCE_PREVIEW_LENGTH = analystFindingSourcePreviewLength();
 
 export default function AnalysisPage() {
   const t = useI18n();
@@ -167,7 +169,7 @@ export default function AnalysisPage() {
                   <div className="mt-1 flex flex-wrap gap-1">
                     {h.fuentes.map((f) => (
                       <span key={f} className="rounded-full bg-surface px-1.5 text-caption text-primary">
-                        {f.slice(0, 8)}
+                        {f.slice(0, FINDING_SOURCE_PREVIEW_LENGTH)}
                       </span>
                     ))}
                   </div>

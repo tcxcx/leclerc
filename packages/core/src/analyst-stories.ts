@@ -26,6 +26,10 @@ export interface AnalystReportFilenameStory {
   maxSlugLength: number;
 }
 
+export interface AnalystDisplayStory {
+  findingSourcePreviewLength: number;
+}
+
 export interface AnalystRuntimeCopy {
   ragDefaultQuery: string;
   defaultFocus: string;
@@ -64,6 +68,7 @@ export interface AnalystStory {
   progressSteps: AnalystProgressStep[];
   reportLabels: Record<Locale, AnalystReportLabels>;
   reportFilename: AnalystReportFilenameStory;
+  display: AnalystDisplayStory;
   runtimeCopy: Record<Locale, AnalystRuntimeCopy>;
   toolDescriptions: Record<AnalystToolName, string>;
   errors: {
@@ -128,6 +133,9 @@ export const DEFAULT_ANALYST_STORY: AnalystStory = {
     prefix: "leclerc-brief",
     fallbackSlug: "intel",
     maxSlugLength: 48,
+  },
+  display: {
+    findingSourcePreviewLength: 8,
   },
   runtimeCopy: {
     en: {
@@ -230,6 +238,10 @@ export function analystReportFilename(
 ): string {
   const slug = analystReportSlug(title, story) || story.reportFilename.fallbackSlug;
   return `${story.reportFilename.prefix}-${slug}.${format}`;
+}
+
+export function analystFindingSourcePreviewLength(story: AnalystStory = DEFAULT_ANALYST_STORY): number {
+  return story.display.findingSourcePreviewLength;
 }
 
 export function analystRuntimeCopy(

@@ -21,6 +21,7 @@ export interface PwaNotificationStory {
   serviceWorker: PwaServiceWorkerCopy;
   opsBrowser: OpsBrowserNotificationCopy;
   opsFeed: {
+    visibleRows: number;
     browserPermissionIcons: Record<OpsBrowserNotificationPermission, string>;
     refreshIcon: string;
     notificationIcons: Record<OpsNotificationKind, string>;
@@ -53,6 +54,7 @@ export const DEFAULT_PWA_NOTIFICATION_STORY: PwaNotificationStory = {
     renotify: true,
   },
   opsFeed: {
+    visibleRows: 8,
     browserPermissionIcons: {
       granted: "notifications_active",
       denied: "notifications_off",
@@ -109,6 +111,10 @@ export function opsBrowserPermissionIcon(
 
 export function opsNotificationRefreshIcon(story: PwaNotificationStory = DEFAULT_PWA_NOTIFICATION_STORY): string {
   return story.opsFeed.refreshIcon;
+}
+
+export function opsNotificationFeedVisibleRows(story: PwaNotificationStory = DEFAULT_PWA_NOTIFICATION_STORY): number {
+  return story.opsFeed.visibleRows;
 }
 
 export function opsNotificationFeedIcon(
