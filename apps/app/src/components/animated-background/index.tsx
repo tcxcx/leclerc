@@ -1,6 +1,14 @@
 "use client";
 
-import { animatedBackgroundDiagnostic } from "@leclerc/core/diagnostic-stories";
+import {
+  DEFAULT_ANIMATED_BACKGROUND_STORY,
+  animatedBackgroundColors,
+  animatedBackgroundCssGradient,
+  animatedBackgroundDefaultPreset,
+  animatedBackgroundDiagnostic,
+  animatedBackgroundRuntime,
+  type AnimatedBackgroundPresetId,
+} from "@leclerc/core";
 import { memo, useEffect, useRef } from "react";
 import { vertexShaderSource, fragmentShaderSource } from "./shaders";
 
@@ -11,27 +19,8 @@ const hex2rgb = (hex: string): [number, number, number] => {
   return [r / 255, g / 255, b / 255];
 };
 
-const COLOR_PRESETS = {
-  default: ["#225ee1", "#28d7bf", "#ac53cf", "#e7a39c"],
-  // LeClerc spy theme: near-black graphite drifting into cold steel-teal with a
-  // faint warm ember. Low contrast on purpose so it reads "tenue" (soft) behind
-  // text — Cleo's blurred-gradient calm, but dark and covert.
-  spy: ["#090d12", "#15222b", "#283a44", "#3f2c1d"],
-  // Ignyte/Arc: black graphite + steel-teal with a faint yellow splash drifting
-  // through. Still tenue; the yellow stays a low-opacity bloom, not a wash.
-  ignyte: ["#08090b", "#141b22", "#2a3a40", "#5a5012"],
-  // Warmer covert dusk for accent surfaces.
-  spyDusk: ["#0b0e13", "#1b2630", "#33414a", "#5a3b22"],
-  bufi: ["#6954CF", "#8B7DD8", "#A78BFA", "#D8C2FF"],
-  vibrant: ["#A78BFA", "#6954CF", "#C4B5FD", "#8B7DD8"],
-  subtle: ["#EDE9FE", "#D8C2FF", "#8B7DD8", "#F3E8FF"],
-  dark: ["#4C3D99", "#5B4BA8", "#7C6BBF", "#6954CF"],
-  celebration: ["#A78BFA", "#F472B6", "#60A5FA", "#34D399"],
-  premium: ["#8B5CF6", "#6366F1", "#A855F7", "#7C3AED"],
-  pink: ["#E879F9", "#F0ABFC", "#D8C2FF", "#D946EF"],
-} as const;
-
-type ColorPreset = keyof typeof COLOR_PRESETS;
+const COLOR_PRESETS = DEFAULT_ANIMATED_BACKGROUND_STORY.presets;
+type ColorPreset = AnimatedBackgroundPresetId;
 
 interface AnimatedBackgroundProps {
   className?: string;
@@ -42,18 +31,21 @@ interface AnimatedBackgroundProps {
 const AnimatedBackground = ({
   className = "",
   isMac = false,
-  variant = "ignyte",
+  variant = animatedBackgroundDefaultPreset(),
 }: AnimatedBackgroundProps) => {
-  // Slower, lighter than the source: tenue drift, easy on battery behind chat.
-  const RESOLUTION_SCALE = isMac ? 0.4 : 0.3;
-  const TARGET_FPS = isMac ? 24 : 20;
-  const FRAME_INTERVAL = 1000 / TARGET_FPS;
+  const {
+    frameIntervalMs,
+    maxCanvasPixels,
+    resolutionScale,
+    resizeCheckIntervalMs,
+    timeScale,
+  } = animatedBackgroundRuntime(isMac);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Precomputed so the CSS gradient fallback on <canvas> can use it without
   // waiting for the WebGL init effect to run.
-  const selectedColors = COLOR_PRESETS[variant] || COLOR_PRESETS.default;
-  const cssGradient = `linear-gradient(135deg, ${selectedColors[0]} 0%, ${selectedColors[1]} 35%, ${selectedColors[2]} 65%, ${selectedColors[3]} 100%)`;
+  const selectedColors = animatedBackgroundColors(variant);
+  const cssGradient = animatedBackgroundCssGradient(selectedColors);
 
   useEffect(() => {
     const colorValues = selectedColors.map(hex2rgb) as [
@@ -71,7 +63,7 @@ const AnimatedBackground = ({
     if (!gl) {
       // Headless / GPU-disabled / WebGL-blocked: leave the canvas transparent
       // so the CSS gradient on the element shows through. Was painting a
-      // solid first-color rect, which looked awful (e.g. #225ee1 slab).
+      // solid first-color rect, which looked awful as a flat slab.
       return;
     }
 
@@ -134,23 +126,19 @@ const AnimatedBackground = ({
     gl.uniform3f(color3UniformLocation, c3![0], c3![1], c3![2]);
     gl.uniform3f(color4UniformLocation, c4![0], c4![1], c4![2]);
 
-    // Slowed ~2.6x vs source for a soft, dreamy drift (tenue, not busy).
-    const TIME_SCALE = 1.0 / 260.0;
     const startTime = performance.now();
     let animationFrameId: number | null = null;
     let lastFrameTime = 0;
     let isVisible = true;
     let lastResizeCheck = 0;
-    const RESIZE_CHECK_INTERVAL = 250;
-    const MAX_CANVAS_PIXELS = 480 * 270;
 
     const updateCanvasSize = () => {
       const rect = canvas.getBoundingClientRect();
-      let scaledWidth = Math.floor(rect.width * RESOLUTION_SCALE);
-      let scaledHeight = Math.floor(rect.height * RESOLUTION_SCALE);
+      let scaledWidth = Math.floor(rect.width * resolutionScale);
+      let scaledHeight = Math.floor(rect.height * resolutionScale);
       const pixels = scaledWidth * scaledHeight;
-      if (pixels > MAX_CANVAS_PIXELS) {
-        const ratio = Math.sqrt(MAX_CANVAS_PIXELS / pixels);
+      if (pixels > maxCanvasPixels) {
+        const ratio = Math.sqrt(maxCanvasPixels / pixels);
         scaledWidth = Math.floor(scaledWidth * ratio);
         scaledHeight = Math.floor(scaledHeight * ratio);
       }
@@ -184,18 +172,18 @@ const AnimatedBackground = ({
         return;
       }
       const deltaTime = timestamp - lastFrameTime;
-      if (deltaTime < FRAME_INTERVAL) {
+      if (deltaTime < frameIntervalMs) {
         animationFrameId = requestAnimationFrame(animate);
         return;
       }
-      lastFrameTime = timestamp - (deltaTime % FRAME_INTERVAL);
-      if (timestamp - lastResizeCheck > RESIZE_CHECK_INTERVAL) {
+      lastFrameTime = timestamp - (deltaTime % frameIntervalMs);
+      if (timestamp - lastResizeCheck > resizeCheckIntervalMs) {
         const { width, height } = updateCanvasSize();
         cachedWidth = width;
         cachedHeight = height;
         lastResizeCheck = timestamp;
       }
-      const elapsedTime = (timestamp - startTime) * TIME_SCALE;
+      const elapsedTime = (timestamp - startTime) * timeScale;
       glClear(gl.COLOR_BUFFER_BIT);
       glUniform1f(timeUniformLocation, elapsedTime);
       glUniform2f(resolutionUniformLocation, cachedWidth, cachedHeight);
@@ -213,7 +201,14 @@ const AnimatedBackground = ({
       if (vertexShader) gl.deleteShader(vertexShader);
       if (fragmentShader) gl.deleteShader(fragmentShader);
     };
-  }, [isMac, variant, FRAME_INTERVAL, RESOLUTION_SCALE, selectedColors]);
+  }, [
+    frameIntervalMs,
+    maxCanvasPixels,
+    resolutionScale,
+    resizeCheckIntervalMs,
+    selectedColors,
+    timeScale,
+  ]);
 
   return (
     <canvas

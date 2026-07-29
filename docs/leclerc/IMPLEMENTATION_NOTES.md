@@ -2585,3 +2585,52 @@ side-action icon map. The focused scan now returns action icon values in
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 animated background story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/animated-background-stories.ts` with the shared
+  animated background preset catalog, default/fallback preset, CSS gradient
+  stops, resolution/FPS runtime profiles, time scale, resize interval, and max
+  canvas pixel budget.
+- Exported `@leclerc/core/animated-background-stories` and the root
+  `@leclerc/core` helpers for preset IDs, color lookup, gradient generation,
+  and runtime profile lookup.
+- Rewired `apps/app/src/components/animated-background/index.tsx` so palette
+  and frame-budget choices resolve through the shared story while preserving
+  the compatibility `COLOR_PRESETS` export.
+- Updated the bucket-analysis artifact with B8/B9 animated-background evidence.
+
+### Verification
+
+```bash
+bun -e 'import { DEFAULT_ANIMATED_BACKGROUND_STORY, animatedBackgroundColors, animatedBackgroundCssGradient, animatedBackgroundDefaultPreset, animatedBackgroundPresetIds, animatedBackgroundRuntime } from "./packages/core/src/index.ts"; const mac=animatedBackgroundRuntime(true); const laptop=animatedBackgroundRuntime(false); const values={story:DEFAULT_ANIMATED_BACKGROUND_STORY.id,defaultPreset:animatedBackgroundDefaultPreset(),ids:animatedBackgroundPresetIds(),ignyte:animatedBackgroundColors("ignyte"),fallback:animatedBackgroundColors("missing"),gradient:animatedBackgroundCssGradient(animatedBackgroundColors("ignyte")),mac,laptop}; console.log(JSON.stringify(values)); if (values.story!=="cleo-animated-background" || values.defaultPreset!=="ignyte" || values.ignyte.join(",")!=="#08090b,#141b22,#2a3a40,#5a5012" || values.fallback.join(",")!=="#225ee1,#28d7bf,#ac53cf,#e7a39c" || values.gradient!=="linear-gradient(135deg, #08090b 0%, #141b22 35%, #2a3a40 65%, #5a5012 100%)" || mac.resolutionScale!==0.4 || laptop.resolutionScale!==0.3 || mac.targetFps!==24 || laptop.targetFps!==20 || mac.frameIntervalMs!==1000/24 || laptop.frameIntervalMs!==50 || mac.timeScale!==1/260 || mac.resizeCheckIntervalMs!==250 || mac.maxCanvasPixels!==129600) process.exit(1);'
+rg -n 'COLOR_PRESETS|#225ee1|#28d7bf|#ac53cf|#e7a39c|#08090b|#141b22|#2a3a40|#5a5012|RESOLUTION_SCALE|TARGET_FPS|TIME_SCALE|MAX_CANVAS_PIXELS|RESIZE_CHECK_INTERVAL|1\.0 / 260|480 \* 270|variant = "ignyte"' apps/app/src/components/animated-background packages/core/src -g '*.ts' -g '*.tsx'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The animated background
+story smoke returned the shared story ID, default preset, preset IDs, Ignyte
+colors, fallback colors, CSS gradient, and mac/default runtime profiles. The
+focused scan now returns palette/runtime literals only in
+`packages/core/src/animated-background-stories.ts`; the app keeps only the
+compatibility `COLOR_PRESETS` alias. `git diff --check` exited 0. `lsof`
+returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
