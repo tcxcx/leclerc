@@ -37,6 +37,7 @@
     "./surfaces": "./src/surfaces.ts",
     "./tool-router": "./src/tool-router.ts",
     "./transfers": "./src/transfers.ts",
+    "./vault-stories": "./src/vault-stories.ts",
     "./voice": "./src/voice.ts",
     "./wallet": "./src/wallet.ts",
     "./wallet-tool-stories": "./src/wallet-tool-stories.ts",

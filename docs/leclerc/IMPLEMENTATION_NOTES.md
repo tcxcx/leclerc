@@ -2172,3 +2172,48 @@ returned no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 browser vault persistence story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/vault-stories.ts` as the shared browser vault
+  persistence contract for IndexedDB database names, object-store names,
+  persistent state ids, passphrase salt storage, and device vault-key storage.
+- Rewired dossier, finance, ops-console, vault crypto, and settings unlock/wipe
+  paths to use the shared vault story instead of PWA-local persistence literals.
+- Added `@leclerc/core/vault-stories` to package exports and updated the
+  bucket-analysis artifact with B3/B8/B11 evidence.
+
+### Verification
+
+```bash
+rg -n 'leclerc-dossier|leclerc-finance|leclerc-ops-console|leclerc-salt|leclerc-device-vault-key-v1|const DB_NAME = "leclerc|const STORE = "records"|const TX_STORE = "transactions"|const GOAL_STORE = "goals"|const STATE_ID = "ops-console-state"' apps/app/src packages/core/src -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_VAULT_STORY, vaultDatabaseName, vaultLocalStorageKey, vaultStateId, vaultStoreName } from "./packages/core/src/index.ts"; const values={story:DEFAULT_VAULT_STORY.id,dossier:vaultDatabaseName("dossier"),finance:vaultDatabaseName("finance"),ops:vaultDatabaseName("opsConsole"),records:vaultStoreName("records"),transactions:vaultStoreName("transactions"),goals:vaultStoreName("goals"),workspace:vaultStoreName("workspace"),state:vaultStateId("opsConsole"),salt:vaultLocalStorageKey("passphraseSalt"),device:vaultLocalStorageKey("deviceKey")}; console.log(JSON.stringify(values)); if (values.story!=="browser-vault-persistence" || values.dossier!=="leclerc-dossier" || values.finance!=="leclerc-finance" || values.ops!=="leclerc-ops-console" || values.records!=="records" || values.transactions!=="transactions" || values.goals!=="goals" || values.workspace!=="workspace" || values.state!=="ops-console-state" || values.salt!=="leclerc-salt" || values.device!=="leclerc-device-vault-key-v1") process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The focused scan now
+returns the browser vault database names, object-store names, state id,
+passphrase salt key, and device vault key only in
+`packages/core/src/vault-stories.ts`. The vault story smoke returned the shared
+story ID, dossier/finance/ops database names, store names, ops state id,
+passphrase salt key, and device vault key. `git diff --check` exited 0. `lsof`
+returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

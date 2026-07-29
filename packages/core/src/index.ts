@@ -27,6 +27,7 @@ export * from "./rpc";
 export * from "./station-stories";
 export * from "./surfaces";
 export * from "./tool-router";
+export * from "./vault-stories";
 export * from "./voice";
 export * from "./wallet-tool-stories";
 export * from "./wallet-networks";

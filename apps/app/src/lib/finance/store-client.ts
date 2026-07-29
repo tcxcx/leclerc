@@ -2,6 +2,7 @@
 
 import { fromVaultEnvelope, toVaultEnvelope, type VaultEnvelope } from "@/lib/vault/envelope-client";
 import { financeDemoRows } from "@leclerc/core/field-demo-stories";
+import { vaultDatabaseName, vaultStoreName } from "@leclerc/core/vault-stories";
 
 /**
  * Offline-first, encrypted-at-rest local transaction store (IndexedDB on the
@@ -27,9 +28,9 @@ export interface Transaction {
   note?: string;
 }
 
-const DB_NAME = "leclerc-finance";
-const TX_STORE = "transactions";
-const GOAL_STORE = "goals";
+const DB_NAME = vaultDatabaseName("finance");
+const TX_STORE = vaultStoreName("transactions");
+const GOAL_STORE = vaultStoreName("goals");
 const VERSION = 3;
 
 export interface SavingsGoal {

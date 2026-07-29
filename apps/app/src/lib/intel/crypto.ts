@@ -1,5 +1,7 @@
 "use client";
 
+import { vaultLocalStorageKey } from "@leclerc/core/vault-stories";
+
 /**
  * Encryption-at-rest for the dossier and the wallet seed (docs/leclerc/03 §2,
  * 06 §2). Normal local writes lazily create a random device key and persist it
@@ -13,7 +15,7 @@
 
 const enc = new TextEncoder();
 const dec = new TextDecoder();
-const DEVICE_KEY_STORAGE_KEY = "leclerc-device-vault-key-v1";
+const DEVICE_KEY_STORAGE_KEY = vaultLocalStorageKey("deviceKey");
 
 /** Cast a byte view to BufferSource (works around lib-dom ArrayBufferLike strictness). */
 const bs = (u: Uint8Array): BufferSource => u as unknown as BufferSource;

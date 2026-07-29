@@ -3,14 +3,15 @@
 import type { Status, IntelRecord } from "./schema";
 import { fromVaultEnvelope, toVaultEnvelope, type VaultEnvelope } from "@/lib/vault/envelope-client";
 import { intelDemoRecords } from "@leclerc/core/field-demo-stories";
+import { vaultDatabaseName, vaultStoreName } from "@leclerc/core/vault-stories";
 
 /**
  * Offline-first, encrypted-at-rest dossier store (IndexedDB on the operative's
  * device). When the vault is unlocked the record body is sealed (AES-GCM);
  * `id` and `createdAt` stay in clear for indexing (docs/leclerc/03).
  */
-const DB_NAME = "leclerc-dossier";
-const STORE = "records";
+const DB_NAME = vaultDatabaseName("dossier");
+const STORE = vaultStoreName("records");
 const VERSION = 1;
 
 interface Envelope extends VaultEnvelope<IntelRecord> {

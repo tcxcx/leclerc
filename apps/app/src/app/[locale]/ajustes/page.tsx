@@ -1,6 +1,7 @@
 "use client";
 
 import { modelLevelOptions } from "@leclerc/core/model-level-stories";
+import { vaultLocalStorageKey } from "@leclerc/core/vault-stories";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useI18n, useCurrentLocale } from "@/locales/client";
@@ -11,6 +12,7 @@ import { wipeAll } from "@/lib/intel/store-client";
 import { wipeAllFinance } from "@/lib/finance/store-client";
 
 const MODEL_LEVELS: readonly LlmLevel[] = modelLevelOptions("settings");
+const PASSPHRASE_SALT_KEY = vaultLocalStorageKey("passphraseSalt");
 
 export default function SettingsPage() {
   const t = useI18n();
@@ -23,9 +25,9 @@ export default function SettingsPage() {
 
   async function doUnlock() {
     if (!pass) return;
-    const salt = window.localStorage.getItem("leclerc-salt") ?? undefined;
+    const salt = window.localStorage.getItem(PASSPHRASE_SALT_KEY) ?? undefined;
     const newSalt = await unlock(pass, salt);
-    window.localStorage.setItem("leclerc-salt", newSalt);
+    window.localStorage.setItem(PASSPHRASE_SALT_KEY, newSalt);
     setUnlocked(true);
     setPass("");
   }
@@ -35,7 +37,7 @@ export default function SettingsPage() {
     await wipeAllFinance();
     lock();
     forgetDeviceKey();
-    window.localStorage.removeItem("leclerc-salt");
+    window.localStorage.removeItem(PASSPHRASE_SALT_KEY);
     setConfirmWipe(false);
     setUnlocked(false);
     router.push(`/${locale}`);

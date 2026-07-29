@@ -9,11 +9,12 @@ import {
   type OpsNotification,
   type OpsConsoleState,
 } from "@leclerc/core";
+import { vaultDatabaseName, vaultStateId, vaultStoreName } from "@leclerc/core/vault-stories";
 import { fromVaultEnvelope, toVaultEnvelope, type VaultEnvelope } from "@/lib/vault/envelope-client";
 
-const DB_NAME = "leclerc-ops-console";
-const STORE = "workspace";
-const STATE_ID = "ops-console-state";
+const DB_NAME = vaultDatabaseName("opsConsole");
+const STORE = vaultStoreName("workspace");
+const STATE_ID = vaultStateId("opsConsole");
 const VERSION = 1;
 
 interface Envelope<T = unknown> extends VaultEnvelope<T> {
