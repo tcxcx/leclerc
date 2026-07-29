@@ -10,6 +10,7 @@ import {
 } from "@leclerc/core";
 import {
   createLeclercWorkletHost,
+  createNativeWorkletAdapter,
   type LeclercWorkletHost,
   type WorkletEnvironment,
   type WorkletStatus,
@@ -24,7 +25,7 @@ export interface MobileWorkletClient {
 }
 
 export function createMobileWorkletClient(
-  host: LeclercWorkletHost = createLeclercWorkletHost(),
+  host: LeclercWorkletHost = createLeclercWorkletHost({ adapter: createNativeWorkletAdapter() }),
 ): MobileWorkletClient {
   const walletNetworks = walletNetworkOptions();
   return {

@@ -6,7 +6,11 @@ import {
   type SurfaceCapabilities,
   type WalletNetworkOption,
 } from "@leclerc/core";
-import { createLeclercWorkletHost, type LeclercWorkletHost } from "@leclerc/worklet";
+import {
+  createLeclercWorkletHost,
+  createNativeWorkletAdapter,
+  type LeclercWorkletHost,
+} from "@leclerc/worklet";
 
 export interface DesktopBridge {
   capabilities: SurfaceCapabilities;
@@ -14,7 +18,9 @@ export interface DesktopBridge {
   invoke(request: LeclercRpcRequest): Promise<LeclercRpcResponse>;
 }
 
-export function createDesktopBridge(host: LeclercWorkletHost = createLeclercWorkletHost()): DesktopBridge {
+export function createDesktopBridge(
+  host: LeclercWorkletHost = createLeclercWorkletHost({ adapter: createNativeWorkletAdapter() }),
+): DesktopBridge {
   return {
     capabilities: DESKTOP_CAPABILITIES,
     walletNetworks: walletNetworkOptions(),

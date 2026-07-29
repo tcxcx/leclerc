@@ -1,5 +1,6 @@
-import { createLeclercWorkletHost } from "./index";
+import { createLeclercWorkletHost, createNativeWorkletAdapter } from "./index";
 
-export const leclercWorkletHost = createLeclercWorkletHost();
+export const leclercWorkletAdapter = createNativeWorkletAdapter();
+export const leclercWorkletHost = createLeclercWorkletHost({ adapter: leclercWorkletAdapter });
 
 export type LeclercWorkletHost = typeof leclercWorkletHost;

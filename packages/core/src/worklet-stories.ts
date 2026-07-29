@@ -8,6 +8,12 @@ export interface NativeWorkletAdapterMissingStory {
   messageTemplate: string;
 }
 
+export interface NativeWorkletComponentNotConfiguredStory {
+  errorCode: string;
+  messageTemplate: string;
+  envVars: Record<NativeWorkletRuntimeComponent, readonly string[]>;
+}
+
 export interface NativeWorkletStory {
   id: string;
   runtime: {
@@ -16,6 +22,7 @@ export interface NativeWorkletStory {
     requiredEnv: readonly NativeWorkletEnvVar[];
   };
   adapterMissing: NativeWorkletAdapterMissingStory;
+  componentNotConfigured: NativeWorkletComponentNotConfiguredStory;
   station: {
     scaffoldPublicKey: string;
   };
@@ -37,6 +44,15 @@ export const DEFAULT_NATIVE_WORKLET_STORY: NativeWorkletStory = {
     errorCode: "NATIVE_ADAPTER_NOT_CONFIGURED",
     messageTemplate:
       "Worklet method {method} is scaffolded but not wired to QVAC, WDK, or Hyperswarm yet.",
+  },
+  componentNotConfigured: {
+    errorCode: "NATIVE_COMPONENT_NOT_CONFIGURED",
+    messageTemplate: "{component} adapter is present but missing native handler/env: {details}.",
+    envVars: {
+      qvac: ["LECLERC_QVAC_MODEL_SRC", "LECLERC_EMBED_SRC", "LECLERC_OCR_SRC"],
+      wdk: ["SPARK_NETWORK", "EVM_RPC_URL", "USDT_ADDRESS"],
+      p2p: ["QVAC_HYPERSWARM_SEED"],
+    },
   },
   station: {
     scaffoldPublicKey: "native-worklet-scaffold",
@@ -80,6 +96,29 @@ export function nativeWorkletAdapterMissingMessage(
   story: NativeWorkletStory = DEFAULT_NATIVE_WORKLET_STORY,
 ): string {
   return story.adapterMissing.messageTemplate.replace("{method}", method);
+}
+
+export function nativeWorkletComponentNotConfiguredErrorCode(
+  story: NativeWorkletStory = DEFAULT_NATIVE_WORKLET_STORY,
+): string {
+  return story.componentNotConfigured.errorCode;
+}
+
+export function nativeWorkletComponentNotConfiguredEnvVars(
+  component: NativeWorkletRuntimeComponent,
+  story: NativeWorkletStory = DEFAULT_NATIVE_WORKLET_STORY,
+): string[] {
+  return [...story.componentNotConfigured.envVars[component]];
+}
+
+export function nativeWorkletComponentNotConfiguredMessage(
+  component: NativeWorkletRuntimeComponent,
+  details = nativeWorkletComponentNotConfiguredEnvVars(component).join(", "),
+  story: NativeWorkletStory = DEFAULT_NATIVE_WORKLET_STORY,
+): string {
+  return story.componentNotConfigured.messageTemplate
+    .replace("{component}", component)
+    .replace("{details}", details || "native handler");
 }
 
 export function nativeWorkletStationPublicKey(

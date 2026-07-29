@@ -17,7 +17,11 @@ import {
   type WalletNetworkSelectorInput,
   type WalletNetworkSelectorModel,
 } from "@leclerc/core";
-import { createLeclercWorkletHost, type WorkletEnvironment } from "@leclerc/worklet";
+import {
+  createLeclercWorkletHost,
+  createNativeWorkletAdapter,
+  type WorkletEnvironment,
+} from "@leclerc/worklet";
 import { createDesktopBridge, type DesktopBridge } from "./bridge";
 
 export interface DesktopShellConfig {
@@ -47,7 +51,9 @@ export interface DesktopShell {
 
 export function createDesktopShell(config: DesktopShellConfig = {}): DesktopShell {
   const locale = config.locale ?? "es";
-  const host = createLeclercWorkletHost();
+  const host = createLeclercWorkletHost({
+    adapter: createNativeWorkletAdapter({ env: config.env }),
+  });
   const opsState = defaultOpsConsoleState();
   const walletNetworks = walletNetworkOptions();
   const walletSelector = createWalletNetworkSelector(config.wallet, walletNetworks);

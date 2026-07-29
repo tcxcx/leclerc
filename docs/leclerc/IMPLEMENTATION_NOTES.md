@@ -130,8 +130,8 @@ Latest milestone commits:
 | M7 MedPsy medic mode | PARTIAL | Medic UI and fallback smoke captured in `artifacts/medpsy/`. | Set `LECLERC_MEDPSY_SRC` to a MedPsy GGUF/registry source to prove the model run. |
 | M8 Compliance/artifacts/submission | DONE | QVAC logging stream, profiler export, `getLoadedModelInfo`, hardware redaction, `README.md`, and `SUBMISSION.md` captured. | Demo video artifact was not created in this run. |
 | M9 PWA quality | DONE | `NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build`, lint, typecheck, browser smoke, mobile/desktop screenshots, EN route, panic wipe, and wallet prefill proof in `artifacts/pwa/`. | Root `turbo build/lint` was unstable in the local shell; package-level gates pass. |
-| M10 Shared core + desktop | PARTIAL | `@leclerc/core` and `@leclerc/worklet` compile; worklet smoke reports the expected `missing-adapter`; artifact in `artifacts/surfaces/m10-shared-core-2026-06-07.md`. | Native QVAC/WDK/Hyperswarm adapter is not wired; no new SDK calls were made without type/example verification. |
-| M11 Mobile | PARTIAL | `@leclerc/mobile` compiles; `bundle:ios`/`bundle:android` placeholder gates pass; mobile smoke imports core/worklet and reports `missing-adapter`; artifact in `artifacts/surfaces/m11-native-scaffolds-2026-06-07.md`. | Expo, React Native, `react-native-bare-kit`, `bare-pack`, secure-storage, and native adapter are not vendored. |
+| M10 Shared core + desktop | PARTIAL | `@leclerc/core` and `@leclerc/worklet` compile; worklet adapter router smoke reports component-level `not-configured`; artifact in `artifacts/native/native-worklet-adapter-scaffold-2026-07-29.md`. | Electron/Pear runtime and native QVAC/WDK/Hyperswarm SDK handlers are not wired; no SDK calls were made without type/example verification. |
+| M11 Mobile | PARTIAL | `@leclerc/mobile` compiles; Expo/RN/Bare deps are declared; `bundle:ios`/`bundle:android` placeholder gates pass; mobile smoke imports core/worklet and reports adapter-present `not-configured`; artifacts in `artifacts/native/`. | Real install artifact, secure-storage, and native QVAC/WDK/Hyperswarm SDK handlers remain pending. |
 
 ### Final verification on current HEAD
 
@@ -3049,3 +3049,56 @@ placeholder Bare bundles were each 1709 bytes and are ignored build outputs.
 - Native worklet adapter, real Expo install artifact (`.apk`/`.aab`/`.ipa`),
   desktop Electron/Pear runtime/rendering, two-peer P2P proof, real mic
   permission proof, and demo video artifact remain outstanding.
+
+## STATUS 2026-07-29 native worklet adapter router
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added story-owned component `not-configured` error copy and env hints for
+  native QVAC, WDK, and P2P in `packages/core/src/worklet-stories.ts`.
+- Added `createNativeWorkletAdapter()` in `packages/worklet/src/index.ts` with
+  typed injectable handlers for QVAC, wallet, drop, and station RPCs.
+- Wired the worklet entry, desktop bridge/shell, and mobile worklet client to
+  use the adapter router by default.
+- Updated readiness copy and docs to distinguish an adapter-present scaffold
+  from real SDK-backed QVAC/WDK/Hyperswarm execution.
+- Captured proof in
+  `artifacts/native/native-worklet-adapter-scaffold-2026-07-29.md`.
+
+### Verification
+
+```bash
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/worklet typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun -e 'import { DEFAULT_NATIVE_WORKLET_STORY, nativeWorkletComponentNotConfiguredErrorCode, nativeWorkletComponentNotConfiguredEnvVars, nativeWorkletComponentNotConfiguredMessage } from "./packages/core/src/index.ts"; import { createDesktopShell } from "./apps/desktop/src/main.ts"; import { createMobileWorkletClient } from "./apps/mobile/src/worklet-client.ts"; import { createLeclercWorkletHost, createNativeWorkletAdapter } from "./packages/worklet/src/index.ts"; const host=createLeclercWorkletHost({adapter:createNativeWorkletAdapter()}); const status=host.status({SPARK_NETWORK:"TESTNET"}); const station=await host.handle({id:"station",method:"station",payload:{action:"start"}}); const wallet=await host.handle({id:"wallet",method:"wallet",payload:{action:"generate"}}); const rag=await host.handle({id:"rag",method:"rag",payload:{action:"query",query:"cleo"}}); const injected=createLeclercWorkletHost({adapter:createNativeWorkletAdapter({env:{SPARK_NETWORK:"TESTNET"},wallet:{wallet:(request)=>({id:request.id,ok:true,payload:{seed:"demo-seed"}})}})}); const injectedStatus=injected.status({SPARK_NETWORK:"TESTNET"}); const injectedWallet=await injected.handle({id:"gen",method:"wallet",payload:{action:"generate"}}); const desktop=createDesktopShell({env:{SPARK_NETWORK:"TESTNET"}}); const mobile=createMobileWorkletClient(); const mobileStatus=mobile.status({SPARK_NETWORK:"TESTNET"}); const values={story:DEFAULT_NATIVE_WORKLET_STORY.id,status,station,wallet,rag,injectedStatus,injectedWallet,desktop:desktop.boot.nativeStatus,mobile:mobileStatus,errorCode:nativeWorkletComponentNotConfiguredErrorCode(),qvacEnv:nativeWorkletComponentNotConfiguredEnvVars("qvac"),wdkMessage:nativeWorkletComponentNotConfiguredMessage("wdk")}; console.log(JSON.stringify(values)); if (values.story!=="native-worklet-scaffold" || values.status.qvac!=="not-configured" || values.status.wdk!=="not-configured" || values.status.p2p!=="not-configured" || values.station.ok!==true || values.station.payload.publicKey!=="native-worklet-scaffold" || values.wallet.ok!==false || values.wallet.error.code!=="NATIVE_COMPONENT_NOT_CONFIGURED" || !values.wallet.error.message.includes("SPARK_NETWORK") || values.rag.ok!==false || values.injectedStatus.wdk!=="ready" || values.injectedWallet.ok!==true || values.injectedWallet.payload.seed!=="demo-seed" || values.desktop.wdk!=="not-configured" || values.mobile.qvac!=="not-configured" || values.errorCode!=="NATIVE_COMPONENT_NOT_CONFIGURED" || !values.qvacEnv.includes("LECLERC_QVAC_MODEL_SRC") || !values.wdkMessage.includes("EVM_RPC_URL")) process.exit(1);'
+bun --filter @leclerc/mobile bundle:ios
+bun --filter @leclerc/mobile bundle:android
+bun --filter @leclerc/desktop build
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build/bundle commands exited 0. The adapter smoke
+returned adapter-present `not-configured` status for QVAC/WDK/P2P, station start
+with the scaffold public key, story-owned `NATIVE_COMPONENT_NOT_CONFIGURED`
+errors for missing wallet/RAG handlers, and `ready` WDK status when an injected
+wallet handler was supplied. `git diff --check` exited 0. `lsof` returned no
+rows on `:7001`.
+
+### Residual blockers
+
+- Real QVAC, WDK, and Hyperswarm SDK handlers are still not wired into the
+  native adapter. `LECLERC_QVAC_MODEL_SRC`, `LECLERC_EMBED_SRC`, and live wallet
+  network env must be supplied before real native execution.
+- Desktop Electron/Pear runtime/rendering, real Expo install artifact,
+  two-peer P2P proof, real mic permission proof, and demo video artifact remain
+  outstanding.

@@ -43,7 +43,7 @@ export const DEFAULT_SURFACE_STORY: SurfaceStory = {
       },
       blockers: [
         "Pear/Electron runtime is not vendored in apps/desktop.",
-        "Native worklet adapter is not wired to QVAC, WDK, or Hyperswarm.",
+        "Native worklet adapter router is present, but QVAC/WDK/Hyperswarm handlers are not configured.",
         "Desktop install artifact has not been produced.",
       ],
     },
@@ -61,7 +61,7 @@ export const DEFAULT_SURFACE_STORY: SurfaceStory = {
       },
       blockers: [
         "Expo, React Native, react-native-bare-kit, and bare-pack are declared, but no install artifact has been produced.",
-        "Native worklet adapter is not wired to QVAC, WDK, or Hyperswarm.",
+        "Native worklet adapter router is present, but QVAC/WDK/Hyperswarm handlers are not configured.",
         "Mobile install artifact has not been produced.",
       ],
     },
