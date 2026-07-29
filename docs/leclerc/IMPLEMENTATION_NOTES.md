@@ -1001,6 +1001,52 @@ smokes returned `unknown_action`, `brief_records_required`,
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
 
+## STATUS 2026-07-29 worklet scaffold story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/worklet-stories.ts` for the native worklet scaffold
+  status/env/error/station defaults.
+- Rewired `packages/worklet/src/index.ts` so required env names, adapter-present
+  runtime status, missing-adapter log/error copy, and station scaffold public key
+  resolve through the shared worklet story contract.
+- Exported the worklet story from `@leclerc/core` and updated the bucket-analysis
+  artifact with B8/B11 evidence.
+
+### Verification
+
+```bash
+bun -e 'import { DEFAULT_NATIVE_WORKLET_STORY, nativeWorkletAdapterMissingErrorCode, nativeWorkletAdapterMissingLogMessage, nativeWorkletAdapterMissingMessage, nativeWorkletMissingEnv, nativeWorkletRequiredEnv, nativeWorkletRuntimeStatus, nativeWorkletStationPublicKey } from "./packages/core/src/index.ts"; import { createLeclercWorkletHost, createWorkletStatusResponse } from "./packages/worklet/src/index.ts"; const missing=nativeWorkletMissingEnv({}); const ready=nativeWorkletRuntimeStatus(true); const blocked=nativeWorkletRuntimeStatus(false); const host=createLeclercWorkletHost(); const status=host.status({}); const station=createWorkletStatusResponse({id:"smoke",method:"station",payload:{}}); const values={story:DEFAULT_NATIVE_WORKLET_STORY.id,required:nativeWorkletRequiredEnv(),missing,ready,blocked,log:nativeWorkletAdapterMissingLogMessage(),code:nativeWorkletAdapterMissingErrorCode(),message:nativeWorkletAdapterMissingMessage("wallet"),status,station,publicKey:nativeWorkletStationPublicKey()}; console.log(JSON.stringify(values)); if (values.story!=="native-worklet-scaffold" || values.required.join(",")!=="SPARK_NETWORK" || values.missing.join(",")!=="SPARK_NETWORK" || values.ready!=="ready" || values.blocked!=="missing-adapter" || values.log!=="native worklet adapter missing" || values.code!=="NATIVE_ADAPTER_NOT_CONFIGURED" || !values.message.includes("wallet") || values.status.qvac!=="missing-adapter" || values.status.wdk!=="missing-adapter" || values.status.p2p!=="missing-adapter" || values.status.missingEnv.join(",")!=="SPARK_NETWORK" || values.station.ok!==true || values.station.payload.publicKey!=="native-worklet-scaffold" || values.publicKey!=="native-worklet-scaffold") process.exit(1);'
+rg -n 'WorkletRuntimeStatus|missing-adapter|not-configured|NATIVE_ADAPTER_NOT_CONFIGURED|native-worklet-scaffold|SPARK_NETWORK|native worklet adapter missing|Worklet method|nativeWorklet' packages/worklet/src packages/core/src/worklet-stories.ts packages/core/src/index.ts packages/core/package.json -g '*.ts' -g '*.json'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/worklet typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The worklet scaffold smoke
+returned the shared worklet story ID, required/missing `SPARK_NETWORK` env,
+adapter-present `ready`, adapter-missing `missing-adapter`, story-owned log
+message/error code/error text, worklet status payload, and station scaffold
+public key. The focused scan now returns native worklet scaffold literals only
+in `packages/core/src/worklet-stories.ts`; `packages/worklet/src/index.ts` uses
+story helpers. `git diff --check` exited 0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
+
 ## STATUS 2026-06-09 native wallet selector contract
 
 Branch: `feat/leclerc-scaffold`

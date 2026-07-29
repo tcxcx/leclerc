@@ -46,7 +46,8 @@
     "./voice": "./src/voice.ts",
     "./wallet": "./src/wallet.ts",
     "./wallet-tool-stories": "./src/wallet-tool-stories.ts",
-    "./wallet-networks": "./src/wallet-networks.ts"
+    "./wallet-networks": "./src/wallet-networks.ts",
+    "./worklet-stories": "./src/worklet-stories.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

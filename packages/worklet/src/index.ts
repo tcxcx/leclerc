@@ -1,15 +1,23 @@
 import {
   WORKLET_CAPABILITIES,
+  nativeWorkletAdapterMissingErrorCode,
+  nativeWorkletAdapterMissingLogMessage,
+  nativeWorkletAdapterMissingMessage,
+  nativeWorkletMissingEnv,
+  nativeWorkletRuntimeStatus,
+  nativeWorkletStationPublicKey,
   rpcError,
   rpcOk,
   type LeclercRpcMethod,
   type LeclercRpcPayload,
   type LeclercRpcRequest,
   type LeclercRpcResponse,
+  type NativeWorkletEnvVar,
   type SurfaceCapabilities,
+  type WorkletRuntimeStatus,
 } from "@leclerc/core";
 
-export type WorkletRuntimeStatus = "ready" | "not-configured" | "missing-adapter";
+export type { WorkletRuntimeStatus } from "@leclerc/core";
 
 export interface WorkletStatus {
   capabilities: SurfaceCapabilities;
@@ -19,14 +27,13 @@ export interface WorkletStatus {
   missingEnv: string[];
 }
 
-export interface WorkletEnvironment {
+export interface WorkletEnvironment extends Partial<Record<NativeWorkletEnvVar, string | undefined>> {
   LECLERC_MEDPSY_SRC?: string;
   LECLERC_OCR_SRC?: string;
   QVAC_HYPERSWARM_SEED?: string;
   USDT_ADDRESS?: string;
   EVM_CHAIN_ID?: string;
   EVM_RPC_URL?: string;
-  SPARK_NETWORK?: string;
 }
 
 export interface WorkletAdapter {
@@ -46,18 +53,17 @@ export interface LeclercWorkletHost {
   ): Promise<LeclercRpcResponse<LeclercRpcPayload<M>>>;
 }
 
-const REQUIRED_ENV: (keyof WorkletEnvironment)[] = ["SPARK_NETWORK"];
-
 export function createLeclercWorkletHost(options: WorkletHostOptions = {}): LeclercWorkletHost {
   return {
     capabilities: WORKLET_CAPABILITIES,
     status(env = {}) {
-      const missingEnv = REQUIRED_ENV.filter((key) => !env[key]);
+      const runtimeStatus = nativeWorkletRuntimeStatus(Boolean(options.adapter));
+      const missingEnv = nativeWorkletMissingEnv(env);
       return {
         capabilities: WORKLET_CAPABILITIES,
-        qvac: options.adapter ? "ready" : "missing-adapter",
-        wdk: options.adapter ? "ready" : "missing-adapter",
-        p2p: options.adapter ? "ready" : "missing-adapter",
+        qvac: runtimeStatus,
+        wdk: runtimeStatus,
+        p2p: runtimeStatus,
         missingEnv,
       };
     },
@@ -68,14 +74,14 @@ export function createLeclercWorkletHost(options: WorkletHostOptions = {}): Lecl
         >;
       }
 
-      options.logger?.("native worklet adapter missing", {
+      options.logger?.(nativeWorkletAdapterMissingLogMessage(), {
         method: request.method,
         requestId: request.id,
       });
       return rpcError(
         request,
-        "NATIVE_ADAPTER_NOT_CONFIGURED",
-        `Worklet method ${request.method} is scaffolded but not wired to QVAC, WDK, or Hyperswarm yet.`,
+        nativeWorkletAdapterMissingErrorCode(),
+        nativeWorkletAdapterMissingMessage(request.method),
       );
     },
   };
@@ -83,7 +89,7 @@ export function createLeclercWorkletHost(options: WorkletHostOptions = {}): Lecl
 
 export function createWorkletStatusResponse(request: Extract<LeclercRpcRequest, { method: "station" }>) {
   return rpcOk(request, {
-    publicKey: "native-worklet-scaffold",
+    publicKey: nativeWorkletStationPublicKey(),
   });
 }
 
