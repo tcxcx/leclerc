@@ -2912,3 +2912,35 @@ story helper. `git diff --check` exited 0. `lsof` returned no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 code TODO marker cleanup
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Replaced source-level `TODO(codex)` comments in the analyst orchestrator,
+  ambient Holepunch shims, and wallet route with explicit tracked-runtime-gap
+  comments.
+- Kept the unresolved work honest: QVAC autonomous tool-calling, upstream
+  Holepunch declarations, and native Bare worklet wallet execution remain
+  documented gaps rather than hidden TODO markers.
+- Updated the bucket-analysis artifact with B11 TODO marker cleanup evidence.
+
+### Verification
+
+```bash
+rg -n 'TODO\(codex\)|Tracked native-runtime gap|Tracked runtime gap|completeWithTools|upstream declarations' apps/app/src packages/core/src packages/worklet/src -g '*.ts' -g '*.tsx' -g '*.d.ts'
+```
+
+Results: the source scan returned no `TODO(codex)` hits under `apps/app/src`,
+`packages/core/src`, or `packages/worklet/src`. It returned only the tracked-gap
+comments in `apps/app/src/lib/agents/orchestrator.ts`,
+`apps/app/src/types/shims.d.ts`, and `apps/app/src/app/api/wallet/route.ts`,
+plus the expected `completeWithTools` reference in the analyst tool defs.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

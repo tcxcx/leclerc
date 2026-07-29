@@ -6,9 +6,9 @@ import "server-only";
  * IntelBrief. All inference via QVAC. Every finding must cite record ids.
  *
  * v1 uses deterministic orchestration (the orchestrator sequences the agents)
- * with QVAC tool-calling available to each agent. TODO(codex): once the exact
- * @qvac/sdk tool-call loop is confirmed, let agents drive their own tool calls
- * via completeWithTools instead of the pre-seeded tool results below.
+ * with QVAC tool-calling available to each agent. The tracked native-runtime gap
+ * is replacing the pre-seeded tool results below with an SDK-verified
+ * completeWithTools loop after the exact @qvac/sdk contract is confirmed.
  */
 import {
   completeJSON,

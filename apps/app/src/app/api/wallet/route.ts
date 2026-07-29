@@ -22,8 +22,9 @@ export const runtime = "nodejs";
  * POST { action: "payLightning", seed, invoice }     ← gated by UI confirm
  * POST { action: "payEvm", seed, to, amount }         ← proposes; confirmTransfer executes
  *
- * TODO(codex): for the no-egress demo, prefer running this in a Bare worklet on
- * the device rather than a Route Handler; here it stays on the trusted station.
+ * Tracked native-runtime gap: for the no-egress demo, prefer running this in a
+ * Bare worklet on the device rather than a Route Handler; here it stays on the
+ * trusted station.
  */
 export async function POST(req: Request) {
   try {
