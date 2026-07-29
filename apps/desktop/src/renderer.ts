@@ -1,15 +1,18 @@
 import {
   DESKTOP_CAPABILITIES,
+  brandAppMetadata,
   createWalletNetworkSelector,
   greeting,
   starterChips,
+  type BrandAppMetadata,
   type Locale,
   type WalletNetworkSelectorInput,
   type WalletNetworkSelectorModel,
 } from "@leclerc/core";
 
 export interface DesktopRendererModel {
-  title: "LeClerc";
+  title: string;
+  brand: BrandAppMetadata;
   surface: "desktop";
   greeting: string;
   chips: ReturnType<typeof starterChips>;
@@ -21,8 +24,10 @@ export function createDesktopRendererModel(
   locale: Locale = "es",
   wallet?: WalletNetworkSelectorInput,
 ): DesktopRendererModel {
+  const brand = brandAppMetadata();
   return {
-    title: "LeClerc",
+    title: brand.productName,
+    brand,
     surface: "desktop",
     greeting: greeting(locale),
     chips: starterChips(locale),

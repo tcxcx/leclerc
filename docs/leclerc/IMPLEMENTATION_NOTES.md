@@ -1144,52 +1144,6 @@ these client labels reliably in the initial HTML.
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
 
-## STATUS 2026-07-29 brand metadata story wiring
-
-Branch: `feat/leclerc-scaffold`
-
-### What changed
-
-- Wired root app metadata and viewport theme color to the shared brand story in
-  `packages/core/src/brand-stories.ts` instead of page-local literals.
-- Wired the PWA manifest name, short name, description, background color, and
-  theme color to the same brand story.
-- Replaced the landing hero's literal product heading with the localized
-  `app.name` message key.
-- Wired PDF/DOCX brief export author and PDF eyebrow product text through
-  `brandReportMetadata()`.
-- Updated the bucket-analysis artifact to record the brand metadata contract as
-  B8/B9/B11 evidence.
-
-### Verification
-
-```bash
-bun -e 'import { brandAppMetadata, brandReportMetadata } from "./packages/core/src/index.ts"; const app=brandAppMetadata(); const report=brandReportMetadata(); console.log(JSON.stringify({title:app.layoutTitle, manifest:app.manifestName, short:app.manifestShortName, report, theme:app.themeColor})); if (!app.layoutTitle || !report.author) process.exit(1);'
-rg -n "LeClerc — Field Intelligence|LeClerc - Field Intelligence|Local-first field intelligence|author=\"LeClerc\"|creator: \"LeClerc\"|>LeClerc<" apps/app/src/app apps/app/src/lib/reports packages/core/src -g '*.ts' -g '*.tsx'
-bun --filter @leclerc/core typecheck
-bun --filter @leclerc/desktop typecheck
-bun --filter @leclerc/mobile typecheck
-cd apps/app && bunx tsc --noEmit
-cd ../..
-bun --filter app lint
-NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
-git diff --check
-lsof -nP -iTCP:7001 -sTCP:LISTEN
-```
-
-Results: all typecheck/lint/build commands exited 0. The brand smoke returned
-the shared layout title, manifest name, short name, report metadata, and theme
-color. The exact-string scan now returns only
-`packages/core/src/brand-stories.ts`, proving the app metadata/report surfaces
-consume the dedicated brand contract. `git diff --check` exited 0. `lsof`
-returned no rows on `:7001`.
-
-### Residual blockers
-
-- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
-  permission proof, native install artifacts, and demo video artifact remain
-  outstanding.
-
 ## STATUS 2026-06-10 station delegate story copy
 
 Branch: `feat/leclerc-scaffold`
@@ -1510,6 +1464,96 @@ NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
 Results: all typecheck/lint/build commands exited 0. The exact-string scan
 returned only the API error-normalization phrase `wallet seed required`, not
 the moved visible copy. The EN/ES key smoke returned `missing: []`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
+
+## STATUS 2026-07-29 brand metadata story wiring
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Wired root app metadata and viewport theme color to the shared brand story in
+  `packages/core/src/brand-stories.ts` instead of page-local literals.
+- Wired the PWA manifest name, short name, description, background color, and
+  theme color to the same brand story.
+- Replaced the landing hero's literal product heading with the localized
+  `app.name` message key.
+- Wired PDF/DOCX brief export author and PDF eyebrow product text through
+  `brandReportMetadata()`.
+- Updated the bucket-analysis artifact to record the brand metadata contract as
+  B8/B9/B11 evidence.
+
+### Verification
+
+```bash
+bun -e 'import { brandAppMetadata, brandReportMetadata } from "./packages/core/src/index.ts"; const app=brandAppMetadata(); const report=brandReportMetadata(); console.log(JSON.stringify({title:app.layoutTitle, manifest:app.manifestName, short:app.manifestShortName, report, theme:app.themeColor})); if (!app.layoutTitle || !report.author) process.exit(1);'
+rg -n "LeClerc — Field Intelligence|LeClerc - Field Intelligence|Local-first field intelligence|author=\"LeClerc\"|creator: \"LeClerc\"|>LeClerc<" apps/app/src/app apps/app/src/lib/reports packages/core/src -g '*.ts' -g '*.tsx'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The brand smoke returned
+the shared layout title, manifest name, short name, report metadata, and theme
+color. The exact-string scan now returns only
+`packages/core/src/brand-stories.ts`, proving the app metadata/report surfaces
+consume the dedicated brand contract. `git diff --check` exited 0. `lsof`
+returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
+
+## STATUS 2026-07-29 native brand story wiring
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Wired the desktop renderer model to derive its title from
+  `brandAppMetadata().productName` and expose the full `BrandAppMetadata`
+  contract to the future native renderer.
+- Wired the desktop shell model to expose the same shared brand contract beside
+  capabilities, wallet networks, ops-console state, and worklet status.
+- Wired the Expo scaffold model to expose the shared brand contract beside the
+  wallet network-token selector and ops-console state.
+- Updated the bucket-analysis artifact to record native brand identity as
+  B8/B9/B11 evidence.
+
+### Verification
+
+```bash
+rg -n 'title: "LeClerc"|"LeClerc"' apps/desktop apps/mobile -g '*.ts' -g '*.tsx'
+bun -e 'import { createDesktopShell } from "./apps/desktop/src/main.ts"; import { createDesktopRendererModel } from "./apps/desktop/src/renderer.ts"; import { createMobileAppModel } from "./apps/mobile/src/App.ts"; const desktop=createDesktopShell({locale:"en"}); const renderer=createDesktopRendererModel("en"); const mobile=createMobileAppModel("en"); console.log(JSON.stringify({desktop:desktop.brand.productName, rendererTitle:renderer.title, mobile:mobile.brand.productName, mobileTokens:mobile.walletSelector.availableTokens.map((token)=>token.symbol)})); if (desktop.brand.productName !== renderer.title || mobile.brand.productName !== renderer.title) process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The desktop/mobile exact
+string scan returned no rows. The native brand smoke returned `LeClerc` from the
+shared brand contract for desktop shell, desktop renderer, and mobile model, and
+also confirmed the Expo model still exposes network-scoped token symbols. `git
+diff --check` exited 0. `lsof` returned no rows on `:7001`.
 
 ### Residual blockers
 

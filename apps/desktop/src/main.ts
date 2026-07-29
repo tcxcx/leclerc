@@ -1,11 +1,13 @@
 import {
   DESKTOP_CAPABILITIES,
+  brandAppMetadata,
   createWalletNetworkSelector,
   defaultOpsConsoleState,
   greeting,
   opsConsoleCounts,
   starterChips,
   walletNetworkOptions,
+  type BrandAppMetadata,
   type Locale,
   type OpsConsoleState,
   type SurfaceCapabilities,
@@ -24,6 +26,7 @@ export interface DesktopShellConfig {
 
 export interface DesktopShell {
   surface: "desktop";
+  brand: BrandAppMetadata;
   capabilities: SurfaceCapabilities;
   walletNetworks: WalletNetworkOption[];
   walletSelector: WalletNetworkSelectorModel;
@@ -47,6 +50,7 @@ export function createDesktopShell(config: DesktopShellConfig = {}): DesktopShel
   const walletSelector = createWalletNetworkSelector(config.wallet, walletNetworks);
   return {
     surface: "desktop",
+    brand: brandAppMetadata(),
     capabilities: DESKTOP_CAPABILITIES,
     walletNetworks,
     walletSelector,
