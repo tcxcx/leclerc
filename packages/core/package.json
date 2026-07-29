@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./agents": "./src/agents.ts",
+    "./api-client-stories": "./src/api-client-stories.ts",
     "./api-error-stories": "./src/api-error-stories.ts",
     "./analyst-stories": "./src/analyst-stories.ts",
     "./brand-stories": "./src/brand-stories.ts",

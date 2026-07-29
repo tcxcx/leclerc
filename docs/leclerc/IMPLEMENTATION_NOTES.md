@@ -1941,3 +1941,51 @@ exited 0. `lsof` returned no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 API-client fallback story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/api-client-stories.ts` as the shared browser API
+  client fallback story contract for endpoint status messages, document/export
+  status messages, and the default brief export filename.
+- Rewired `apps/app/src/lib/api-client.ts` so generic `post()`, document intel,
+  brief export, and export filename fallbacks use typed story helpers instead of
+  app-local template strings.
+- Extended `packages/core/src/diagnostic-stories.ts` with voice socket failure
+  copy and rewired `apps/app/src/lib/voice/client.ts` to use it for both
+  `onError` and rejected startup errors.
+- Added `@leclerc/core/api-client-stories` to package exports and updated the
+  bucket-analysis artifact with B8/B11 evidence.
+
+### Verification
+
+```bash
+rg -n 'voice socket error|document \${res\.status}|export \${res\.status}|leclerc-brief\.\${req\.format}|\${url} \${res\.status}' apps/app/src packages/core/src -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_API_CLIENT_STORY, apiClientBriefExportFilenameFallback, apiClientBriefExportStatusFallback, apiClientDocumentStatusFallback, apiClientEndpointStatusFallback, DEFAULT_DIAGNOSTIC_STORY, voiceSocketErrorMessage } from "./packages/core/src/index.ts"; const values={apiStory:DEFAULT_API_CLIENT_STORY.id, diagStory:DEFAULT_DIAGNOSTIC_STORY.id, endpoint:apiClientEndpointStatusFallback({url:"/api/chat",status:503}), document:apiClientDocumentStatusFallback(422), exportStatus:apiClientBriefExportStatusFallback(500), filename:apiClientBriefExportFilenameFallback("pdf"), voice:voiceSocketErrorMessage()}; console.log(JSON.stringify(values)); if (values.endpoint!=="/api/chat 503" || values.document!=="document 422" || values.exportStatus!=="export 500" || values.filename!=="leclerc-brief.pdf" || values.voice!=="voice socket error") process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The focused scan now
+returns `voice socket error` only in `packages/core/src/diagnostic-stories.ts`
+and no longer finds the moved API-client fallback templates in app code. The
+story smoke returned the shared API-client story ID, endpoint/document/export
+fallbacks, default export filename, diagnostic story ID, and voice socket error
+message. `git diff --check` exited 0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

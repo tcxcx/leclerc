@@ -27,10 +27,10 @@ yellow/Ignyte accent.
 | B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
 | B6 | P2P delegation + dead-drop | 83% | Ops console links missions to dead-drop intent; Link funding/drop notification payloads persist into the ops notification feed; station delegate smoke prompt and transfer confirmation/funding errors are story-owned; two-peer delegation proof still missing. |
 | B7 | WDK wallet + network-token selector | 87% | Rain card and mission-funding configs now derive from shared catalogs; wallet/card/station failures, native selector state, wallet-agent tool copy, and transfer/wallet network-token errors use stable story contracts. |
-| B8 | Monorepo ecosystem: PWA + desktop + mobile | 89% | Shared ops-console, ops-network, mission-story, wallet selector, transfer-story, API-error-story, diagnostic-story, PWA-notification-story, finance-story, assistant-story/persona, analyst-story, wallet-tool-story, network-token-story, QVAC-story, RAG-story, intel-story, station-story, and brand-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, client diagnostics, metadata, native model identity, and SPY presets. Native adapters still missing. |
+| B8 | Monorepo ecosystem: PWA + desktop + mobile | 90% | Shared ops-console, ops-network, mission-story, wallet selector, transfer-story, API-error-story, API-client-story, diagnostic-story, PWA-notification-story, finance-story, assistant-story/persona, analyst-story, wallet-tool-story, network-token-story, QVAC-story, RAG-story, intel-story, station-story, and brand-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, client transport fallbacks, client diagnostics, metadata, native model identity, and SPY presets. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 91% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents; PWA metadata, manifest, landing brand heading, report author/eyebrow, and native shell brand identity now share the same brand contract. Native design mirror still missing. |
 | B10 | EN/ES localization | 99% | Operations story labels, browser-alert notification copy, error/status states, Link protocol event/status labels, console assistant copy/persona prompt, finance roast/context copy, voice/settings/SPY fallback copy, analyst/capture/dossier fallback copy, and analyst report/runtime copy are localized in EN/ES. |
-| B11 | Repro, artifacts, compliance gates | 99% | Updated status notes now track field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, browser-alert verification, Link/voice/settings/SPY i18n key coverage, RAG/intel/station/QVAC/network-token/transfer/API-error/diagnostic/PWA-notification story prompt verification, PWA brand metadata, native brand identity, assistant persona prompt, and finance story verification. |
+| B11 | Repro, artifacts, compliance gates | 99% | Updated status notes now track field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, browser-alert verification, Link/voice/settings/SPY i18n key coverage, RAG/intel/station/QVAC/network-token/transfer/API-error/API-client/diagnostic/PWA-notification story prompt verification, PWA brand metadata, native brand identity, assistant persona prompt, and finance story verification. |
 
 ## New 100% criteria for B8: monorepo ecosystem
 
@@ -118,6 +118,13 @@ yellow/Ignyte accent.
   `apps/app/src/lib/use-recorder.ts`,
   `apps/app/src/lib/voice/client.ts`, and
   `apps/app/src/components/animated-background/index.tsx`.
+- ✓ Browser API transport fallback errors and export filename fallbacks use the
+  shared API-client story contract, while voice socket failures use the shared
+  diagnostic story contract:
+  `packages/core/src/api-client-stories.ts`,
+  `apps/app/src/lib/api-client.ts`,
+  `packages/core/src/diagnostic-stories.ts`, and
+  `apps/app/src/lib/voice/client.ts`.
 - ✓ Console greeting, starter chips, action labels, and tool labels use the
   shared assistant story contract plus EN/ES message keys:
   `packages/core/src/assistant-stories.ts` and

@@ -18,6 +18,7 @@ export interface DiagnosticStory {
   voiceClient: {
     scope: string;
     micAudioContextSampleRate: string;
+    socketError: string;
     startFailed: string;
   };
   animatedBackground: {
@@ -43,6 +44,7 @@ export const DEFAULT_DIAGNOSTIC_STORY: DiagnosticStory = {
   voiceClient: {
     scope: "[voice-client]",
     micAudioContextSampleRate: "mic AudioContext sampleRate",
+    socketError: "voice socket error",
     startFailed: "start failed:",
   },
   animatedBackground: {
@@ -102,6 +104,12 @@ export function voiceMicAudioContextSampleRateDiagnostic(
   story: DiagnosticStory = DEFAULT_DIAGNOSTIC_STORY,
 ): string {
   return diagnosticLine(story.voiceClient.scope, `${story.voiceClient.micAudioContextSampleRate}=${sampleRate}`);
+}
+
+export function voiceSocketErrorMessage(
+  story: DiagnosticStory = DEFAULT_DIAGNOSTIC_STORY,
+): string {
+  return story.voiceClient.socketError;
 }
 
 export function animatedBackgroundDiagnostic(

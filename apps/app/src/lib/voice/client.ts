@@ -2,6 +2,7 @@
 
 import {
   voiceMicAudioContextSampleRateDiagnostic,
+  voiceSocketErrorMessage,
   voiceStartFailedDiagnostic,
 } from "@leclerc/core/diagnostic-stories";
 
@@ -140,10 +141,11 @@ export function createVoiceClient(opts: VoiceClientOptions = {}): VoiceClient {
         resolve();
       };
       sock.onerror = () => {
-        opts.onError?.("voice socket error");
+        const message = voiceSocketErrorMessage();
+        opts.onError?.(message);
         if (!settled) {
           settled = true;
-          reject(new Error("voice socket error"));
+          reject(new Error(message));
         }
       };
       sock.onclose = () => {

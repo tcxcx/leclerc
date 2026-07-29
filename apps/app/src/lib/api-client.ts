@@ -4,6 +4,12 @@
 import { type ApiErrorBody, type ApiErrorCode } from "@/lib/api-errors";
 import type { IntelRecord } from "@/lib/intel/schema";
 import type { IntelBrief, BriefRequest } from "@/lib/agents/orchestrator";
+import {
+  apiClientBriefExportFilenameFallback,
+  apiClientBriefExportStatusFallback,
+  apiClientDocumentStatusFallback,
+  apiClientEndpointStatusFallback,
+} from "@leclerc/core/api-client-stories";
 import type {
   LeclercAssetId,
   LeclercChainId,
@@ -46,7 +52,7 @@ async function post<T>(url: string, body: unknown): Promise<T> {
   });
   if (!res.ok) {
     const errorBody = (await res.json().catch(() => ({}))) as Partial<ApiErrorBody>;
-    throw new ApiClientError(res.status, errorBody, `${url} ${res.status}`);
+    throw new ApiClientError(res.status, errorBody, apiClientEndpointStatusFallback({ url, status: res.status }));
   }
   return res.json() as Promise<T>;
 }
@@ -112,7 +118,9 @@ export async function documentIntel(
   if (opts.from) form.set("from", opts.from);
   if (opts.to) form.set("to", opts.to);
   const res = await fetch("/api/document", { method: "POST", body: form });
-  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `document ${res.status}`);
+  if (!res.ok) {
+    throw new Error((await res.json().catch(() => ({}))).error ?? apiClientDocumentStatusFallback(res.status));
+  }
   return res.json();
 }
 
@@ -133,10 +141,12 @@ export async function exportBrief(req: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(req),
   });
-  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `export ${res.status}`);
+  if (!res.ok) {
+    throw new Error((await res.json().catch(() => ({}))).error ?? apiClientBriefExportStatusFallback(res.status));
+  }
   const filename =
     res.headers.get("content-disposition")?.match(/filename="([^"]+)"/)?.[1] ??
-    `leclerc-brief.${req.format}`;
+    apiClientBriefExportFilenameFallback(req.format);
   return { blob: await res.blob(), filename };
 }
 
