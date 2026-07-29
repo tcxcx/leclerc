@@ -833,8 +833,6 @@ now story-derived while the PWA build still prerenders `/[locale]/enlace` and
 
 ### Residual blockers
 
-- Finance and intel demo seed rows still contain inline scenario copy and should
-  move behind dedicated story/catalog fixtures next.
 - Native runtime/rendering, native worklet adapter, live OCR/translate/MedPsy
   model sources, two-peer P2P proof, real mic permission proof, native install
   artifacts, and demo video artifact remain outstanding.
@@ -845,8 +843,8 @@ Branch: `feat/leclerc-scaffold`
 
 ### What changed
 
-- Added `apps/app/src/lib/stories/field-demo-story.ts` for local field-demo
-  scenario data used by the finance dashboard and analyst dossier seed path.
+- Added `packages/core/src/field-demo-stories.ts` for shared field-demo scenario
+  data used by the finance dashboard and analyst dossier seed path.
 - Rewired `apps/app/src/lib/finance/store-client.ts` so the encrypted finance
   store owns persistence only; it now imports story rows from the field-demo
   fixture.
@@ -860,7 +858,7 @@ Branch: `feat/leclerc-scaffold`
 cd apps/app && bunx tsc --noEmit
 cd ../..
 bun --filter app lint
-cd apps/app && bun -e 'import { financeDemoRows, intelDemoRecords } from "./src/lib/stories/field-demo-story.ts"; const now=Date.UTC(2026,5,9); console.log(JSON.stringify({finance:financeDemoRows("en").length,intel:intelDemoRecords("en",now).map(r=>r.id),localized:financeDemoRows("es")[0]?.merchant}))'
+bun -e 'import { financeDemoRows, intelDemoRecords } from "./packages/core/src/index.ts"; const now=Date.UTC(2026,5,9); console.log(JSON.stringify({finance:financeDemoRows("en").length,intel:intelDemoRecords("en",now).map(r=>r.id),localized:financeDemoRows("es")[0]?.merchant}))'
 cd ../..
 NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
 ```
@@ -1983,6 +1981,49 @@ and no longer finds the moved API-client fallback templates in app code. The
 story smoke returned the shared API-client story ID, endpoint/document/export
 fallbacks, default export filename, diagnostic story ID, and voice socket error
 message. `git diff --check` exited 0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
+
+## STATUS 2026-07-29 shared field-demo story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Moved the field-demo finance rows and intel dossier records into
+  `packages/core/src/field-demo-stories.ts`.
+- Rewired `apps/app/src/lib/finance/store-client.ts` and
+  `apps/app/src/lib/intel/store-client.ts` to import the shared core
+  field-demo story instead of a PWA-local fixture.
+- Added `@leclerc/core/field-demo-stories` to package exports and updated the
+  bucket-analysis artifact with B3/B8/B11 evidence.
+
+### Verification
+
+```bash
+rg -n 'field-demo-stories|financeDemoRows|intelDemoRecords' apps packages artifacts -g '*.ts' -g '*.tsx' -g '*.md'
+bun -e 'import { financeDemoRows, intelDemoRecords } from "./packages/core/src/index.ts"; const now=Date.UTC(2026,5,9); const enRows=financeDemoRows("en"); const esRows=financeDemoRows("es"); const records=intelDemoRecords("en",now); console.log(JSON.stringify({finance:enRows.length,intel:records.map((record)=>record.id),localized:esRows[0]?.merchant,attachment:records[2]?.adjuntos?.[0]?.sha256})); if (enRows.length !== 12 || esRows[0]?.merchant !== "Cafe de la esquina" || records.length !== 3 || records[2]?.adjuntos?.[0]?.sha256 !== "demo-ocr-boveda-003") process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The focused story smoke
+returned 12 finance rows, the three expected intel record IDs, Spanish finance
+merchant localization, and the OCR attachment hash from the shared core export.
+The focused scan no longer finds the removed PWA-local story import path.
+`git diff --check` exited 0. `lsof` returned no rows on `:7001`.
 
 ### Residual blockers
 

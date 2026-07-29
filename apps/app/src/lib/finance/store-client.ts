@@ -1,7 +1,7 @@
 "use client";
 
 import { fromVaultEnvelope, toVaultEnvelope, type VaultEnvelope } from "@/lib/vault/envelope-client";
-import { financeDemoRows } from "@/lib/stories/field-demo-story";
+import { financeDemoRows } from "@leclerc/core/field-demo-stories";
 
 /**
  * Offline-first, encrypted-at-rest local transaction store (IndexedDB on the

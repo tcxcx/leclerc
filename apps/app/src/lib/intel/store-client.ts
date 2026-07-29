@@ -2,7 +2,7 @@
 
 import type { Status, IntelRecord } from "./schema";
 import { fromVaultEnvelope, toVaultEnvelope, type VaultEnvelope } from "@/lib/vault/envelope-client";
-import { intelDemoRecords } from "@/lib/stories/field-demo-story";
+import { intelDemoRecords } from "@leclerc/core/field-demo-stories";
 
 /**
  * Offline-first, encrypted-at-rest dossier store (IndexedDB on the operative's

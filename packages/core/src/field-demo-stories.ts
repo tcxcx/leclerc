@@ -1,7 +1,7 @@
-import type { Transaction } from "@/lib/finance/store-client";
-import type { IntelRecord } from "@/lib/intel/schema";
+import type { Transaction } from "./finance";
+import type { IntelRecord, Locale } from "./intel";
 
-export type DemoLocale = "es" | "en";
+export type DemoLocale = Locale;
 
 export type FinanceDemoRow = Omit<Transaction, "id" | "ts"> & { dayAgo: number };
 
