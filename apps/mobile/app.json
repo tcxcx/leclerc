@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "LeClerc",
+    "slug": "leclerc-mobile",
+    "version": "0.1.0",
+    "scheme": "leclerc",
+    "orientation": "portrait",
+    "ios": {
+      "bundleIdentifier": "app.leclerc.mobile",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "LeClerc uses the microphone for local voice capture.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "app.leclerc.mobile",
+      "permissions": ["android.permission.RECORD_AUDIO"]
+    }
+  }
+}

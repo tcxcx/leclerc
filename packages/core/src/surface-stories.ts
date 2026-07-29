@@ -2,7 +2,7 @@ import type { LeclercSurface } from "./surfaces";
 
 export type NativeSurfaceId = Extract<LeclercSurface, "desktop" | "mobile">;
 export type NativeSurfaceRuntime = "pear-electron" | "expo-bare";
-export type NativeSurfaceReadinessState = "scaffold-only" | "installable";
+export type NativeSurfaceReadinessState = "scaffold-only" | "runtime-declared" | "installable";
 
 export interface NativeSurfaceArtifactRequirement {
   command: string;
@@ -50,9 +50,9 @@ export const DEFAULT_SURFACE_STORY: SurfaceStory = {
     mobile: {
       surface: "mobile",
       runtime: "expo-bare",
-      state: "scaffold-only",
+      state: "runtime-declared",
       installable: false,
-      runtimeVended: false,
+      runtimeVended: true,
       workletAdapterWired: false,
       buildArtifactPresent: false,
       artifactRequirement: {
@@ -60,7 +60,7 @@ export const DEFAULT_SURFACE_STORY: SurfaceStory = {
         accepted: ["signed .apk", "signed .aab", "signed .ipa", "simulator install proof"],
       },
       blockers: [
-        "Expo, React Native, react-native-bare-kit, and bare-pack are not vendored in apps/mobile.",
+        "Expo, React Native, react-native-bare-kit, and bare-pack are declared, but no install artifact has been produced.",
         "Native worklet adapter is not wired to QVAC, WDK, or Hyperswarm.",
         "Mobile install artifact has not been produced.",
       ],

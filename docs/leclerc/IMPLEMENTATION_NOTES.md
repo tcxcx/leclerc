@@ -2995,3 +2995,57 @@ no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 mobile Expo Bare scaffold
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Declared Expo, React Native, `react-native-bare-kit`, `bare-pack`, and React
+  types in `apps/mobile/package.json`.
+- Added `apps/mobile/app.json`, `apps/mobile/index.ts`, and
+  `apps/mobile/src/App.native.ts` so Expo can register a native root component
+  that renders the shared `createMobileAppModel()` state and wallet selector.
+- Added `apps/mobile/src/worklet/index.js` plus `bundle:ios`/`bundle:android`
+  scripts using installed `bare-pack@2` `--host` flags.
+- Updated `packages/core/src/surface-stories.ts` so mobile readiness is
+  `runtime-declared` with `runtimeVended: true`, while installability remains
+  false until a real `.apk`/`.aab`/`.ipa` exists.
+- Captured bundle proof in
+  `artifacts/native/mobile-bare-bundle-proof-2026-07-29.md`.
+
+### Verification
+
+```bash
+bun install
+bun -e 'import { DEFAULT_SURFACE_STORY, listLandingActions, nativeSurfaceAcceptedArtifacts, nativeSurfaceBlockers, nativeSurfaceInstallable, nativeSurfaceReadinessList } from "./packages/core/src/index.ts"; import { createMobileAppModel } from "./apps/mobile/src/App.ts"; const mobile=createMobileAppModel(); const expo=listLandingActions().find((action)=>action.id==="expo"); const values={story:DEFAULT_SURFACE_STORY.id,mobile:mobile.readiness,expoEnabled:expo?.enabled,list:nativeSurfaceReadinessList().map((item)=>`${item.surface}:${item.state}:${item.runtimeVended}`),mobileInstallable:nativeSurfaceInstallable("mobile"),mobileArtifacts:nativeSurfaceAcceptedArtifacts("mobile"),mobileBlockers:nativeSurfaceBlockers("mobile"),tokens:mobile.walletSelector.availableTokens.map((token)=>token.symbol)}; console.log(JSON.stringify(values)); if (values.story!=="cleo-three-surface-readiness" || values.mobile.surface!=="mobile" || values.mobile.state!=="runtime-declared" || values.mobile.runtimeVended!==true || values.mobile.installable!==false || values.expoEnabled!==false || values.mobileInstallable!==false || !values.mobileArtifacts.includes("signed .apk") || !values.mobileBlockers.some((value)=>value.includes("no install artifact")) || !values.tokens.length) process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/worklet typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+bun --filter @leclerc/mobile bundle:ios
+bun --filter @leclerc/mobile bundle:android
+bun --filter @leclerc/desktop build
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+wc -c apps/mobile/bundles/app-ios.bundle.js apps/mobile/bundles/app-android.bundle.js
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all install/typecheck/lint/build/bundle commands exited 0. The mobile
+readiness smoke returned `runtime-declared`, `runtimeVended: true`,
+`installable: false`, Expo landing action disabled, accepted native artifact
+names, mobile blockers, and network-filtered wallet tokens. iOS and Android
+placeholder Bare bundles were each 1709 bytes and are ignored build outputs.
+`git diff --check` exited 0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native worklet adapter, real Expo install artifact (`.apk`/`.aab`/`.ipa`),
+  desktop Electron/Pear runtime/rendering, two-peer P2P proof, real mic
+  permission proof, and demo video artifact remain outstanding.

@@ -3,22 +3,31 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "index.ts",
   "exports": {
     ".": "./src/App.ts",
+    "./native": "./src/App.native.ts",
     "./worklet-client": "./src/worklet-client.ts"
   },
   "scripts": {
-    "dev": "bun run typecheck",
+    "dev": "expo start --dev-client",
     "build": "bun run typecheck",
-    "bundle:android": "bun run typecheck",
-    "bundle:ios": "bun run typecheck",
+    "bundle:android": "bare-pack --host android --linked --out bundles/app-android.bundle.js src/worklet/index.js",
+    "bundle:ios": "bare-pack --host ios --linked --out bundles/app-ios.bundle.js src/worklet/index.js",
+    "bundle:native": "bun run bundle:android && bun run bundle:ios",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@leclerc/core": "workspace:*",
-    "@leclerc/worklet": "workspace:*"
+    "@leclerc/worklet": "workspace:*",
+    "bare-pack": "2.0.2",
+    "expo": "56.0.9",
+    "react": "19.2.4",
+    "react-native": "0.85.3",
+    "react-native-bare-kit": "0.14.2"
   },
   "devDependencies": {
+    "@types/react": "^19",
     "typescript": "^5"
   }
 }
