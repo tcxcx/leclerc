@@ -6,6 +6,7 @@ export * from "./analyst-stories";
 export * from "./assistant-stories";
 export * from "./brand-stories";
 export * from "./diagnostic-stories";
+export * from "./dossier-stories";
 export * from "./field-demo-stories";
 export * from "./finance";
 export * from "./finance-stories";

@@ -12,6 +12,7 @@
     "./analyst-stories": "./src/analyst-stories.ts",
     "./brand-stories": "./src/brand-stories.ts",
     "./diagnostic-stories": "./src/diagnostic-stories.ts",
+    "./dossier-stories": "./src/dossier-stories.ts",
     "./asset-catalog": "./src/asset-catalog.ts",
     "./field-demo-stories": "./src/field-demo-stories.ts",
     "./finance": "./src/finance.ts",

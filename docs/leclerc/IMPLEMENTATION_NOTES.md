@@ -2680,3 +2680,53 @@ returned no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 dossier list story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/dossier-stories.ts` as the shared dossier list story
+  for filter order, initial filter, grounded-answer icon, and source id preview
+  length.
+- Extended `packages/core/src/rag-stories.ts` with answer/search default result
+  limits.
+- Rewired `apps/app/src/app/[locale]/expediente/page.tsx` to use dossier/RAG
+  story helpers instead of page-local filter, icon, RAG `k`, and source-preview
+  literals.
+- Rewired `apps/app/src/lib/api-client.ts` so `ragAsk`, `ragAskScoped`, and
+  `ragSearch` default limits resolve through the RAG story.
+- Exported `@leclerc/core/dossier-stories` and updated the bucket-analysis
+  artifact with B3/B8/B11 dossier/RAG evidence.
+
+### Verification
+
+```bash
+bun -e 'import { DEFAULT_DOSSIER_STORY, DEFAULT_RAG_STORY, dossierFilterOptions, dossierGroundedAnswerIcon, dossierInitialFilter, dossierSourceIdPreviewLength, ragDefaultAnswerLimit, ragDefaultSearchLimit } from "./packages/core/src/index.ts"; const values={dossier:DEFAULT_DOSSIER_STORY.id,filters:dossierFilterOptions(),initial:dossierInitialFilter(),icon:dossierGroundedAnswerIcon(),sourcePreview:dossierSourceIdPreviewLength(),rag:DEFAULT_RAG_STORY.id,answerK:ragDefaultAnswerLimit(),searchK:ragDefaultSearchLimit()}; console.log(JSON.stringify(values)); if (values.dossier!=="field-dossier-list" || values.filters.join(",")!=="ALL,CRITICO,ELEVADO,RUTINARIO" || values.initial!=="ALL" || values.icon!=="auto_awesome" || values.sourcePreview!==8 || values.rag!=="grounded-dossier-rag" || values.answerK!==6 || values.searchK!==4) process.exit(1);'
+rg -n 'FILTERS|\["ALL", "CRITICO", "ELEVADO", "RUTINARIO"\]|auto_awesome|slice\(0, 8\)|ragAsk\(q\.trim\(\), 6|ragAskScoped\([^\n]+ = 6|ragSearch\([^\n]+ = 4|field-dossier-list|defaultAnswerK|defaultSearchK' apps/app/src/app/[[]locale[]]/expediente/page.tsx apps/app/src/lib/api-client.ts packages/core/src/dossier-stories.ts packages/core/src/rag-stories.ts -g '*.ts' -g '*.tsx'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The dossier/RAG smoke
+returned the shared dossier story ID, filter order, initial filter,
+grounded-answer icon, source-preview length, RAG story ID, answer limit, and
+search limit. The focused scan now returns helper-derived page constants plus
+the moved literal values in `packages/core/src/dossier-stories.ts` and
+`packages/core/src/rag-stories.ts`; no page/API helper default literals remain.
+`git diff --check` exited 0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

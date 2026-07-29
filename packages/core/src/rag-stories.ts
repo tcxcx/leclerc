@@ -12,11 +12,19 @@ export interface RagAnswerCopy {
 
 export interface RagStory {
   id: string;
+  query: {
+    defaultAnswerK: number;
+    defaultSearchK: number;
+  };
   answerCopy: Record<Locale, RagAnswerCopy>;
 }
 
 export const DEFAULT_RAG_STORY: RagStory = {
   id: "grounded-dossier-rag",
+  query: {
+    defaultAnswerK: 6,
+    defaultSearchK: 4,
+  },
   answerCopy: {
     en: {
       emptyAnswer: "No data in the dossier.",
@@ -42,6 +50,14 @@ export const DEFAULT_RAG_STORY: RagStory = {
 
 export function ragAnswerCopy(locale: Locale, story: RagStory = DEFAULT_RAG_STORY): RagAnswerCopy {
   return story.answerCopy[locale];
+}
+
+export function ragDefaultAnswerLimit(story: RagStory = DEFAULT_RAG_STORY): number {
+  return story.query.defaultAnswerK;
+}
+
+export function ragDefaultSearchLimit(story: RagStory = DEFAULT_RAG_STORY): number {
+  return story.query.defaultSearchK;
 }
 
 export function ragSystemPrompt(locale: Locale, story: RagStory = DEFAULT_RAG_STORY): string {

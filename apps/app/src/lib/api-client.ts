@@ -10,6 +10,7 @@ import {
   apiClientDocumentStatusFallback,
   apiClientEndpointStatusFallback,
 } from "@leclerc/core/api-client-stories";
+import { ragDefaultAnswerLimit, ragDefaultSearchLimit } from "@leclerc/core/rag-stories";
 import { deadDropBrowserLabel, deadDropDefaultPayloadKind } from "@leclerc/core/p2p-stories";
 import type { DropPayload } from "@leclerc/core/p2p";
 import type {
@@ -78,7 +79,7 @@ export function captureExtract(input: {
   return post<{ record: IntelRecord }>("/api/capture", input);
 }
 
-export function ragAsk(query: string, k = 6, locale?: "es" | "en") {
+export function ragAsk(query: string, k = ragDefaultAnswerLimit(), locale?: "es" | "en") {
   return post<{ answer: string; sources: { id: string; score?: number }[] }>("/api/rag", {
     action: "query",
     query,
@@ -87,7 +88,7 @@ export function ragAsk(query: string, k = 6, locale?: "es" | "en") {
   });
 }
 
-export function ragAskScoped(query: string, k = 6, missionId?: string, locale?: "es" | "en") {
+export function ragAskScoped(query: string, k = ragDefaultAnswerLimit(), missionId?: string, locale?: "es" | "en") {
   return post<{ answer: string; sources: { id: string; score?: number }[] }>("/api/rag", {
     action: "query",
     query,
@@ -97,7 +98,7 @@ export function ragAskScoped(query: string, k = 6, missionId?: string, locale?: 
   });
 }
 
-export function ragSearch(query: string, k = 4, missionId?: string) {
+export function ragSearch(query: string, k = ragDefaultSearchLimit(), missionId?: string) {
   return post<{ hits: { id: string; text: string; score?: number }[] }>("/api/rag", {
     action: "search",
     query,

@@ -5,17 +5,27 @@ import Link from "next/link";
 import { useI18n, useCurrentLocale } from "@/locales/client";
 import { listRecords } from "@/lib/intel/store-client";
 import { ragAsk } from "@/lib/api-client";
-import type { IntelRecord, ThreatLevel } from "@/lib/intel/schema";
+import type { IntelRecord } from "@/lib/intel/schema";
 import { ThreatChip } from "@/components/threat-chip";
-import { DEFAULT_ANALYST_STORY } from "@leclerc/core";
+import {
+  DEFAULT_ANALYST_STORY,
+  dossierFilterOptions,
+  dossierGroundedAnswerIcon,
+  dossierInitialFilter,
+  dossierSourceIdPreviewLength,
+  ragDefaultAnswerLimit,
+  type DossierFilter,
+} from "@leclerc/core";
 
-const FILTERS: (ThreatLevel | "ALL")[] = ["ALL", "CRITICO", "ELEVADO", "RUTINARIO"];
+const FILTERS = dossierFilterOptions();
+const RAG_QUERY_LIMIT = ragDefaultAnswerLimit();
+const SOURCE_ID_PREVIEW_LENGTH = dossierSourceIdPreviewLength();
 
 export default function DossierPage() {
   const t = useI18n();
   const locale = useCurrentLocale();
   const [records, setRecords] = useState<IntelRecord[]>([]);
-  const [filter, setFilter] = useState<ThreatLevel | "ALL">("ALL");
+  const [filter, setFilter] = useState<DossierFilter>(dossierInitialFilter());
   const [q, setQ] = useState("");
   const [answer, setAnswer] = useState<{ answer: string; sources: { id: string }[] } | null>(null);
   const [asking, setAsking] = useState(false);
@@ -31,7 +41,7 @@ export default function DossierPage() {
     setAsking(true);
     setAnswer(null);
     try {
-      setAnswer(await ragAsk(q.trim(), 6, locale as "es" | "en"));
+      setAnswer(await ragAsk(q.trim(), RAG_QUERY_LIMIT, locale as "es" | "en"));
     } catch (e) {
       setAnswer({
         answer: e instanceof Error ? e.message : translateKey(t, DEFAULT_ANALYST_STORY.errors.ragFailedKey),
@@ -67,7 +77,7 @@ export default function DossierPage() {
         <div className="anim-pop rounded-2xl border border-primary/30 bg-primary-container/40 p-4">
           <div className="mb-1 flex items-center gap-1 text-label-md text-primary">
             <span className="material-symbols-outlined text-[18px]" aria-hidden>
-              auto_awesome
+              {dossierGroundedAnswerIcon()}
             </span>
             {t("dossier.groundedAnswer")}
           </div>
@@ -80,7 +90,7 @@ export default function DossierPage() {
                   href={`/${locale}/expediente/${s.id}`}
                   className="rounded-full bg-surface-container px-2 py-0.5 text-caption text-primary"
                 >
-                  {s.id.slice(0, 8)}
+                  {s.id.slice(0, SOURCE_ID_PREVIEW_LENGTH)}
                 </Link>
               ))}
             </div>
@@ -96,7 +106,8 @@ export default function DossierPage() {
             className={`whitespace-nowrap rounded-full px-3 py-1 text-label-md ${
               filter === f ? "bg-primary text-on-primary" : "bg-surface-container text-on-surface-variant"
             }`}
-          >            {f === "ALL" ? t("dossier.all") : t(`threat.${f}`)}
+          >
+            {f === "ALL" ? t("dossier.all") : t(`threat.${f}`)}
           </button>
         ))}
       </div>
