@@ -1,5 +1,6 @@
 "use client";
 
+import { modelIdForLevel } from "@leclerc/core/model-level-stories";
 import type { InferenceMode } from "./mode";
 import type { IntelExtraction } from "@/lib/intel/schema";
 import {
@@ -10,7 +11,7 @@ import {
   type ChatMessage,
   type QvacTarget,
 } from "@/lib/qvac/client";
-import { getStoredLevel, LEVEL_MODEL } from "@/lib/llm-level";
+import { getStoredLevel } from "@/lib/llm-level";
 
 /**
  * Client-side inference routing for the PWA. Everything goes through QVAC:
@@ -37,7 +38,7 @@ async function targetFor(mode: InferenceMode): Promise<QvacTarget> {
 
 /** LLM id: honor the operator's level locally when present, else the target's. */
 function pickLlm(t: QvacTarget): string {
-  const want = LEVEL_MODEL[getStoredLevel()];
+  const want = modelIdForLevel(getStoredLevel());
   return t.where === "local" && t.available.includes(want) ? want : t.llmModel;
 }
 

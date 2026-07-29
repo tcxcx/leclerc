@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { completeJSON } from "@repo/qvacs";
+import { modelLevelForUseCase } from "@leclerc/core/model-level-stories";
 import { loadLLM } from "@/lib/qvac/server";
 import {
   SYSTEM_PROMPT,
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
     }
 
     const capturedAt = Date.now();
-    const llm = await loadLLM("media");
+    const llm = await loadLLM(modelLevelForUseCase("capture"));
     const extraction = await completeJSON<IntelExtraction>(
       llm,
       [

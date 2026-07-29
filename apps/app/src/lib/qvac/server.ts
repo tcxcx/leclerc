@@ -19,6 +19,11 @@ import {
   EMBEDDINGGEMMA_300M_Q8_0,
   WHISPER_BASE_Q8_0,
 } from "@repo/qvacs";
+import {
+  defaultModelLevel,
+  modelCacheKeyForLevel,
+  type LlmLevel,
+} from "@leclerc/core/model-level-stories";
 import { qvacMissingModelSourceMessage } from "@leclerc/core/qvac-stories";
 
 type ModelType =
@@ -45,22 +50,22 @@ export const RAG_WORKSPACE = process.env.LECLERC_RAG_WORKSPACE ?? "dossier";
 
 /**
  * Reasoning LLM. Loaded with tools enabled so the analyst desk can use native
- * tool-calling. "alta" = Qwen3-4B, "media" = Qwen3-1.7B, "medico" = MedPsy.
+ * tool-calling. Model-level labels and cache keys are story-owned.
  */
-export function loadLLM(level: "media" | "alta" | "medico" = "media"): Promise<string> {
+export function loadLLM(level: LlmLevel = defaultModelLevel()): Promise<string> {
   if (level === "alta") {
-    return getModel("llm-alta", () =>
+    return getModel(modelCacheKeyForLevel(level), () =>
       load(QWEN3_4B_INST_Q4_K_M, "llamacpp-completion", { tools: true }),
     );
   }
   if (level === "medico") {
     const src = process.env.LECLERC_MEDPSY_SRC;
     if (!src) throw new Error(qvacMissingModelSourceMessage("medpsy"));
-    return getModel("llm-medico", () =>
+    return getModel(modelCacheKeyForLevel(level), () =>
       load(src, "llamacpp-completion", { tools: true }),
     );
   }
-  return getModel("llm-media", () =>
+  return getModel(modelCacheKeyForLevel(level), () =>
     load(QWEN3_1_7B_INST_Q4, "llamacpp-completion", { tools: true }),
   );
 }

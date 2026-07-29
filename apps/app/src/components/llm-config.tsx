@@ -1,5 +1,6 @@
 "use client";
 
+import { modelLevelOptions } from "@leclerc/core/model-level-stories";
 import { useI18n } from "@/locales/client";
 import { useLlmLevel, type LlmLevel } from "@/lib/llm-level";
 
@@ -24,8 +25,11 @@ export function LlmConfig() {
         aria-label={t("settings.modelAria")}
         className="bg-surface-container-low border border-outline-variant rounded-lg px-2 py-1 font-label-md text-label-md text-on-surface focus:border-primary outline-none"
       >
-        <option value="alta">{t("settings.modelLevels.alta")}</option>
-        <option value="media">{t("settings.modelLevels.media")}</option>
+        {modelLevelOptions("compact").map((option) => (
+          <option key={option} value={option}>
+            {t(`settings.modelLevels.${option}`)}
+          </option>
+        ))}
       </select>
     </label>
   );

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { completeText, type CompleteMessage } from "@repo/qvacs";
 import { financeChatSystemContent } from "@leclerc/core/finance";
+import { modelLevelForUseCase } from "@leclerc/core/model-level-stories";
 import { loadLLM } from "@/lib/qvac/server";
 import { persona, type Locale } from "@/lib/agents/persona";
 import { apiErrorBody, apiErrorFromUnknown, type LeclercApiError } from "@/lib/api-errors";
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
     }
     for (const m of body.messages.slice(-12)) history.push({ role: m.role, content: m.content });
 
-    const llm = await loadLLM("media");
+    const llm = await loadLLM(modelLevelForUseCase("chat"));
     const text = await completeText({ modelId: llm, history, stream: true });
     return NextResponse.json({ text: text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim() });
   } catch (err) {

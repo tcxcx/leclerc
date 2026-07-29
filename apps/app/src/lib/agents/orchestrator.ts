@@ -23,7 +23,7 @@ import {
   extractLocations,
   type ToolContext,
 } from "./tools";
-import { analystRuntimeCopy, countNote } from "@leclerc/core";
+import { analystRuntimeCopy, countNote, modelLevelForUseCase } from "@leclerc/core";
 
 export interface BriefRequest {
   records: IntelRecord[];
@@ -88,7 +88,7 @@ export async function runAnalystDesk(
 ): Promise<IntelBrief> {
   const ctx: ToolContext = { records: req.records, missionId: req.missionId };
   const copy = analystRuntimeCopy(req.locale);
-  const llm = await loadLLM("alta");
+  const llm = await loadLLM(modelLevelForUseCase("analyst"));
   const ran: string[] = [];
   const toolLog: BriefToolEvent[] = [];
   const logTool = (event: BriefToolEvent) => toolLog.push(event);
@@ -152,7 +152,7 @@ export async function runAnalystDesk(
   if (req.includeMedic) {
     onProgress?.({ agent: "medic", status: "start" });
     try {
-      const medModel = await loadLLM("medico");
+      const medModel = await loadLLM(modelLevelForUseCase("medic"));
       const medMsgs: CompleteMessage[] = [
         {
           role: "system",

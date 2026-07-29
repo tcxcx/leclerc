@@ -7,7 +7,13 @@ import "server-only";
  */
 import { ragIngestDocs, ragQuery, completeText, type RagHit } from "@repo/qvacs";
 import { RAG_WORKSPACE, loadEmbed, loadLLM } from "@/lib/qvac/server";
-import { missionMatchesMeta, ragAnswerCopy, ragSystemPrompt, ragUserPrompt } from "@leclerc/core";
+import {
+  missionMatchesMeta,
+  modelLevelForUseCase,
+  ragAnswerCopy,
+  ragSystemPrompt,
+  ragUserPrompt,
+} from "@leclerc/core";
 
 export interface IngestDoc {
   id: string;
@@ -66,7 +72,7 @@ export async function answer(
     .map((h, i) => `[${i + 1}] (id=${h.id}) ${h.text}`)
     .join("\n\n");
 
-  const llm = await loadLLM("media");
+  const llm = await loadLLM(modelLevelForUseCase("rag"));
   const prompt = [
     {
       role: "system" as const,

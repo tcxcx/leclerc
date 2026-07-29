@@ -1,30 +1,28 @@
 "use client";
 
+import {
+  defaultModelLevel,
+  isModelLevel,
+  modelLevelStorageKey,
+} from "@leclerc/core/model-level-stories";
+import type { LlmLevel } from "@leclerc/core/model-level-stories";
 import { useEffect, useState } from "react";
 
 /**
  * Dev-only "nivel de razonamiento" — picks which local LLM generates the report.
- * ALTA = Qwen3-4B (más preciso, más pesado), MEDIA = Qwen3-1.7B (más rápido).
+ * Concrete model ids and route defaults live in the shared model-level story.
  * The choice is sent to /api/reports; in production the server forces the
  * lighter model regardless.
  */
-export type LlmLevel = "alta" | "media" | "medico";
+export type { LlmLevel } from "@leclerc/core/model-level-stories";
 
-export const LEVEL_MODEL: Record<LlmLevel, string> = {
-  alta: "qwen3-4b",
-  media: "qwen3-1.7b",
-  // MedPsy powers the field-medic intel mode (Our Psy models track).
-  // TODO(codex): set to the exact MedPsy model id registered in qvac.config.json.
-  medico: "medpsy-4b",
-};
-
-const KEY = "leclerc-llm-level";
-const DEFAULT: LlmLevel = "media";
+const KEY = modelLevelStorageKey();
+const DEFAULT = defaultModelLevel();
 
 export function getStoredLevel(): LlmLevel {
   if (typeof window === "undefined") return DEFAULT;
   const v = window.localStorage.getItem(KEY);
-  return v === "alta" || v === "media" || v === "medico" ? v : DEFAULT;
+  return isModelLevel(v) ? v : DEFAULT;
 }
 
 export function useLlmLevel(): [LlmLevel, (l: LlmLevel) => void] {

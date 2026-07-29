@@ -2080,3 +2080,49 @@ because the module is guarded by `server-only`. `git diff --check` exited 0.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 model-level story routing
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/model-level-stories.ts` as the shared QVAC
+  model-level story contract for client storage, selector options, local model
+  ids, server cache keys, and route use-case defaults.
+- Rewired the PWA model picker, compact dev picker, client inference selection,
+  server `loadLLM()`, capture/chat/RAG defaults, analyst/medic defaults, and
+  shared voice config type to use the model-level story instead of local
+  literals.
+- Added `@leclerc/core/model-level-stories` to package exports and updated the
+  bucket-analysis artifact with B1/B8/B11 evidence.
+
+### Verification
+
+```bash
+rg -n 'LEVEL_MODEL|leclerc-llm-level|qwen3-4b|qwen3-1\.7b|medpsy-4b|const LEVELS|loadLLM\("media"\)|loadLLM\("alta"\)|loadLLM\("medico"\)|llmLevel\?: "media" \| "alta"' apps/app/src packages/core/src -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_MODEL_LEVEL_STORY, defaultModelLevel, isModelLevel, modelCacheKeyForLevel, modelIdForLevel, modelLevelForUseCase, modelLevelOptions, modelLevelStorageKey } from "./packages/core/src/index.ts"; const values={story:DEFAULT_MODEL_LEVEL_STORY.id, storage:modelLevelStorageKey(), defaultLevel:defaultModelLevel(), settings:modelLevelOptions("settings"), compact:modelLevelOptions("compact"), media:modelIdForLevel("media"), alta:modelIdForLevel("alta"), medico:modelIdForLevel("medico"), cache:modelCacheKeyForLevel("medico"), capture:modelLevelForUseCase("capture"), analyst:modelLevelForUseCase("analyst"), medic:modelLevelForUseCase("medic"), valid:isModelLevel("medico"), invalid:isModelLevel("slow")}; console.log(JSON.stringify(values)); if (values.story!=="qvac-model-level-routing" || values.storage!=="leclerc-llm-level" || values.defaultLevel!=="media" || values.settings.join(",")!=="media,alta,medico" || values.compact.join(",")!=="alta,media" || values.media!=="qwen3-1.7b" || values.alta!=="qwen3-4b" || values.medico!=="medpsy-4b" || values.cache!=="llm-medico" || values.capture!=="media" || values.analyst!=="alta" || values.medic!=="medico" || !values.valid || values.invalid) process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The focused scan now
+returns the storage key and concrete model ids only in
+`packages/core/src/model-level-stories.ts`. The model-level story smoke returned
+the shared story ID, selector options, model ids, cache key, route defaults, and
+valid/invalid level checks. `git diff --check` exited 0. `lsof` returned no
+rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

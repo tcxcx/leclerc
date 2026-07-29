@@ -1,11 +1,12 @@
 import type { ChatMessage, Locale } from "./agents";
+import type { LlmLevel } from "./model-level-stories";
 
 export type VoiceState = "idle" | "connecting" | "listening" | "thinking" | "speaking";
 
 export interface VoiceConfig {
   locale: Locale;
   speak: boolean;
-  llmLevel?: "media" | "alta";
+  llmLevel?: LlmLevel;
 }
 
 export type VoiceClientToHostMessage =

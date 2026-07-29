@@ -1,5 +1,6 @@
 "use client";
 
+import { modelLevelOptions } from "@leclerc/core/model-level-stories";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useI18n, useCurrentLocale } from "@/locales/client";
@@ -9,7 +10,7 @@ import { unlock, lock, isUnlocked, forgetDeviceKey } from "@/lib/intel/crypto";
 import { wipeAll } from "@/lib/intel/store-client";
 import { wipeAllFinance } from "@/lib/finance/store-client";
 
-const LEVELS: LlmLevel[] = ["media", "alta", "medico"];
+const MODEL_LEVELS: readonly LlmLevel[] = modelLevelOptions("settings");
 
 export default function SettingsPage() {
   const t = useI18n();
@@ -50,7 +51,7 @@ export default function SettingsPage() {
 
       <Section title={t("settings.model")}>
         <div className="flex gap-2">
-          {LEVELS.map((l) => (
+          {MODEL_LEVELS.map((l) => (
             <button
               key={l}
               onClick={() => setLevel(l)}

@@ -18,6 +18,7 @@
     "./intel": "./src/intel.ts",
     "./intel-stories": "./src/intel-stories.ts",
     "./landing": "./src/landing.ts",
+    "./model-level-stories": "./src/model-level-stories.ts",
     "./mission-funding": "./src/mission-funding.ts",
     "./mission-dossier": "./src/mission-dossier.ts",
     "./ops-network": "./src/ops-network.ts",
