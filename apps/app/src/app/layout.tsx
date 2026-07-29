@@ -1,16 +1,17 @@
 /* eslint-disable @next/next/no-page-custom-font -- App Router root layout owns the shared font preloads. */
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { brandAppMetadata } from "@leclerc/core/brand-stories";
 import "./globals.css";
 import { ServiceWorkerRegister } from "./sw-register";
 
 // Dev-only inspector (react-grab). Never loads in production builds.
 const enableReactGrab = process.env.NODE_ENV === "development";
+const brand = brandAppMetadata();
 
 export const metadata: Metadata = {
-  title: "LeClerc — Field Intelligence Station",
-  description:
-    "Local-first field intelligence: capture, recall, analyze, pay and dead-drop — nothing leaves a server you don't control. Powered by QVAC.",
+  title: brand.layoutTitle,
+  description: brand.layoutDescription,
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -23,12 +24,12 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "LeClerc",
+    title: brand.appleTitle,
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0e14",
+  themeColor: brand.themeColor,
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

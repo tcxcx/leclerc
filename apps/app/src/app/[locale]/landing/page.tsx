@@ -24,7 +24,7 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
             <p className="font-mono text-caption uppercase text-ignyte">
               {t("landing.eyebrow")}
             </p>
-            <h1 className="font-display-lg text-[52px] leading-[1.02] text-on-surface">LeClerc</h1>
+            <h1 className="font-display-lg text-[52px] leading-[1.02] text-on-surface">{t("app.name")}</h1>
             <p className="max-w-xl text-body-lg text-on-surface-variant">{t("landing.hero")}</p>
           </div>
           <div className="grid max-w-2xl gap-3 sm:grid-cols-3">

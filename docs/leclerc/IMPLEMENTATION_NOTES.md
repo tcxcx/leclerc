@@ -1144,6 +1144,52 @@ these client labels reliably in the initial HTML.
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
 
+## STATUS 2026-07-29 brand metadata story wiring
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Wired root app metadata and viewport theme color to the shared brand story in
+  `packages/core/src/brand-stories.ts` instead of page-local literals.
+- Wired the PWA manifest name, short name, description, background color, and
+  theme color to the same brand story.
+- Replaced the landing hero's literal product heading with the localized
+  `app.name` message key.
+- Wired PDF/DOCX brief export author and PDF eyebrow product text through
+  `brandReportMetadata()`.
+- Updated the bucket-analysis artifact to record the brand metadata contract as
+  B8/B9/B11 evidence.
+
+### Verification
+
+```bash
+bun -e 'import { brandAppMetadata, brandReportMetadata } from "./packages/core/src/index.ts"; const app=brandAppMetadata(); const report=brandReportMetadata(); console.log(JSON.stringify({title:app.layoutTitle, manifest:app.manifestName, short:app.manifestShortName, report, theme:app.themeColor})); if (!app.layoutTitle || !report.author) process.exit(1);'
+rg -n "LeClerc — Field Intelligence|LeClerc - Field Intelligence|Local-first field intelligence|author=\"LeClerc\"|creator: \"LeClerc\"|>LeClerc<" apps/app/src/app apps/app/src/lib/reports packages/core/src -g '*.ts' -g '*.tsx'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The brand smoke returned
+the shared layout title, manifest name, short name, report metadata, and theme
+color. The exact-string scan now returns only
+`packages/core/src/brand-stories.ts`, proving the app metadata/report surfaces
+consume the dedicated brand contract. `git diff --check` exited 0. `lsof`
+returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
+
 ## STATUS 2026-06-10 station delegate story copy
 
 Branch: `feat/leclerc-scaffold`

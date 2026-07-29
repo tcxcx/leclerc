@@ -19,7 +19,7 @@ import {
 } from "docx";
 import type { IntelBrief } from "@/lib/agents/orchestrator";
 import type { IntelRecord } from "@/lib/intel/schema";
-import { analystReportLabels } from "@leclerc/core";
+import { analystReportLabels, brandReportMetadata } from "@leclerc/core";
 
 export type BriefExportFormat = "pdf" | "docx";
 
@@ -106,10 +106,13 @@ const pdfStyles = StyleSheet.create({
 
 function BriefPdf({ brief, records, locale }: BriefExportInput) {
   const labels = analystReportLabels(locale);
+  const brand = brandReportMetadata();
   return (
-    <PdfDocument title={brief.titulo} author="LeClerc">
+    <PdfDocument title={brief.titulo} author={brand.author}>
       <Page size="A4" style={pdfStyles.page}>
-        <Text style={pdfStyles.eyebrow}>LeClerc / {labels.analystDesk}</Text>
+        <Text style={pdfStyles.eyebrow}>
+          {brand.eyebrowProduct} / {labels.analystDesk}
+        </Text>
         <Text style={pdfStyles.title}>{brief.titulo}</Text>
         <Text style={pdfStyles.meta}>
           {labels.generated}: {new Date(brief.generadoEn).toISOString()} / {labels.threat}:{" "}
@@ -182,6 +185,7 @@ async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
 async function renderDocx(input: BriefExportInput): Promise<Buffer> {
   const { brief, records, locale } = input;
   const labels = analystReportLabels(locale);
+  const brand = brandReportMetadata();
   const children: Paragraph[] = [
     new Paragraph({
       heading: HeadingLevel.TITLE,
@@ -214,7 +218,7 @@ async function renderDocx(input: BriefExportInput): Promise<Buffer> {
   ];
 
   const doc = new DocxDocument({
-    creator: "LeClerc",
+    creator: brand.author,
     title: brief.titulo,
     sections: [{ properties: {}, children }],
   });
