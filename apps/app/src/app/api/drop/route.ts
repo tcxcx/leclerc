@@ -1,18 +1,13 @@
 import { NextResponse } from "next/server";
 import { apiError, apiErrorBody, apiErrorFromUnknown } from "@/lib/api-errors";
 import { closeDrop, joinDrop, readDrop, sendDrop } from "@/lib/p2p/deaddrop";
+import type { DropRequest } from "@leclerc/core/p2p";
 
 export const runtime = "nodejs";
 
-type DropAction =
-  | { action: "join"; passphrase: string; label?: string }
-  | { action: "send"; dropId: string; secret: string; kind: "brief" | "record" | "notification"; value: unknown }
-  | { action: "read"; dropId: string; secret: string }
-  | { action: "close"; dropId: string };
-
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as DropAction;
+    const body = (await req.json()) as DropRequest;
     switch (body.action) {
       case "join":
         return NextResponse.json(await joinDrop(body.passphrase, body.label));

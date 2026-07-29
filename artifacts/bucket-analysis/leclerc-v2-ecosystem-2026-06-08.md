@@ -25,12 +25,12 @@ yellow/Ignyte accent.
 | B3 | Capture, encrypted dossier, wipe | 90% | Finance and intel demo seeds now come from a shared core field-demo story, and intel extraction prompt/defaults come from dedicated story contracts instead of app-local copy. |
 | B4 | Analyst desk + brief export | 83% | Analyst progress, fallback copy, runtime prompt copy, tool-log notes, export labels, and tool descriptors now come from a shared analyst story; true QVAC tool-call loop still TODO. |
 | B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
-| B6 | P2P delegation + dead-drop | 83% | Ops console links missions to dead-drop intent; Link funding/drop notification payloads persist into the ops notification feed; station delegate smoke prompt and transfer confirmation/funding errors are story-owned; two-peer delegation proof still missing. |
+| B6 | P2P delegation + dead-drop | 84% | Ops console links missions to dead-drop intent; Link funding/drop notification payloads persist into the ops notification feed; station delegate smoke prompt, dead-drop protocol defaults, and transfer confirmation/funding errors are story-owned; two-peer delegation proof still missing. |
 | B7 | WDK wallet + network-token selector | 87% | Rain card and mission-funding configs now derive from shared catalogs; wallet/card/station failures, native selector state, wallet-agent tool copy, and transfer/wallet network-token errors use stable story contracts. |
-| B8 | Monorepo ecosystem: PWA + desktop + mobile | 91% | Shared ops-console, ops-network, mission-story, wallet selector, transfer-story, API-error-story, API-client-story, diagnostic-story, field-demo-story, PWA-notification-story, finance-story, assistant-story/persona, analyst-story, wallet-tool-story, network-token-story, QVAC-story, RAG-story, intel-story, station-story, and brand-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, client transport fallbacks, client diagnostics, demo seeds, metadata, native model identity, and SPY presets. Native adapters still missing. |
+| B8 | Monorepo ecosystem: PWA + desktop + mobile | 92% | Shared ops-console, ops-network, mission-story, wallet selector, transfer-story, API-error-story, API-client-story, diagnostic-story, field-demo-story, P2P-story, PWA-notification-story, finance-story, assistant-story/persona, analyst-story, wallet-tool-story, network-token-story, QVAC-story, RAG-story, intel-story, station-story, and brand-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, client transport fallbacks, client diagnostics, demo seeds, dead-drop defaults, metadata, native model identity, and SPY presets. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 91% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents; PWA metadata, manifest, landing brand heading, report author/eyebrow, and native shell brand identity now share the same brand contract. Native design mirror still missing. |
 | B10 | EN/ES localization | 99% | Operations story labels, browser-alert notification copy, error/status states, Link protocol event/status labels, console assistant copy/persona prompt, finance roast/context copy, voice/settings/SPY fallback copy, analyst/capture/dossier fallback copy, and analyst report/runtime copy are localized in EN/ES. |
-| B11 | Repro, artifacts, compliance gates | 99% | Updated status notes now track shared field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, browser-alert verification, Link/voice/settings/SPY i18n key coverage, RAG/intel/station/QVAC/network-token/transfer/API-error/API-client/diagnostic/PWA-notification story prompt verification, PWA brand metadata, native brand identity, assistant persona prompt, and finance story verification. |
+| B11 | Repro, artifacts, compliance gates | 99% | Updated status notes now track shared field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, browser-alert verification, Link/voice/settings/SPY i18n key coverage, RAG/intel/station/QVAC/network-token/transfer/API-error/API-client/diagnostic/P2P/PWA-notification story prompt verification, PWA brand metadata, native brand identity, assistant persona prompt, and finance story verification. |
 
 ## New 100% criteria for B8: monorepo ecosystem
 
@@ -127,6 +127,13 @@ yellow/Ignyte accent.
   `apps/app/src/lib/api-client.ts`,
   `packages/core/src/diagnostic-stories.ts`, and
   `apps/app/src/lib/voice/client.ts`.
+- ✓ Dead-drop labels, default payload kind, topic/secret material, hash-preview
+  length, and discovery timeout use the shared P2P story contract:
+  `packages/core/src/p2p-stories.ts`,
+  `apps/app/src/lib/p2p/deaddrop.ts`,
+  `apps/app/src/lib/api-client.ts`,
+  `apps/app/src/app/api/drop/route.ts`, and
+  `apps/app/src/app/[locale]/enlace/page.tsx`.
 - ✓ Console greeting, starter chips, action labels, and tool labels use the
   shared assistant story contract plus EN/ES message keys:
   `packages/core/src/assistant-stories.ts` and

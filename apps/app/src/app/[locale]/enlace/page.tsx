@@ -6,10 +6,11 @@ import { OperationsGlobe } from "@/components/operations-globe";
 import { drop, isApiClientError, missionFunding, station } from "@/lib/api-client";
 import { loadOpsConsole, mergeOpsConsoleNotifications } from "@/lib/ops/store-client";
 import { opsNotificationFromMissionFunding } from "@leclerc/core";
+import type { DropPayload } from "@leclerc/core/p2p";
 import { DEFAULT_MISSION_FUNDING_STORY_ID } from "@leclerc/transfer-core";
 import type { MissionFundingConfig, MissionFundingNotification, TransferProposal } from "@leclerc/transfers";
 
-type DropPayloadKind = "brief" | "record" | "notification";
+type DropPayloadKind = DropPayload["kind"];
 
 /**
  * P2P link/pairing. Shows the station's stable peer key for delegation, and a

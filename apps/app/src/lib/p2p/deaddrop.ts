@@ -16,14 +16,14 @@ import "server-only";
 import Hyperswarm from "hyperswarm";
 import crypto from "node:crypto";
 import { apiError } from "@/lib/api-errors";
-
-export interface DropPayload {
-  kind: "brief" | "record" | "notification";
-  /** AES-GCM ciphertext (base64) of the JSON payload. */
-  ct: string;
-  iv: string;
-  ts: number;
-}
+import {
+  deadDropDiscoveryFlushTimeoutMs,
+  deadDropSecretMaterial,
+  deadDropServerLabel,
+  deadDropTopicHashPreviewLength,
+  deadDropTopicMaterial,
+} from "@leclerc/core/p2p-stories";
+import type { DropPayload } from "@leclerc/core/p2p";
 
 export interface DropChannel {
   send(payload: DropPayload): Promise<void>;
@@ -36,12 +36,12 @@ export type SendDropStatus = "sent" | "pending";
 
 /** Derive a 32-byte topic from a mission passphrase. */
 export function topicFromPassphrase(passphrase: string): Buffer {
-  return crypto.createHash("sha256").update(`leclerc:${passphrase}`).digest();
+  return crypto.createHash("sha256").update(deadDropTopicMaterial(passphrase)).digest();
 }
 
 /** Seal a JSON value with a shared drop secret. */
 export function sealPayload(kind: DropPayload["kind"], value: unknown, secret: string): DropPayload {
-  const key = crypto.createHash("sha256").update(`drop:${secret}`).digest();
+  const key = crypto.createHash("sha256").update(deadDropSecretMaterial(secret)).digest();
   const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
   const data = Buffer.concat([cipher.update(JSON.stringify(value), "utf8"), cipher.final()]);
@@ -57,7 +57,7 @@ export function sealPayload(kind: DropPayload["kind"], value: unknown, secret: s
 /** Open the sealed payload; returns null on auth failure (wrong secret). */
 export function openPayload<T = unknown>(payload: DropPayload, secret: string): T | null {
   try {
-    const key = crypto.createHash("sha256").update(`drop:${secret}`).digest();
+    const key = crypto.createHash("sha256").update(deadDropSecretMaterial(secret)).digest();
     const raw = Buffer.from(payload.ct, "base64");
     const tag = raw.subarray(raw.length - 16);
     const body = raw.subarray(0, raw.length - 16);
@@ -106,7 +106,7 @@ export async function openDrop(topic: Buffer): Promise<DropChannel> {
   const discovery = swarm.join(topic, { server: true, client: true });
   await Promise.race([
     discovery.flushed(),
-    new Promise((resolve) => setTimeout(resolve, 5_000)),
+    new Promise((resolve) => setTimeout(resolve, deadDropDiscoveryFlushTimeoutMs())),
   ]);
 
   return {
@@ -141,7 +141,7 @@ function dropKey(passphrase: string, label: string): string {
 /** Join or reuse a long-lived drop channel for this process. */
 export async function joinDrop(
   passphrase: string,
-  label = "default",
+  label = deadDropServerLabel(),
 ): Promise<{ dropId: string; topicHash: string; peers: number }> {
   if (!passphrase.trim()) throw apiError("drop_passphrase_required");
   const key = dropKey(passphrase, label);
@@ -161,7 +161,11 @@ export async function joinDrop(
     drops.set(key, pending);
   }
   const managed = await pending;
-  return { dropId: key, topicHash: managed.topicHash.slice(0, 12), peers: managed.channel.peerCount() };
+  return {
+    dropId: key,
+    topicHash: managed.topicHash.slice(0, deadDropTopicHashPreviewLength()),
+    peers: managed.channel.peerCount(),
+  };
 }
 
 export async function sendDrop(

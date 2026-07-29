@@ -2030,3 +2030,53 @@ The focused scan no longer finds the removed PWA-local story import path.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 P2P dead-drop story defaults
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/p2p-stories.ts` as the shared P2P dead-drop story
+  contract for server/browser labels, default payload kind, topic/secret
+  material, topic-hash preview length, and Hyperswarm discovery timeout.
+- Rewired `apps/app/src/lib/p2p/deaddrop.ts` so topic derivation, payload
+  sealing/opening, join defaults, hash previews, and discovery timeout use the
+  shared story helpers.
+- Rewired `apps/app/src/lib/api-client.ts`, `apps/app/src/app/api/drop/route.ts`,
+  and `apps/app/src/app/[locale]/enlace/page.tsx` to use shared P2P types and
+  story defaults instead of repeated payload-kind/default literals.
+- Added `@leclerc/core/p2p-stories` to package exports and updated the
+  bucket-analysis artifact with B6/B8/B11 evidence.
+
+### Verification
+
+```bash
+rg -n 'label = "browser"|label = "default"|kind: "brief" \| "record" \| "notification"|= "brief"|leclerc:\$\{passphrase\}|drop:\$\{secret\}|setTimeout\(resolve, 5_000\)|slice\(0, 12\)' apps/app/src packages/core/src -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_P2P_STORY, deadDropBrowserLabel, deadDropDefaultPayloadKind, deadDropDiscoveryFlushTimeoutMs, deadDropSecretMaterial, deadDropServerLabel, deadDropTopicHashPreviewLength, deadDropTopicMaterial } from "./packages/core/src/index.ts"; const values={story:DEFAULT_P2P_STORY.id, server:deadDropServerLabel(), browser:deadDropBrowserLabel(), kind:deadDropDefaultPayloadKind(), topic:deadDropTopicMaterial("alpha"), secret:deadDropSecretMaterial("omega"), preview:deadDropTopicHashPreviewLength(), timeout:deadDropDiscoveryFlushTimeoutMs()}; console.log(JSON.stringify(values)); if (values.story!=="dead-drop-protocol-defaults" || values.server!=="default" || values.browser!=="browser" || values.kind!=="brief" || values.topic!=="leclerc:alpha" || values.secret!=="drop:omega" || values.preview!==12 || values.timeout!==5000) process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The focused scan shows the
+payload-kind union only in the shared core P2P type and unrelated 12-character
+UI previews outside dead-drop defaults; the moved server/browser labels,
+payload default, domain material, timeout, and hash-preview length resolve from
+`packages/core/src/p2p-stories.ts`. A direct Bun import of
+`apps/app/src/lib/p2p/deaddrop.ts` was intentionally not used as a verifier
+because the module is guarded by `server-only`. `git diff --check` exited 0.
+`lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

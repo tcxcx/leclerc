@@ -10,6 +10,8 @@ import {
   apiClientDocumentStatusFallback,
   apiClientEndpointStatusFallback,
 } from "@leclerc/core/api-client-stories";
+import { deadDropBrowserLabel, deadDropDefaultPayloadKind } from "@leclerc/core/p2p-stories";
+import type { DropPayload } from "@leclerc/core/p2p";
 import type {
   LeclercAssetId,
   LeclercChainId,
@@ -217,17 +219,17 @@ export const station = {
 };
 
 export const drop = {
-  join: (passphrase: string, label = "browser") =>
+  join: (passphrase: string, label = deadDropBrowserLabel()) =>
     post<{ dropId: string; topicHash: string; peers: number }>("/api/drop", {
       action: "join",
       passphrase,
       label,
     }),
-  send: (dropId: string, secret: string, value: unknown, kind: "brief" | "record" | "notification" = "brief") =>
+  send: (dropId: string, secret: string, value: unknown, kind: DropPayload["kind"] = deadDropDefaultPayloadKind()) =>
     post<{ peers: number; status: "sent" | "pending" }>("/api/drop", { action: "send", dropId, secret, kind, value }),
   read: (dropId: string, secret: string) =>
     post<{
-      payloads: Array<{ kind: "brief" | "record" | "notification"; value: unknown; ts: number }>;
+      payloads: Array<{ kind: DropPayload["kind"]; value: unknown; ts: number }>;
       rawCount: number;
     }>(
       "/api/drop",
