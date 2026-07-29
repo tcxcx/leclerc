@@ -3,10 +3,11 @@
 import {
   opsBrowserNotificationOptions,
   type Locale,
+  type OpsBrowserNotificationPermission,
   type OpsNotification,
 } from "@leclerc/core";
 
-export type BrowserOpsNotificationPermission = NotificationPermission | "unsupported";
+export type BrowserOpsNotificationPermission = OpsBrowserNotificationPermission;
 
 export function browserOpsNotificationPermission(): BrowserOpsNotificationPermission {
   if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) {

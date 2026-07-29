@@ -19,7 +19,11 @@ import {
   resetOpsConsole,
 } from "@/lib/ops/store-client";
 import {
+  opsBrowserPermissionIcon,
   opsNotificationFromMissionFunding,
+  opsNotificationFeedIcon,
+  opsNotificationFeedIconClass,
+  opsNotificationRefreshIcon,
   opsConsoleCounts,
   type MissionBounty,
   type OperativeAlias,
@@ -498,11 +502,7 @@ function NotificationFeed({
           ? t("opsConsole.notifications.browserUnsupported")
           : t("opsConsole.notifications.browserEnable");
   const browserIcon =
-    browserPermission === "granted"
-      ? "notifications_active"
-      : browserPermission === "denied" || browserPermission === "unsupported"
-        ? "notifications_off"
-        : "notifications";
+    opsBrowserPermissionIcon(browserPermission);
   const browserDisabled =
     busy ||
     browserBusy ||
@@ -539,7 +539,7 @@ function NotificationFeed({
             title={t("opsConsole.notifications.refresh")}
           >
             <span className="material-symbols-outlined text-[18px]" aria-hidden>
-              sync
+              {opsNotificationRefreshIcon()}
             </span>
           </button>
         </div>
@@ -587,12 +587,12 @@ function NotificationRow({
     <div className="rounded-lg bg-surface p-3">
       <div className="flex items-start gap-3">
         <span
-          className={`material-symbols-outlined mt-0.5 rounded-lg p-2 text-[18px] ${notificationIconClass(
+          className={`material-symbols-outlined mt-0.5 rounded-lg p-2 text-[18px] ${opsNotificationFeedIconClass(
             notification.kind,
           )}`}
           aria-hidden
         >
-          {notificationIcon(notification.kind)}
+          {opsNotificationFeedIcon(notification.kind)}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -659,19 +659,5 @@ function aliasStatusClass(status: string) {
   if (status === "available") return "bg-secondary-container text-on-secondary-container";
   if (status === "assigned") return "bg-ignyte text-on-ignyte";
   if (status === "invited") return "bg-primary-container text-on-primary-container";
-  return "bg-surface-container-high text-on-surface-variant";
-}
-
-function notificationIcon(kind: OpsNotification["kind"]) {
-  if (kind === "assignment") return "assignment_turned_in";
-  if (kind === "invite") return "forward_to_inbox";
-  if (kind === "funding") return "account_balance_wallet";
-  return "notifications";
-}
-
-function notificationIconClass(kind: OpsNotification["kind"]) {
-  if (kind === "assignment") return "bg-ignyte text-on-ignyte";
-  if (kind === "invite") return "bg-primary-container text-on-primary-container";
-  if (kind === "funding") return "bg-secondary-container text-on-secondary-container";
   return "bg-surface-container-high text-on-surface-variant";
 }

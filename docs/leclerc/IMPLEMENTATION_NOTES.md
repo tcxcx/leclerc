@@ -2446,3 +2446,50 @@ navigation, landing, wallet, ops, or card surfaces. `git diff --check` exited
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 ops notification feed story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Extended `packages/core/src/pwa-notification-stories.ts` with operations
+  notification feed visuals: browser permission icons, refresh icon,
+  notification-kind icons, and notification-kind color classes.
+- Rewired `apps/app/src/app/[locale]/operaciones/page.tsx` so the browser
+  alert permission button, refresh button, and notification rows use the shared
+  PWA notification story instead of page-local icon/class functions.
+- Rewired `apps/app/src/lib/ops/browser-notifications.ts` so its exported
+  browser permission type aliases the shared core permission union.
+- Updated the bucket-analysis artifact with B8 notification-feed evidence.
+
+### Verification
+
+```bash
+rg -n 'notificationIcon|notificationIconClass|notifications_active|notifications_off|assignment_turned_in|forward_to_inbox|account_balance_wallet|bg-ignyte text-on-ignyte|bg-primary-container text-on-primary-container|bg-secondary-container text-on-secondary-container|opsBrowserPermissionIcon|opsNotificationFeedIcon|opsNotificationRefreshIcon' 'apps/app/src/app/[locale]/operaciones/page.tsx' apps/app/src/lib/ops packages/core/src/pwa-notification-stories.ts -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_PWA_NOTIFICATION_STORY, opsBrowserPermissionIcon, opsNotificationFeedIcon, opsNotificationFeedIconClass, opsNotificationRefreshIcon } from "./packages/core/src/index.ts"; const values={story:DEFAULT_PWA_NOTIFICATION_STORY.id,granted:opsBrowserPermissionIcon("granted"),denied:opsBrowserPermissionIcon("denied"),unsupported:opsBrowserPermissionIcon("unsupported"),defaultIcon:opsBrowserPermissionIcon("default"),refresh:opsNotificationRefreshIcon(),assignment:opsNotificationFeedIcon("assignment"),invite:opsNotificationFeedIcon("invite"),funding:opsNotificationFeedIcon("funding"),system:opsNotificationFeedIcon("system"),fundingClass:opsNotificationFeedIconClass("funding")}; console.log(JSON.stringify(values)); if (values.story!=="pwa-ops-notification-wire" || values.granted!=="notifications_active" || values.denied!=="notifications_off" || values.unsupported!=="notifications_off" || values.defaultIcon!=="notifications" || values.refresh!=="sync" || values.assignment!=="assignment_turned_in" || values.invite!=="forward_to_inbox" || values.funding!=="account_balance_wallet" || values.system!=="notifications" || values.fundingClass!=="bg-secondary-container text-on-secondary-container") process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The notification story
+smoke returned the shared story ID, browser permission icons, refresh icon,
+row icons, system fallback icon, and funding row class. The focused scan now
+returns notification-feed visual values in
+`packages/core/src/pwa-notification-stories.ts`; remaining matches are
+unrelated operation buttons/status classes. `git diff --check` exited 0.
+`lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
