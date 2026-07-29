@@ -6,6 +6,11 @@ import {
   recorderMaxDurationReachedDiagnostic,
   recorderStopSummaryDiagnostic,
 } from "@leclerc/core/diagnostic-stories";
+import {
+  voicePcmSampleRate,
+  voicePushToTalkMaxDurationMs,
+  voiceScriptProcessorBufferSize,
+} from "@leclerc/core/voice";
 import { useEffect, useRef, useState } from "react";
 
 export interface RecordingResult {
@@ -14,7 +19,8 @@ export interface RecordingResult {
   mimeType: string;
 }
 
-const TARGET_RATE = 16000; // Whisper wants 16 kHz mono
+const TARGET_RATE = voicePcmSampleRate();
+const PROCESSOR_BUFFER_SIZE = voiceScriptProcessorBufferSize();
 
 /**
  * Microphone recorder for push-to-talk.
@@ -27,7 +33,7 @@ const TARGET_RATE = 16000; // Whisper wants 16 kHz mono
  * Plain functions (no useCallback) — the React Compiler memoizes them.
  */
 export function useRecorder(
-  maxMs = 60_000,
+  maxMs = voicePushToTalkMaxDurationMs(),
   onMaxDuration?: (result: RecordingResult | null) => void,
   options: { microphoneError?: string } = {},
 ) {
@@ -88,7 +94,7 @@ export function useRecorder(
       console.log(recorderAudioContextSampleRateDiagnostic(ctx.sampleRate));
 
       const source = ctx.createMediaStreamSource(stream);
-      const proc = ctx.createScriptProcessor(4096, 1, 1);
+      const proc = ctx.createScriptProcessor(PROCESSOR_BUFFER_SIZE, 1, 1);
       chunksRef.current = [];
       proc.onaudioprocess = (e) => {
         chunksRef.current.push(new Float32Array(e.inputBuffer.getChannelData(0)));

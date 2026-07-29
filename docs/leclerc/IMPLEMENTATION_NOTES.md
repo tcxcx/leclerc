@@ -2348,3 +2348,52 @@ exited 0. `lsof` returned no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 browser voice loop story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Extended `packages/core/src/voice.ts` with the shared browser voice loop story:
+  WebSocket env/default URL, PCM/TTS sample rates, post-playback cooldown,
+  push-to-talk max duration, script-processor buffer size, voice-state icons,
+  and speak-toggle icons.
+- Rewired `apps/app/src/lib/voice/client.ts` and `apps/app/src/lib/use-recorder.ts`
+  so browser mic capture, frame sizing, cooldown, and voice socket defaults use
+  the shared voice story instead of app-local runtime literals.
+- Rewired the Cleo home voice status strip and speak toggle to use shared
+  voice-story icons, and made the voice button consume the shared core
+  `VoiceState` type.
+- Updated the bucket-analysis artifact with B2/B8 evidence.
+
+### Verification
+
+```bash
+rg -n 'VOICE_ICON|const TARGET_RATE = 16000|const COOLDOWN_MS = 300|createScriptProcessor\(4096|NEXT_PUBLIC_VOICE_WS_URL|ws://localhost:7077|"sync"|"hearing"|"neurology"|"graphic_eq"|"volume_off"|pushToTalkMaxDurationMs|scriptProcessorBufferSize|pcmSampleRate|postPlaybackCooldownMs' apps/app/src packages/core/src -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_VOICE_LOOP_STORY, VOICE_PCM_SAMPLE_RATE, VOICE_POST_PLAYBACK_COOLDOWN_MS, VOICE_TTS_SAMPLE_RATE, voiceDefaultWebSocketUrl, voicePcmSampleRate, voicePostPlaybackCooldownMs, voicePushToTalkMaxDurationMs, voiceRuntimeEnvVar, voiceScriptProcessorBufferSize, voiceSpeakToggleIcon, voiceStatusIcon, voiceTtsSampleRate } from "./packages/core/src/index.ts"; const values={story:DEFAULT_VOICE_LOOP_STORY.id,env:voiceRuntimeEnvVar("webSocketUrl"),url:voiceDefaultWebSocketUrl(),pcm:voicePcmSampleRate(),tts:voiceTtsSampleRate(),cooldown:voicePostPlaybackCooldownMs(),max:voicePushToTalkMaxDurationMs(),buffer:voiceScriptProcessorBufferSize(),connecting:voiceStatusIcon("connecting"),listening:voiceStatusIcon("listening"),thinking:voiceStatusIcon("thinking"),speaking:voiceStatusIcon("speaking"),error:voiceStatusIcon("error"),speakOn:voiceSpeakToggleIcon(true),speakOff:voiceSpeakToggleIcon(false),legacy:[VOICE_PCM_SAMPLE_RATE,VOICE_TTS_SAMPLE_RATE,VOICE_POST_PLAYBACK_COOLDOWN_MS]}; console.log(JSON.stringify(values)); if (values.story!=="browser-voice-loop-runtime" || values.env!=="NEXT_PUBLIC_VOICE_WS_URL" || values.url!=="ws://localhost:7077" || values.pcm!==16000 || values.tts!==44100 || values.cooldown!==300 || values.max!==60000 || values.buffer!==4096 || values.connecting!=="sync" || values.listening!=="hearing" || values.thinking!=="neurology" || values.speaking!=="graphic_eq" || values.error!=="error" || values.speakOn!=="graphic_eq" || values.speakOff!=="volume_off" || values.legacy.join(",")!=="16000,44100,300") process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The voice story smoke
+returned the shared story ID, WebSocket env/default, PCM/TTS rates, playback
+cooldown, push-to-talk max duration, script processor buffer size, status
+icons, speak-toggle icons, and legacy constants. The focused scan now returns
+the voice runtime/default/icon values only in `packages/core/src/voice.ts`;
+remaining `neurology`/`graphic_eq` hits are unrelated landing/spy catalog
+icons. `git diff --check` exited 0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

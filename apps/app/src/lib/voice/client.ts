@@ -5,6 +5,18 @@ import {
   voiceSocketErrorMessage,
   voiceStartFailedDiagnostic,
 } from "@leclerc/core/diagnostic-stories";
+import {
+  voiceDefaultWebSocketUrl,
+  voicePcmSampleRate,
+  voicePostPlaybackCooldownMs,
+  voiceRuntimeEnvVar,
+  voiceScriptProcessorBufferSize,
+  type VoiceClientToHostMessage,
+  type VoiceHostToClientMessage,
+  type VoiceState,
+} from "@leclerc/core/voice";
+
+export type { VoiceState } from "@leclerc/core/voice";
 
 /**
  * LeClerc browser voice client (docs/leclerc/13-cleo-plan.md §voice).
@@ -13,21 +25,22 @@ import {
  * WebSocket. We do mic capture + audio playback in the browser; the service
  * runs the ASR → LLM → TTS chain and streams events back.
  *
- *   getUserMedia → PCM 16k f32le  ──WS──▶  transcribeStream (Whisper + VAD)
+ *   getUserMedia → configured PCM f32le  ──WS──▶  transcribeStream (Whisper + VAD)
  *   play TTS audio  ◀──WS── audio frames     → completion (streamed)
  *   render tokens   ◀──WS── token stream     → textToSpeech (Supertonic PCM)
  *
  * Guardrails (required, from the Tether voice-assistant example):
  * - Mic gate during playback: stop sending PCM frames while we play TTS.
- * - Post-playback cooldown (~300ms) before listening resumes (room reverb).
+ * - Post-playback cooldown before listening resumes (room reverb).
  *
  * Browser-only: nothing touches window/AudioContext until start().
  */
 
-const TARGET_RATE = 16000; // Whisper wants 16 kHz mono
-const COOLDOWN_MS = 300; // post-playback cooldown before mic resumes
-
-export type VoiceState = "idle" | "connecting" | "listening" | "thinking" | "speaking";
+const TARGET_RATE = voicePcmSampleRate();
+const COOLDOWN_MS = voicePostPlaybackCooldownMs();
+const PROCESSOR_BUFFER_SIZE = voiceScriptProcessorBufferSize();
+const ENV_VOICE_WS_URL =
+  typeof process !== "undefined" ? process.env?.[voiceRuntimeEnvVar("webSocketUrl")] : undefined;
 
 export interface VoiceClientEvents {
   onState?: (s: VoiceState) => void;
@@ -38,7 +51,7 @@ export interface VoiceClientEvents {
 }
 
 export interface VoiceClientOptions extends VoiceClientEvents {
-  url?: string; // default NEXT_PUBLIC_VOICE_WS_URL ?? "ws://localhost:7077"
+  url?: string;
   locale?: "es" | "en";
   speak?: boolean; // default true
   startError?: string;
@@ -52,16 +65,10 @@ export interface VoiceClient {
 }
 
 /** Server → client message shapes (services/voice/server.mjs). */
-type ServerMessage =
-  | { type: "transcript"; text: string }
-  | { type: "token"; text: string }
-  | { type: "answer"; text: string }
-  | { type: "audio"; rate: number; pcm: string }
-  | { type: "speaking"; value: boolean }
-  | { type: "error"; message: string };
+type ServerMessage = VoiceHostToClientMessage;
 
 const DEFAULT_URL =
-  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_VOICE_WS_URL) || "ws://localhost:7077";
+  ENV_VOICE_WS_URL ?? voiceDefaultWebSocketUrl();
 
 export function createVoiceClient(opts: VoiceClientOptions = {}): VoiceClient {
   const url = opts.url ?? DEFAULT_URL;
@@ -97,7 +104,7 @@ export function createVoiceClient(opts: VoiceClientOptions = {}): VoiceClient {
     opts.onState?.(s);
   }
 
-  function send(obj: unknown) {
+  function send(obj: VoiceClientToHostMessage) {
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj));
   }
 
@@ -206,7 +213,7 @@ export function createVoiceClient(opts: VoiceClientOptions = {}): VoiceClient {
     console.log(voiceMicAudioContextSampleRateDiagnostic(ctx.sampleRate));
 
     const source = ctx.createMediaStreamSource(stream);
-    const proc = ctx.createScriptProcessor(4096, 1, 1);
+    const proc = ctx.createScriptProcessor(PROCESSOR_BUFFER_SIZE, 1, 1);
     proc.onaudioprocess = (e) => {
       if (gated || serverSpeaking) return; // mic gate: drop frames while we speak
       if (!ws || ws.readyState !== WebSocket.OPEN) return;

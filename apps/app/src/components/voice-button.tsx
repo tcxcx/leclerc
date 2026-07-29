@@ -1,14 +1,10 @@
 "use client";
 
 import type { JSX } from "react";
+import type { VoiceState } from "@leclerc/core/voice";
 import { GlassIcon } from "./glass-icon";
 
-export type VoiceState =
-  | "idle"
-  | "connecting"
-  | "listening"
-  | "thinking"
-  | "speaking";
+export type { VoiceState } from "@leclerc/core/voice";
 
 /** Color ring/fill per state — accent shifts to signal who's "talking". */
 const SHELL: Record<VoiceState, string> = {

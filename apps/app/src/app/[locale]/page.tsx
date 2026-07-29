@@ -18,6 +18,8 @@ import {
   routeOperatorQuery,
   starterChipStories,
   type AssistantActionId,
+  voiceSpeakToggleIcon,
+  voiceStatusIcon,
 } from "@leclerc/core";
 import {
   seedDemo,
@@ -44,13 +46,6 @@ type FinancePanel =
   | { kind: "spend"; summary: SpendSummary; txs: Transaction[] }
   | { kind: "stash"; goals: SavingsGoal[] }
   | { kind: "request" };
-
-const VOICE_ICON = {
-  connecting: "sync",
-  listening: "hearing",
-  thinking: "neurology",
-  speaking: "graphic_eq",
-} as const;
 
 export default function ConsolePage() {
   const t = useI18n();
@@ -223,7 +218,8 @@ export default function ConsolePage() {
       : voice.state === "idle"
         ? null
         : t(`voice.${voice.state}`);
-  const voiceIcon = voice.error != null ? "error" : voice.state === "idle" ? null : VOICE_ICON[voice.state];
+  const voiceIcon =
+    voice.error != null ? voiceStatusIcon("error") : voice.state === "idle" ? null : voiceStatusIcon(voice.state);
 
   return (
     <div className="mx-auto flex h-[calc(100dvh-8.5rem)] w-full max-w-md flex-col">
@@ -442,7 +438,7 @@ export default function ConsolePage() {
           aria-label={t("console.toggleAudio")}
           className={`material-symbols-outlined text-[22px] ${voice.speak ? "text-primary" : "text-on-surface-variant"}`}
         >
-          {voice.speak ? "graphic_eq" : "volume_off"}
+          {voiceSpeakToggleIcon(voice.speak)}
         </button>
       </div>
 
