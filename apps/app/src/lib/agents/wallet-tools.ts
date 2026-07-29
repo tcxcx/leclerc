@@ -8,6 +8,8 @@ import {
   type LeclercAssetId,
 } from "@leclerc/transfer-core";
 import {
+  walletAgentMcpServer,
+  walletAgentSendableAssetIds,
   walletAgentToolDescriptor,
   walletAgentToolDescriptors,
   walletAmountDescription,
@@ -18,7 +20,7 @@ import { balances } from "@leclerc/wallet";
 import { proposeTransfer } from "@leclerc/transfers";
 
 const TESTNET_CHAIN_ID = ARC_TESTNET_CHAIN_ID;
-const SENDABLE_ASSETS = ["usdc", "eurc", "mxnb", "qcad", "audf", "jpyc", "cirbtc"] as const;
+const sendableAssetIds = walletAgentSendableAssetIds();
 
 const balanceSchema = z.object({
   seed: z.string().min(1),
@@ -26,15 +28,15 @@ const balanceSchema = z.object({
 
 const sendSchema = z.object({
   seed: z.string().min(1),
-  assetId: z.enum(SENDABLE_ASSETS),
+  assetId: z.enum(sendableAssetIds),
   recipient: z.string().min(1),
   amount: z.string().min(1).describe(walletAmountDescription()),
 });
 
 const swapSchema = z.object({
   seed: z.string().min(1),
-  fromAssetId: z.enum(["usdc", "eurc", "mxnb", "qcad", "audf", "jpyc", "cirbtc"]),
-  toAssetId: z.enum(["usdc", "eurc", "mxnb", "qcad", "audf", "jpyc", "cirbtc"]),
+  fromAssetId: z.enum(sendableAssetIds),
+  toAssetId: z.enum(sendableAssetIds),
   amount: z.string().min(1).describe(walletAmountDescription()),
 });
 
@@ -55,9 +57,10 @@ export function walletAgentToolDefs() {
 }
 
 export function createWalletMcpServer() {
+  const mcpServer = walletAgentMcpServer();
   const server = new McpServer({
-    name: "leclerc-wallet",
-    version: "0.1.0",
+    name: mcpServer.name,
+    version: mcpServer.version,
   });
   const registerTool = server.registerTool.bind(server) as (
     name: string,

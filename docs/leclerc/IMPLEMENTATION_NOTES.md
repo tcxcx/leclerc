@@ -2259,3 +2259,47 @@ title slug, fallback PDF filename, and DOCX filename. `git diff --check` exited
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 wallet-agent tool identity story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Extended `packages/core/src/wallet-tool-stories.ts` with wallet-agent MCP
+  server identity and the send/swap asset allowlist.
+- Rewired `apps/app/src/lib/agents/wallet-tools.ts` so MCP server creation,
+  send schema, and swap schema use the shared wallet tool story instead of
+  app-local literals.
+- Rewired `/api/agent/wallet-tools` list responses so the reported server name
+  uses the same shared story contract.
+- Updated the bucket-analysis artifact with B7/B8/B11 evidence.
+
+### Verification
+
+```bash
+rg -n 'SENDABLE_ASSETS|name: "leclerc-wallet"|server: "leclerc-wallet"|"usdc", "eurc", "mxnb", "qcad", "audf", "jpyc", "cirbtc"|version: "0\.1\.0"' apps/app/src packages/core/src -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_WALLET_AGENT_TOOL_STORY, walletAgentMcpServer, walletAgentSendableAssetIds, walletAgentToolDescriptors } from "./packages/core/src/index.ts"; const server=walletAgentMcpServer(); const assets=walletAgentSendableAssetIds(); const tools=walletAgentToolDescriptors().map((tool)=>tool.name); const values={story:DEFAULT_WALLET_AGENT_TOOL_STORY.id,server,assets,tools}; console.log(JSON.stringify(values)); if (values.story!=="arc-testnet-wallet-agent" || server.name!=="leclerc-wallet" || server.version!=="0.1.0" || assets.join(",")!=="usdc,eurc,mxnb,qcad,audf,jpyc,cirbtc" || tools.join(",")!=="wallet_balances,wallet_send,wallet_swap") process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The focused scan now
+returns the wallet-agent MCP server name/version and sendable asset allowlist
+only in `packages/core/src/wallet-tool-stories.ts`. The wallet-tool story smoke
+returned the shared story ID, MCP server identity, sendable asset tuple, and
+tool names. `git diff --check` exited 0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

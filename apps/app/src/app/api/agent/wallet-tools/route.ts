@@ -5,6 +5,7 @@ import {
   walletAgentToolDefs,
   type WalletAgentToolName,
 } from "@/lib/agents/wallet-tools";
+import { walletAgentMcpServer } from "@leclerc/core";
 import { apiError, apiErrorBody, apiErrorFromUnknown, type LeclercApiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
@@ -21,8 +22,9 @@ export async function POST(req: Request) {
     switch (body.action) {
       case "list": {
         const server = createWalletMcpServer();
+        const mcpServer = walletAgentMcpServer();
         return NextResponse.json({
-          server: "leclerc-wallet",
+          server: mcpServer.name,
           connected: server.isConnected(),
           tools: walletAgentToolDefs().map((tool) => ({
             name: tool.name,

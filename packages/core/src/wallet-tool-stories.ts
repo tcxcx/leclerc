@@ -1,4 +1,11 @@
+import type { LeclercAssetId } from "@leclerc/transfer-core";
+
 export type WalletAgentToolName = "wallet_balances" | "wallet_send" | "wallet_swap";
+
+export interface WalletAgentMcpServer {
+  name: string;
+  version: string;
+}
 
 export interface WalletAgentToolCopy {
   title: string;
@@ -12,6 +19,8 @@ export interface WalletAgentToolDescriptor extends WalletAgentToolCopy {
 
 export interface WalletAgentToolStory {
   id: string;
+  mcpServer: WalletAgentMcpServer;
+  sendableAssetIds: readonly [LeclercAssetId, ...LeclercAssetId[]];
   tools: Record<WalletAgentToolName, WalletAgentToolCopy>;
   schemaDescriptions: {
     decimalAmount: string;
@@ -23,6 +32,11 @@ export interface WalletAgentToolStory {
 
 export const DEFAULT_WALLET_AGENT_TOOL_STORY: WalletAgentToolStory = {
   id: "arc-testnet-wallet-agent",
+  mcpServer: {
+    name: "leclerc-wallet",
+    version: "0.1.0",
+  },
+  sendableAssetIds: ["usdc", "eurc", "mxnb", "qcad", "audf", "jpyc", "cirbtc"],
   tools: {
     wallet_balances: {
       title: "Wallet balances",
@@ -64,6 +78,18 @@ export function walletAgentToolDescriptors(
   return (Object.keys(story.tools) as WalletAgentToolName[]).map((name) =>
     walletAgentToolDescriptor(name, story),
   );
+}
+
+export function walletAgentMcpServer(
+  story: WalletAgentToolStory = DEFAULT_WALLET_AGENT_TOOL_STORY,
+): WalletAgentMcpServer {
+  return story.mcpServer;
+}
+
+export function walletAgentSendableAssetIds(
+  story: WalletAgentToolStory = DEFAULT_WALLET_AGENT_TOOL_STORY,
+): readonly [LeclercAssetId, ...LeclercAssetId[]] {
+  return story.sendableAssetIds;
 }
 
 export function walletAmountDescription(story: WalletAgentToolStory = DEFAULT_WALLET_AGENT_TOOL_STORY): string {
