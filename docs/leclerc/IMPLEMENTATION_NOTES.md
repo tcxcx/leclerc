@@ -2730,3 +2730,50 @@ the moved literal values in `packages/core/src/dossier-stories.ts` and
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 assistant RAG chip story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Extended `packages/core/src/assistant-stories.ts` with RAG chip label length
+  and fallback source-id preview length.
+- Added `assistantRagChipLabel()` so chip whitespace normalization,
+  truncation, and id fallback behavior are story-owned.
+- Rewired `apps/app/src/app/[locale]/page.tsx` so live RAG chips and automatic
+  dossier tool calls use assistant/RAG story helpers instead of direct `4`,
+  `6`, `36`, and `8` literals.
+- Updated the bucket-analysis artifact with B8/B11 assistant RAG chip evidence.
+
+### Verification
+
+```bash
+bun -e 'import { DEFAULT_ASSISTANT_STORY, assistantRagChipLabel, ragDefaultAnswerLimit, ragDefaultSearchLimit } from "./packages/core/src/index.ts"; const values={story:DEFAULT_ASSISTANT_STORY.id,label:assistantRagChipLabel({id:"abcdef123456",text:"  alpha   beta   gamma delta epsilon zeta eta theta  "}),fallback:assistantRagChipLabel({id:"abcdef123456",text:"   "}),answerK:ragDefaultAnswerLimit(),searchK:ragDefaultSearchLimit()}; console.log(JSON.stringify(values)); if (values.story!=="cleo-field-console" || values.label!=="alpha beta gamma delta epsilon zeta" || values.fallback!=="abcdef12" || values.answerK!==6 || values.searchK!==4) process.exit(1);'
+rg -n 'ragSearch\(query, 4|ragSearch\(query, 6|ragAskScoped\(query, 6|slice\(0, 36\)|slice\(0, 8\)|labelMaxLength|fallbackIdPreviewLength|assistantRagChipLabel|RAG_ANSWER_LIMIT|RAG_SEARCH_LIMIT' 'apps/app/src/app/[locale]/page.tsx' packages/core/src/assistant-stories.ts packages/core/src/rag-stories.ts -g '*.ts' -g '*.tsx'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The assistant RAG chip
+smoke returned the shared assistant story ID, normalized/truncated chip label,
+source-id fallback preview, and RAG answer/search limits. The focused scan now
+returns chip display literals only in `packages/core/src/assistant-stories.ts`
+and helper-derived constants in `apps/app/src/app/[locale]/page.tsx`; no direct
+page-local `ragSearch(query, 4)`, `ragSearch(query, 6)`,
+`ragAskScoped(query, 6)`, or slice literals remain. `git diff --check` exited
+0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

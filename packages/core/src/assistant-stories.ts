@@ -36,6 +36,10 @@ export interface AssistantStory {
   greetingFallbacks: Record<Locale, string[]>;
   starterChips: AssistantStarterChipStory[];
   actions: Record<AssistantActionId, AssistantActionStory>;
+  ragChips: {
+    labelMaxLength: number;
+    fallbackIdPreviewLength: number;
+  };
   toolLabels: {
     dossierRagKey: string;
     dossierSearchKey: string;
@@ -169,6 +173,10 @@ export const DEFAULT_ASSISTANT_STORY: AssistantStory = {
       fallbackLabel: { es: "Recibir", en: "Receive" },
     },
   },
+  ragChips: {
+    labelMaxLength: 36,
+    fallbackIdPreviewLength: 8,
+  },
   toolLabels: {
     dossierRagKey: "console.tools.dossierRag",
     dossierSearchKey: "console.tools.dossierSearch",
@@ -232,6 +240,15 @@ export function assistantSideActionIcons(
     stash: assistantActionIcon("stash", story),
     receive: assistantActionIcon("receive", story),
   };
+}
+
+export function assistantRagChipLabel(
+  input: { id: string; text: string },
+  story: AssistantStory = DEFAULT_ASSISTANT_STORY,
+): string {
+  const cleanedText = input.text.replace(/\s+/g, " ").trim();
+  const label = cleanedText.slice(0, story.ragChips.labelMaxLength).trimEnd();
+  return label || input.id.slice(0, story.ragChips.fallbackIdPreviewLength);
 }
 
 function wrappedIndex(index: number, length: number): number {

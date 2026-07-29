@@ -14,10 +14,13 @@ import { useVoice } from "@/lib/voice/use-voice";
 import { chat, ragAskScoped, ragSearch } from "@/lib/api-client";
 import {
   DEFAULT_ASSISTANT_STORY,
+  assistantRagChipLabel,
   greetingKey,
   intelLayerNavigationItems,
   intelLayerToggle,
   localizedNavigationHref,
+  ragDefaultAnswerLimit,
+  ragDefaultSearchLimit,
   routeOperatorQuery,
   starterChipStories,
   type AssistantActionId,
@@ -52,6 +55,8 @@ type FinancePanel =
 
 const INTEL_LINKS = intelLayerNavigationItems();
 const INTEL_TOGGLE = intelLayerToggle();
+const RAG_ANSWER_LIMIT = ragDefaultAnswerLimit();
+const RAG_SEARCH_LIMIT = ragDefaultSearchLimit();
 
 export default function ConsolePage() {
   const t = useI18n();
@@ -73,11 +78,11 @@ export default function ConsolePage() {
 
   // Live RAG chips: after a turn, surface related dossier hits as tappable chips.
   function refreshChips(query: string) {
-    ragSearch(query, 4)
+    ragSearch(query, RAG_SEARCH_LIMIT)
       .then(({ hits }) =>
         setRagChips(
           hits.map((h) => ({
-            label: h.text.replace(/\s+/g, " ").trim().slice(0, 36) || h.id.slice(0, 8),
+            label: assistantRagChipLabel(h),
             onClick: () => router.push(`/${locale}/expediente/${h.id}`),
           })),
         ),
@@ -515,8 +520,8 @@ async function maybeAutoInvoke(query: string, locale: "es" | "en", t: ReturnType
   const route = routeOperatorQuery(query);
   if (route.intent === "chat") return null;
   if (route.intent === "dossier.answer") {
-    const output = await ragAskScoped(query, 6, route.missionId, locale).catch(async () =>
-      ragSearch(query, 4, route.missionId),
+    const output = await ragAskScoped(query, RAG_ANSWER_LIMIT, route.missionId, locale).catch(async () =>
+      ragSearch(query, RAG_SEARCH_LIMIT, route.missionId),
     );
     return {
       name: translateKey(t, DEFAULT_ASSISTANT_STORY.toolLabels.dossierRagKey),
@@ -524,7 +529,7 @@ async function maybeAutoInvoke(query: string, locale: "es" | "en", t: ReturnType
     };
   }
   if (route.intent === "dossier.search") {
-    const output = await ragSearch(query, 6, route.missionId);
+    const output = await ragSearch(query, RAG_ANSWER_LIMIT, route.missionId);
     return {
       name: translateKey(t, DEFAULT_ASSISTANT_STORY.toolLabels.dossierSearchKey),
       result: JSON.stringify(output, null, 2),
