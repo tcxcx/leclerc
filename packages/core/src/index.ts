@@ -30,6 +30,7 @@ export * from "./rpc";
 export * from "./spy-gadget-stories";
 export * from "./station-stories";
 export * from "./surfaces";
+export * from "./surface-stories";
 export * from "./tool-router";
 export * from "./tool-router-stories";
 export * from "./vault-stories";

@@ -2944,3 +2944,54 @@ plus the expected `completeWithTools` reference in the analyst tool defs.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 native readiness story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/surface-stories.ts` for desktop/mobile native
+  readiness, installable flags, artifact requirements, and runtime blockers.
+- Rewired the landing Expo action to use `nativeSurfaceInstallable("mobile")`
+  instead of an isolated disabled boolean.
+- Exposed `nativeSurfaceReadiness("desktop")` through desktop shell/renderer
+  models and `nativeSurfaceReadiness("mobile")` through the mobile app model.
+- Updated desktop/mobile READMEs and the bucket-analysis artifact with
+  surface-readiness evidence.
+
+### Verification
+
+```bash
+bun -e 'import { DEFAULT_SURFACE_STORY, listLandingActions, nativeSurfaceAcceptedArtifacts, nativeSurfaceBlockers, nativeSurfaceInstallable, nativeSurfaceReadiness, nativeSurfaceReadinessList } from "./packages/core/src/index.ts"; import { createDesktopShell } from "./apps/desktop/src/main.ts"; import { createDesktopRendererModel } from "./apps/desktop/src/renderer.ts"; import { createMobileAppModel } from "./apps/mobile/src/App.ts"; const desktop=createDesktopShell(); const renderer=createDesktopRendererModel(); const mobile=createMobileAppModel(); const expo=listLandingActions().find((action)=>action.id==="expo"); const values={story:DEFAULT_SURFACE_STORY.id,desktop:desktop.readiness,mobile:mobile.readiness,renderer:renderer.readiness,expoEnabled:expo?.enabled,list:nativeSurfaceReadinessList().map((item)=>item.surface),desktopInstallable:nativeSurfaceInstallable("desktop"),mobileInstallable:nativeSurfaceInstallable("mobile"),mobileArtifacts:nativeSurfaceAcceptedArtifacts("mobile"),desktopBlockers:nativeSurfaceBlockers("desktop")}; console.log(JSON.stringify(values)); if (values.story!=="cleo-three-surface-readiness" || values.desktop.surface!=="desktop" || values.mobile.surface!=="mobile" || values.renderer.surface!=="desktop" || values.desktop.installable!==false || values.mobile.installable!==false || values.expoEnabled!==false || values.desktopInstallable!==false || values.mobileInstallable!==false || !values.mobileArtifacts.includes("signed .apk") || !values.desktopBlockers.some((value)=>value.includes("Pear/Electron")) || values.list.join(",")!=="desktop,mobile") process.exit(1);'
+rg -n 'enabled: false|Build pending|scaffold-only|Pear/Electron runtime|Expo, React Native|nativeSurfaceReadiness|nativeSurfaceInstallable' packages/core/src apps/desktop apps/mobile apps/app/src/app/[[]locale[]]/landing apps/app/messages -g '*.ts' -g '*.tsx' -g '*.json' -g '*.md'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/worklet typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+bun --filter @leclerc/desktop build
+bun --filter @leclerc/mobile bundle:ios
+bun --filter @leclerc/mobile bundle:android
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The native readiness smoke
+returned the shared surface story ID, desktop/mobile `scaffold-only` readiness,
+`installable: false` for both native surfaces, the landing Expo action disabled
+from the shared mobile readiness contract, mobile accepted artifact names, and
+desktop runtime blockers. The focused scan now shows no app-local `enabled:
+false`; native pending state lives in `packages/core/src/surface-stories.ts` and
+localized copy remains in messages. `git diff --check` exited 0. `lsof` returned
+no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

@@ -4,11 +4,13 @@ import {
   createWalletNetworkSelector,
   defaultOpsConsoleState,
   greeting,
+  nativeSurfaceReadiness,
   opsConsoleCounts,
   starterChips,
   walletNetworkOptions,
   type BrandAppMetadata,
   type Locale,
+  type NativeSurfaceReadiness,
   type OpsConsoleState,
   type SurfaceCapabilities,
   type WalletNetworkOption,
@@ -28,6 +30,7 @@ export interface DesktopShell {
   surface: "desktop";
   brand: BrandAppMetadata;
   capabilities: SurfaceCapabilities;
+  readiness: NativeSurfaceReadiness;
   walletNetworks: WalletNetworkOption[];
   walletSelector: WalletNetworkSelectorModel;
   opsConsole: {
@@ -52,6 +55,7 @@ export function createDesktopShell(config: DesktopShellConfig = {}): DesktopShel
     surface: "desktop",
     brand: brandAppMetadata(),
     capabilities: DESKTOP_CAPABILITIES,
+    readiness: nativeSurfaceReadiness("desktop"),
     walletNetworks,
     walletSelector,
     opsConsole: {

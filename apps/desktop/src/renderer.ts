@@ -3,9 +3,11 @@ import {
   brandAppMetadata,
   createWalletNetworkSelector,
   greeting,
+  nativeSurfaceReadiness,
   starterChips,
   type BrandAppMetadata,
   type Locale,
+  type NativeSurfaceReadiness,
   type WalletNetworkSelectorInput,
   type WalletNetworkSelectorModel,
 } from "@leclerc/core";
@@ -14,6 +16,7 @@ export interface DesktopRendererModel {
   title: string;
   brand: BrandAppMetadata;
   surface: "desktop";
+  readiness: NativeSurfaceReadiness;
   greeting: string;
   chips: ReturnType<typeof starterChips>;
   capabilitySummary: string;
@@ -29,6 +32,7 @@ export function createDesktopRendererModel(
     title: brand.productName,
     brand,
     surface: "desktop",
+    readiness: nativeSurfaceReadiness("desktop"),
     greeting: greeting(locale),
     chips: starterChips(locale),
     capabilitySummary: `${DESKTOP_CAPABILITIES.qvac}:${DESKTOP_CAPABILITIES.voice}:${DESKTOP_CAPABILITIES.wallet}`,

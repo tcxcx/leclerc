@@ -4,11 +4,13 @@ import {
   createWalletNetworkSelector,
   defaultOpsConsoleState,
   greeting,
+  nativeSurfaceReadiness,
   opsConsoleCounts,
   starterChips,
   walletNetworkOptions,
   type BrandAppMetadata,
   type Locale,
+  type NativeSurfaceReadiness,
   type OpsConsoleState,
   type SurfaceCapabilities,
   type WalletNetworkOption,
@@ -25,6 +27,7 @@ export interface MobileAppModel {
   surface: "mobile";
   brand: BrandAppMetadata;
   capabilities: SurfaceCapabilities;
+  readiness: NativeSurfaceReadiness;
   walletNetworks: WalletNetworkOption[];
   walletSelector: WalletNetworkSelectorModel;
   opsConsole: {
@@ -47,6 +50,7 @@ export function createMobileAppModel(
     surface: "mobile",
     brand: brandAppMetadata(),
     capabilities: MOBILE_CAPABILITIES,
+    readiness: nativeSurfaceReadiness("mobile"),
     walletNetworks,
     walletSelector,
     opsConsole: {

@@ -1,3 +1,5 @@
+import { nativeSurfaceInstallable } from "./surface-stories";
+
 export type LandingActionKind = "operation-room" | "pwa" | "expo";
 
 export interface LandingAction {
@@ -39,7 +41,7 @@ export const LECLERC_LANDING_ACTIONS = [
     descriptionKey: "landing.actions.expo.description",
     icon: "phone_iphone",
     href: "/downloads/leclerc-expo",
-    enabled: false,
+    enabled: nativeSurfaceInstallable("mobile"),
   },
 ] as const satisfies readonly LandingAction[];
 

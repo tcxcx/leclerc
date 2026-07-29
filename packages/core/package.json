@@ -39,6 +39,7 @@
     "./spy-gadget-stories": "./src/spy-gadget-stories.ts",
     "./station-stories": "./src/station-stories.ts",
     "./surfaces": "./src/surfaces.ts",
+    "./surface-stories": "./src/surface-stories.ts",
     "./tool-router": "./src/tool-router.ts",
     "./tool-router-stories": "./src/tool-router-stories.ts",
     "./transfers": "./src/transfers.ts",
