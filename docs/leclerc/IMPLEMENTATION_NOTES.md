@@ -1895,3 +1895,49 @@ browser-helper fallback, service-worker syntax, and EN/ES browser-alert keys.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 diagnostic story labels
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/diagnostic-stories.ts` as the shared client runtime
+  diagnostic story contract for recorder, voice-client, and animated-background
+  console labels.
+- Rewired `apps/app/src/lib/use-recorder.ts`,
+  `apps/app/src/lib/voice/client.ts`, and
+  `apps/app/src/components/animated-background/index.tsx` so diagnostic labels
+  come from typed core helpers instead of local literals.
+- Added `@leclerc/core/diagnostic-stories` to package exports and updated the
+  bucket-analysis artifact with B8/B11 evidence.
+
+### Verification
+
+```bash
+rg -n "LOG|getUserMedia failed|start failed|\[AnimatedBackground\] vertex|\[AnimatedBackground\] fragment|\[AnimatedBackground\] link|\[recorder\]|\[voice-client\]" apps/app/src packages/core/src -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_DIAGNOSTIC_STORY, animatedBackgroundDiagnostic, recorderDiagnosticMessage, recorderStopSummaryDiagnostic, voiceMicAudioContextSampleRateDiagnostic, voiceStartFailedDiagnostic } from "./packages/core/src/index.ts"; const values={story:DEFAULT_DIAGNOSTIC_STORY.id, recorder:recorderDiagnosticMessage("getUserMediaFailed"), voice:voiceStartFailedDiagnostic(), mic:voiceMicAudioContextSampleRateDiagnostic(16000), vertex:animatedBackgroundDiagnostic("vertex"), fragment:animatedBackgroundDiagnostic("fragment"), link:animatedBackgroundDiagnostic("link"), stop:recorderStopSummaryDiagnostic({durationMs:1,sourceRate:16000,samples:2,wavBytes:46})}; console.log(JSON.stringify(values)); if (!values.recorder.includes("getUserMedia failed") || !values.voice.includes("start failed") || !values.mic.includes("sampleRate=16000") || !values.vertex.includes("vertex") || !values.fragment.includes("fragment") || !values.link.includes("link") || !values.stop.includes("wavBytes=46")) process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The focused scan now
+returns the recorder, voice-client, and animated-background diagnostic strings
+only in `packages/core/src/diagnostic-stories.ts`. The diagnostic story smoke
+returned the shared story ID, recorder failure label, voice start/mic labels,
+animated-background shader labels, and recorder stop summary. `git diff --check`
+exited 0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

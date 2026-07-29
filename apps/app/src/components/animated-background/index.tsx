@@ -1,5 +1,6 @@
 "use client";
 
+import { animatedBackgroundDiagnostic } from "@leclerc/core/diagnostic-stories";
 import { memo, useEffect, useRef } from "react";
 import { vertexShaderSource, fragmentShaderSource } from "./shaders";
 
@@ -86,11 +87,11 @@ const AnimatedBackground = ({
     gl.compileShader(fragmentShader);
 
     if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-      console.error("[AnimatedBackground] vertex", gl.getShaderInfoLog(vertexShader));
+      console.error(animatedBackgroundDiagnostic("vertex"), gl.getShaderInfoLog(vertexShader));
       return;
     }
     if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-      console.error("[AnimatedBackground] fragment", gl.getShaderInfoLog(fragmentShader));
+      console.error(animatedBackgroundDiagnostic("fragment"), gl.getShaderInfoLog(fragmentShader));
       return;
     }
 
@@ -100,7 +101,7 @@ const AnimatedBackground = ({
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error("[AnimatedBackground] link", gl.getProgramInfoLog(program));
+      console.error(animatedBackgroundDiagnostic("link"), gl.getProgramInfoLog(program));
       return;
     }
     gl.useProgram(program);

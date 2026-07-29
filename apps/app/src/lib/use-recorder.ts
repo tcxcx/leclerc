@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  recorderAudioContextSampleRateDiagnostic,
+  recorderDiagnosticMessage,
+  recorderMaxDurationReachedDiagnostic,
+  recorderStopSummaryDiagnostic,
+} from "@leclerc/core/diagnostic-stories";
 import { useEffect, useRef, useState } from "react";
 
 export interface RecordingResult {
@@ -9,7 +15,6 @@ export interface RecordingResult {
 }
 
 const TARGET_RATE = 16000; // Whisper wants 16 kHz mono
-const LOG = "[recorder]";
 
 /**
  * Microphone recorder for push-to-talk.
@@ -67,7 +72,7 @@ export function useRecorder(
   async function start() {
     if (ctxRef.current) return;
     setError(null);
-    console.log(`${LOG} start(): requesting microphone…`);
+    console.log(recorderDiagnosticMessage("microphoneRequested"));
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
@@ -80,7 +85,7 @@ export function useRecorder(
       const ctx = new Ctx({ sampleRate: TARGET_RATE });
       ctxRef.current = ctx;
       rateRef.current = ctx.sampleRate;
-      console.log(`${LOG} AudioContext sampleRate=${ctx.sampleRate}`);
+      console.log(recorderAudioContextSampleRateDiagnostic(ctx.sampleRate));
 
       const source = ctx.createMediaStreamSource(stream);
       const proc = ctx.createScriptProcessor(4096, 1, 1);
@@ -96,17 +101,17 @@ export function useRecorder(
       startedAtRef.current = Date.now();
       setRecording(true);
       setElapsedMs(0);
-      console.log(`${LOG} recording started`);
+      console.log(recorderDiagnosticMessage("recordingStarted"));
 
       tickRef.current = setInterval(() => setElapsedMs(Date.now() - startedAtRef.current), 200);
       autoStopRef.current = setTimeout(async () => {
-        console.log(`${LOG} max duration ${maxMs}ms reached — auto-stopping + sending`);
+        console.log(recorderMaxDurationReachedDiagnostic(maxMs));
         const result = await stop();
         onMaxRef.current?.(result);
       }, maxMs);
     } catch (e) {
       const msg = e instanceof Error ? e.message : options.microphoneError ?? "";
-      console.error(`${LOG} getUserMedia failed:`, e);
+      console.error(recorderDiagnosticMessage("getUserMediaFailed"), e);
       setError(msg);
       teardownAudio();
     }
@@ -125,11 +130,9 @@ export function useRecorder(
     const merged = mergeChunks(chunks);
     const pcm = sourceRate === TARGET_RATE ? merged : downsample(merged, sourceRate, TARGET_RATE);
     const blob = encodeWav(pcm, TARGET_RATE);
-    console.log(
-      `${LOG} stop(): durationMs=${durationMs} sourceRate=${sourceRate} samples=${pcm.length} wavBytes=${blob.size}`,
-    );
+    console.log(recorderStopSummaryDiagnostic({ durationMs, sourceRate, samples: pcm.length, wavBytes: blob.size }));
     if (blob.size <= 44) {
-      console.warn(`${LOG} empty recording (no audio captured)`);
+      console.warn(recorderDiagnosticMessage("emptyRecording"));
       return Promise.resolve(null);
     }
     return Promise.resolve({ blob, durationMs, mimeType: "audio/wav" });

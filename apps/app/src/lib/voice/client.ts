@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  voiceMicAudioContextSampleRateDiagnostic,
+  voiceStartFailedDiagnostic,
+} from "@leclerc/core/diagnostic-stories";
+
 /**
  * LeClerc browser voice client (docs/leclerc/13-cleo-plan.md §voice).
  *
@@ -20,7 +25,6 @@
 
 const TARGET_RATE = 16000; // Whisper wants 16 kHz mono
 const COOLDOWN_MS = 300; // post-playback cooldown before mic resumes
-const LOG = "[voice-client]";
 
 export type VoiceState = "idle" | "connecting" | "listening" | "thinking" | "speaking";
 
@@ -197,7 +201,7 @@ export function createVoiceClient(opts: VoiceClientOptions = {}): VoiceClient {
     const ctx = new Ctx({ sampleRate: TARGET_RATE });
     micCtx = ctx;
     micRate = ctx.sampleRate;
-    console.log(`${LOG} mic AudioContext sampleRate=${ctx.sampleRate}`);
+    console.log(voiceMicAudioContextSampleRateDiagnostic(ctx.sampleRate));
 
     const source = ctx.createMediaStreamSource(stream);
     const proc = ctx.createScriptProcessor(4096, 1, 1);
@@ -306,7 +310,7 @@ export function createVoiceClient(opts: VoiceClientOptions = {}): VoiceClient {
         setState("listening");
       } catch (err) {
         const msg = err instanceof Error ? err.message : opts.startError ?? "";
-        console.error(`${LOG} start failed:`, err);
+        console.error(voiceStartFailedDiagnostic(), err);
         opts.onError?.(msg);
         await this.stop();
         throw err;

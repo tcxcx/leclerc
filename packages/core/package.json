@@ -9,6 +9,7 @@
     "./api-error-stories": "./src/api-error-stories.ts",
     "./analyst-stories": "./src/analyst-stories.ts",
     "./brand-stories": "./src/brand-stories.ts",
+    "./diagnostic-stories": "./src/diagnostic-stories.ts",
     "./asset-catalog": "./src/asset-catalog.ts",
     "./finance": "./src/finance.ts",
     "./finance-stories": "./src/finance-stories.ts",

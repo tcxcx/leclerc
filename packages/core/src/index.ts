@@ -3,6 +3,7 @@ export * from "./api-error-stories";
 export * from "./analyst-stories";
 export * from "./assistant-stories";
 export * from "./brand-stories";
+export * from "./diagnostic-stories";
 export * from "./finance";
 export * from "./finance-stories";
 export * from "./intel";
