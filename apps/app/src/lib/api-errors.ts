@@ -1,4 +1,5 @@
 import { networkTokenErrorMarkers } from "@leclerc/transfer-core";
+import { transferErrorMarkers } from "@leclerc/transfers/transfer-stories";
 
 export type ApiErrorCode =
   | "unknown_action"
@@ -84,18 +85,21 @@ export function apiErrorFromUnknown(error: unknown, fallbackCode: ApiErrorCode):
 function codeForMessage(message: string): ApiErrorCode | null {
   const normalized = message.toLowerCase();
   const transferMarkers = networkTokenErrorMarkers();
+  const confirmationMarkers = transferErrorMarkers();
   if (normalized.includes("unknown action")) return "unknown_action";
   if (normalized.includes("drop passphrase required")) return "drop_passphrase_required";
   if (normalized.includes("drop not joined")) return "drop_not_joined";
-  if (normalized.includes("wallet seed required")) return "wallet_seed_required";
-  if (normalized.includes("unknown mission")) return "unknown_mission";
+  if (normalized.includes(confirmationMarkers.walletSeedRequired)) return "wallet_seed_required";
+  if (normalized.includes(confirmationMarkers.unknownMission)) return "unknown_mission";
   if (normalized.includes("unknown card")) return "unknown_card";
-  if (normalized.includes("confirmid required")) return "confirm_id_required";
-  if (normalized.includes("confirmation is not for mission funding")) return "confirmation_not_mission_funding";
-  if (normalized.includes("confirmation is not for rain card funding")) return "confirmation_not_rain_card";
-  if (normalized.includes("transfer confirmation not found or already used")) return "transfer_confirmation_not_found";
-  if (normalized.includes("transfer confirmation expired")) return "transfer_confirmation_expired";
-  if (normalized.includes("transfer confirmation failed integrity check")) return "transfer_confirmation_integrity_failed";
+  if (normalized.includes(confirmationMarkers.confirmIdRequired)) return "confirm_id_required";
+  if (normalized.includes(confirmationMarkers.confirmationNotMissionFunding)) return "confirmation_not_mission_funding";
+  if (normalized.includes(confirmationMarkers.confirmationNotRainCardFunding)) return "confirmation_not_rain_card";
+  if (normalized.includes(confirmationMarkers.transferConfirmationNotFound)) return "transfer_confirmation_not_found";
+  if (normalized.includes(confirmationMarkers.transferConfirmationExpired)) return "transfer_confirmation_expired";
+  if (normalized.includes(confirmationMarkers.transferConfirmationIntegrityFailed)) {
+    return "transfer_confirmation_integrity_failed";
+  }
   if (normalized.includes("must be configured for live rain card funding")) return "rain_card_deposit_unconfigured";
   if (
     normalized.includes(transferMarkers.chainReadOnlyForWallet) ||

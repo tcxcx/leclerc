@@ -1750,3 +1750,50 @@ no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 transfer story errors
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/transfers/src/transfer-stories.ts` as the dedicated transfer
+  story contract for wallet seed, unknown mission, confirm id, confirmation
+  lifecycle, confirmation-purpose, and mission-funding target errors.
+- Rewired `packages/transfers/src/confirmation.ts` and
+  `packages/transfers/src/mission-funding.ts` so confirmation/funding errors
+  derive from the shared transfer story instead of route-local literals.
+- Rewired `apps/app/src/lib/api-errors.ts` to use the transfer story's
+  normalized markers for confirmation and mission-funding API-code mapping.
+- Added `@leclerc/transfers/transfer-stories` to package exports and updated
+  the bucket-analysis artifact with B6/B8/B11 evidence.
+
+### Verification
+
+```bash
+rg -n "wallet seed required|unknown mission|confirmId required|confirmid required|confirmation is not for mission funding|confirmation is not for rain card funding|transfer confirmation not found or already used|transfer confirmation expired|transfer confirmation failed integrity check|\\$\\{mission\\.fundingTargetEnv\\} is not configured|\\{envVar\\} is not configured" packages/transfers/src apps/app/src/lib/api-errors.ts -g '*.ts'
+bun -e 'import { DEFAULT_TRANSFER_STORY, confirmationNotMissionFundingMessage, confirmIdRequiredMessage, missionFundingTargetUnconfiguredReason, transferConfirmationExpiredMessage, transferConfirmationIntegrityFailedMessage, transferConfirmationNotFoundMessage, transferErrorMarkers, unknownMissionMessage, walletSeedRequiredMessage } from "./packages/transfers/src/transfer-stories.ts"; const markers=transferErrorMarkers(); const values={story:DEFAULT_TRANSFER_STORY.id, seed:walletSeedRequiredMessage(), unknown:unknownMissionMessage(), confirm:confirmIdRequiredMessage(), notMission:confirmationNotMissionFundingMessage(), notFound:transferConfirmationNotFoundMessage(), expired:transferConfirmationExpiredMessage(), integrity:transferConfirmationIntegrityFailedMessage(), target:missionFundingTargetUnconfiguredReason("LECLERC_MISSION_RAVEN_USDC_ADDRESS"), markers}; console.log(JSON.stringify(values)); if (!values.seed.includes("wallet seed required") || !values.unknown.includes("unknown mission") || !values.confirm.includes("confirmId required") || !values.notMission.includes("not for mission funding") || !values.notFound.includes("not found or already used") || !values.expired.includes("expired") || !values.integrity.includes("integrity check") || !values.target.includes("LECLERC_MISSION_RAVEN_USDC_ADDRESS is not configured") || markers.confirmIdRequired !== "confirmid required") process.exit(1);'
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The exact transfer-copy
+scan now returns the moved confirmation and mission-funding strings only in
+`packages/transfers/src/transfer-stories.ts`. The transfer story smoke returned
+the shared story ID, old-compatible errors, the mission-funding env-var reason,
+and normalized API markers. `git diff --check` exited 0. `lsof` returned no
+rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

@@ -9,6 +9,7 @@
     ".": "./src/index.ts",
     "./confirmation": "./src/confirmation.ts",
     "./records": "./src/records.ts",
+    "./transfer-stories": "./src/transfer-stories.ts",
     "./validation": "./src/validation.ts"
   },
   "scripts": {

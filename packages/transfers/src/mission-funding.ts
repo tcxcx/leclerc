@@ -1,6 +1,13 @@
 import type { LeclercAssetId, LeclercChainId } from "@leclerc/transfer-core";
 import { DEFAULT_MISSION_FUNDING_STORY_ID, listMissionStories } from "@leclerc/transfer-core";
 import { confirmTransfer, proposeTransfer } from "./confirmation";
+import {
+  confirmationNotMissionFundingMessage,
+  confirmIdRequiredMessage,
+  missionFundingTargetUnconfiguredReason,
+  unknownMissionMessage,
+  walletSeedRequiredMessage,
+} from "./transfer-stories";
 
 export type MissionFundingStatus = "submitted" | "blocked";
 export type MissionFundingEventKind = "mission_funding";
@@ -64,7 +71,7 @@ export function proposeMissionFunding(input: {
   | { status: "blocked"; notification: MissionFundingNotification } {
   const missionId = input.missionId?.trim() || DEFAULT_MISSION_FUNDING_ID;
   const mission = getMissionFundingConfig(missionId);
-  if (!mission) throw new Error("unknown mission");
+  if (!mission) throw new Error(unknownMissionMessage());
 
   const amount = input.amount?.trim() || mission.defaultAmount;
   const target = input.env[mission.fundingTargetEnv]?.trim();
@@ -77,13 +84,13 @@ export function proposeMissionFunding(input: {
         chainId: mission.chainId,
         amount,
         status: "blocked",
-        reason: `${mission.fundingTargetEnv} is not configured`,
+        reason: missionFundingTargetUnconfiguredReason(mission.fundingTargetEnv),
       }),
     };
   }
 
   const seed = input.seed?.trim();
-  if (!seed) throw new Error("wallet seed required");
+  if (!seed) throw new Error(walletSeedRequiredMessage());
   const proposal = proposeTransfer({
     seed,
     to: target,
@@ -98,12 +105,12 @@ export function proposeMissionFunding(input: {
 
 export async function confirmMissionFunding(confirmId: string): Promise<MissionFundingNotification> {
   const id = confirmId.trim();
-  if (!id) throw new Error("confirmId required");
+  if (!id) throw new Error(confirmIdRequiredMessage());
   const result = await confirmTransfer(id);
-  if (result.proposal.purpose !== "mission-funding") throw new Error("confirmation is not for mission funding");
+  if (result.proposal.purpose !== "mission-funding") throw new Error(confirmationNotMissionFundingMessage());
   const missionId = String(result.proposal.metadata?.missionId ?? "");
   const mission = getMissionFundingConfig(missionId);
-  if (!mission) throw new Error("unknown mission");
+  if (!mission) throw new Error(unknownMissionMessage());
   return createMissionFundingNotification({
     missionId: mission.missionId,
     assetId: result.proposal.assetId,

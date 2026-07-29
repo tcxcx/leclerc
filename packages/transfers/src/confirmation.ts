@@ -2,6 +2,12 @@ import crypto from "node:crypto";
 import type { LeclercAssetId, LeclercChainId } from "@leclerc/transfer-core";
 import { payCatalogTokenEvm } from "@leclerc/wallet";
 import type { ProposedTransferInput, TransactionRecord, TransferProposal, TransferPurpose } from "./records";
+import {
+  transferConfirmationExpiredMessage,
+  transferConfirmationIntegrityFailedMessage,
+  transferConfirmationNotFoundMessage,
+  walletSeedRequiredMessage,
+} from "./transfer-stories";
 import { validateTransferAmount, validateTransferAsset, validateTransferDestination } from "./validation";
 
 const TRANSFER_CONFIRM_TTL_MS = 5 * 60_000;
@@ -23,7 +29,7 @@ const registry = transferRegistry();
 
 export function proposeTransfer(input: ProposedTransferInput): TransferProposal {
   const seed = input.seed.trim();
-  if (!seed) throw new Error("wallet seed required");
+  if (!seed) throw new Error(walletSeedRequiredMessage());
 
   const to = validateTransferDestination(input.to);
   const { asset, chain } = validateTransferAsset(input.assetId, input.chainId);
@@ -67,14 +73,14 @@ export async function confirmTransfer(
 ): Promise<{ hash: string; proposal: TransferProposal; record: TransactionRecord }> {
   const id = confirmId.trim();
   const transfer = registry.transfers.get(id);
-  if (!transfer) throw new Error("transfer confirmation not found or already used");
+  if (!transfer) throw new Error(transferConfirmationNotFoundMessage());
   if (Date.now() > transfer.expiresAtMs) {
     registry.transfers.delete(id);
-    throw new Error("transfer confirmation expired");
+    throw new Error(transferConfirmationExpiredMessage());
   }
   if (!verifyTransferConfirmId(id, transfer)) {
     registry.transfers.delete(id);
-    throw new Error("transfer confirmation failed integrity check");
+    throw new Error(transferConfirmationIntegrityFailedMessage());
   }
 
   registry.transfers.delete(id);
