@@ -1,6 +1,7 @@
 import {
   DEFAULT_INTEL_EXTRACTION_STORY,
   intelDateLabels,
+  intelBlankTextPatterns,
   intelEmptyExtraction,
   intelExtractionSystemPrompt,
   intelUserMessageLabels,
@@ -143,12 +144,10 @@ export function longDate(ms: number): string {
   return `${labels.days[date.getDay()]}, ${date.getDate()} de ${labels.months[date.getMonth()]} de ${date.getFullYear()}`;
 }
 
-const BLANK_PATTERNS = ["[no speech detected]", "[blank_audio]", "[silence]"];
-
 export function isMeaningfulText(text: string): boolean {
   const normalized = text.trim().toLowerCase();
   if (normalized.length === 0) return false;
-  if (BLANK_PATTERNS.some((pattern) => normalized.includes(pattern))) return false;
+  if (intelBlankTextPatterns().some((pattern) => normalized.includes(pattern))) return false;
   if (/^\[[^\]]+\]$/.test(normalized)) return false;
   return normalized.replace(/[^\p{L}\p{N}]/gu, "").length >= 2;
 }

@@ -2824,3 +2824,45 @@ on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 intel blank-source story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Extended `packages/core/src/intel-stories.ts` with blank-source sentinel
+  patterns and `intelBlankTextPatterns()`.
+- Rewired `packages/core/src/intel.ts` so `isMeaningfulText()` uses the shared
+  intel extraction story instead of a module-local `BLANK_PATTERNS` array.
+- Updated the bucket-analysis artifact with B3/B8/B11 blank-source evidence.
+
+### Verification
+
+```bash
+bun -e 'import { DEFAULT_INTEL_EXTRACTION_STORY, intelBlankTextPatterns, isMeaningfulText } from "./packages/core/src/index.ts"; const values={story:DEFAULT_INTEL_EXTRACTION_STORY.id,patterns:intelBlankTextPatterns(),blank:isMeaningfulText("[blank_audio]"),silence:isMeaningfulText("[silence]"),empty:isMeaningfulText("   "),bracket:isMeaningfulText("[noise]"),short:isMeaningfulText("!"),meaningful:isMeaningfulText("operativo vio dos autos")}; console.log(JSON.stringify(values)); if (values.story!=="faithful-field-intel-extraction" || values.patterns.join(",")!=="[no speech detected],[blank_audio],[silence]" || values.blank!==false || values.silence!==false || values.empty!==false || values.bracket!==false || values.short!==false || values.meaningful!==true) process.exit(1);'
+rg -n 'BLANK_PATTERNS|\[no speech detected\]|\[blank_audio\]|\[silence\]|blankTextPatterns|intelBlankTextPatterns|isMeaningfulText' packages/core/src/intel.ts packages/core/src/intel-stories.ts -g '*.ts'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The intel blank-source
+smoke returned the shared intel story ID, sentinel pattern list, false for
+blank/silence/empty/bracket-only/too-short input, and true for meaningful field
+text. The focused scan now returns sentinel literals only in
+`packages/core/src/intel-stories.ts`; `packages/core/src/intel.ts` uses the
+story helper. `git diff --check` exited 0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

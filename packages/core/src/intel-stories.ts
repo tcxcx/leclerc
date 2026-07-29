@@ -15,6 +15,7 @@ export interface IntelExtractionStory {
   dateLabels: IntelDateLabels;
   defaultExtraction: IntelExtraction;
   draftStatus: RecordStatus;
+  blankTextPatterns: readonly string[];
 }
 
 export const DEFAULT_INTEL_EXTRACTION_STORY: IntelExtractionStory = {
@@ -69,6 +70,7 @@ export const DEFAULT_INTEL_EXTRACTION_STORY: IntelExtractionStory = {
     },
   },
   draftStatus: "BORRADOR",
+  blankTextPatterns: ["[no speech detected]", "[blank_audio]", "[silence]"],
 };
 
 export function intelExtractionSystemPrompt(
@@ -108,4 +110,8 @@ export function intelUserMessageLabels(story: IntelExtractionStory = DEFAULT_INT
 
 export function intelDateLabels(story: IntelExtractionStory = DEFAULT_INTEL_EXTRACTION_STORY): IntelDateLabels {
   return story.dateLabels;
+}
+
+export function intelBlankTextPatterns(story: IntelExtractionStory = DEFAULT_INTEL_EXTRACTION_STORY): string[] {
+  return [...story.blankTextPatterns];
 }
