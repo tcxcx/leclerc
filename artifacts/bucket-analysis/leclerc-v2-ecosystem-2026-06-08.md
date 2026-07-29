@@ -20,17 +20,17 @@ yellow/Ignyte accent.
 | # | Bucket | Score | Evidence added in this pass |
 |---|---|---:|---|
 | HP1 | PWA judged surface | 87% | `/operaciones` route now gives the PWA the mission assigner, agent control center, story-backed defaults, notification feed, Link-page notification sync, and explicit browser-alert opt-in. |
-| B1 | QVAC-only inference + RAG | 90% | RAG, chat, document, capture, and QVAC proxy failures return stable API codes; grounded RAG answer prompts/fallbacks plus QVAC model-source/client error copy, model-level routing/cache/defaults, and inference-mode storage/default/badge metadata now come from shared stories; OCR/translate/MedPsy still env-gated. |
+| B1 | QVAC-only inference + RAG | 91% | RAG, chat, document, capture, and QVAC proxy failures return stable API codes; grounded RAG answer prompts/fallbacks plus QVAC model-source/client error copy, runtime env/defaults, model-level routing/cache/defaults, and inference-mode storage/default/badge metadata now come from shared stories; OCR/translate/MedPsy still env-gated. |
 | B2 | Voice-first Cleo loop | 76% | Voice-state labels and recorder/start fallback errors now resolve through EN/ES messages; real browser mic permission proof still missing. |
 | B3 | Capture, encrypted dossier, wipe | 91% | Finance and intel demo seeds now come from a shared core field-demo story, intel extraction prompt/defaults come from dedicated story contracts, and browser vault DB/store/localStorage keys now come from a shared vault story. |
 | B4 | Analyst desk + brief export | 84% | Analyst progress, fallback copy, runtime prompt copy, tool-log notes, export labels, export filename rules, and tool descriptors now come from a shared analyst story; true QVAC tool-call loop still TODO. |
 | B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
 | B6 | P2P delegation + dead-drop | 84% | Ops console links missions to dead-drop intent; Link funding/drop notification payloads persist into the ops notification feed; station delegate smoke prompt, dead-drop protocol defaults, and transfer confirmation/funding errors are story-owned; two-peer delegation proof still missing. |
 | B7 | WDK wallet + network-token selector | 88% | Rain card and mission-funding configs now derive from shared catalogs; wallet/card/station failures, native selector state, wallet-agent MCP identity, sendable asset allowlist, tool copy, and transfer/wallet network-token errors use stable story contracts. |
-| B8 | Monorepo ecosystem: PWA + desktop + mobile | 95% | Shared ops-console, ops-network, mission-story, wallet selector, transfer-story, API-error-story, API-client-story, diagnostic-story, field-demo-story, P2P-story, PWA-notification-story, finance-story, assistant-story/persona, analyst-story, wallet-tool-story, network-token-story, QVAC-story, model-level-story, inference-mode-story, vault-story, RAG-story, intel-story, station-story, and brand-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, client transport fallbacks, client diagnostics, demo seeds, dead-drop defaults, wallet-agent identity/allowlists, QVAC model routing, inference mode badges, browser vault persistence, report filenames, metadata, native model identity, and SPY presets. Native adapters still missing. |
+| B8 | Monorepo ecosystem: PWA + desktop + mobile | 95% | Shared ops-console, ops-network, mission-story, wallet selector, transfer-story, API-error-story, API-client-story, diagnostic-story, field-demo-story, P2P-story, PWA-notification-story, finance-story, assistant-story/persona, analyst-story, wallet-tool-story, network-token-story, QVAC-story, model-level-story, inference-mode-story, vault-story, RAG-story, intel-story, station-story, and brand-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, client transport fallbacks, client diagnostics, demo seeds, dead-drop defaults, wallet-agent identity/allowlists, QVAC runtime defaults/model routing, inference mode badges, browser vault persistence, report filenames, metadata, native model identity, and SPY presets. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 91% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents; PWA metadata, manifest, landing brand heading, report author/eyebrow, and native shell brand identity now share the same brand contract. Native design mirror still missing. |
 | B10 | EN/ES localization | 99% | Operations story labels, browser-alert notification copy, error/status states, Link protocol event/status labels, console assistant copy/persona prompt, finance roast/context copy, voice/settings/SPY fallback copy, analyst/capture/dossier fallback copy, and analyst report/runtime copy are localized in EN/ES. |
-| B11 | Repro, artifacts, compliance gates | 99% | Updated status notes now track shared field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, browser-alert verification, Link/voice/settings/SPY i18n key coverage, RAG/intel/station/QVAC/model-level/inference-mode/vault/network-token/wallet-tool/transfer/API-error/API-client/diagnostic/P2P/PWA-notification story prompt/report filename verification, PWA brand metadata, native brand identity, assistant persona prompt, and finance story verification. |
+| B11 | Repro, artifacts, compliance gates | 99% | Updated status notes now track shared field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, browser-alert verification, Link/voice/settings/SPY i18n key coverage, RAG/intel/station/QVAC runtime/model-level/inference-mode/vault/network-token/wallet-tool/transfer/API-error/API-client/diagnostic/P2P/PWA-notification story prompt/report filename verification, PWA brand metadata, native brand identity, assistant persona prompt, and finance story verification. |
 
 ## New 100% criteria for B8: monorepo ecosystem
 
@@ -152,6 +152,14 @@ yellow/Ignyte accent.
   `packages/core/src/qvac-stories.ts`,
   `apps/app/src/lib/qvac/server.ts`, and
   `apps/app/src/lib/qvac/client.ts`.
+- ✓ QVAC runtime env-var names, local/proxy defaults, remote model defaults,
+  ASR language/default upload filename, RAG workspace, translate target locale,
+  and translate model-kind policy use the shared QVAC story contract:
+  `packages/core/src/qvac-stories.ts`,
+  `apps/app/src/lib/qvac/client.ts`,
+  `apps/app/src/lib/qvac/server.ts`,
+  `apps/app/src/lib/intel/assemble.ts`, and
+  `apps/app/src/app/api/document/route.ts`.
 - ✓ Model-level storage key, selector options, model ids, cache keys, and route
   use-case defaults use the shared model-level story contract:
   `packages/core/src/model-level-stories.ts`,

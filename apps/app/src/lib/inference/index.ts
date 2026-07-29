@@ -17,7 +17,7 @@ import { getStoredLevel } from "@/lib/llm-level";
  * Client-side inference routing for the PWA. Everything goes through QVAC:
  *
  *  - "station"  → local `qvac serve` if reachable, else the same-origin
- *                 `/api/qvac` proxy to a paired/remote station.
+ *                 same-origin QVAC proxy to a paired/remote station.
  *  - "delegate" → POST to `/api/infer/*` Route Handlers (Node) which run
  *                 @qvac/sdk completion({ delegate }) to the station peer.
  *  - "ondevice" → only meaningful in a native (Bare) client; in the browser it

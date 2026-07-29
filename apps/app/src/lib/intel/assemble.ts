@@ -11,10 +11,12 @@ import {
   type IntelMetadata,
   type IntelRecord,
 } from "@leclerc/core";
+import { qvacAsrLanguageDefault, qvacRuntimeEnvVar } from "@leclerc/core/qvac-stories";
 
 export { EXTRACTION_JSON_SCHEMA, SYSTEM_PROMPT, emptyExtraction };
 
-export const ASR_LANGUAGE = process.env.NEXT_PUBLIC_QVAC_ASR_LANG ?? "es";
+export const ASR_LANGUAGE =
+  process.env[qvacRuntimeEnvVar("asrLanguage")] ?? qvacAsrLanguageDefault();
 
 export const fechaLarga = longDate;
 export const isMeaningful = isMeaningfulText;

@@ -1,4 +1,14 @@
 export type QvacModelSourceKey = "medpsy" | "ocr" | "translate";
+export type QvacRuntimeEnvKey =
+  | "localUrl"
+  | "localKey"
+  | "remoteAsrModel"
+  | "remoteLlmModel"
+  | "asrLanguage"
+  | "ragWorkspace"
+  | "embedSource"
+  | "translateModelType";
+export type QvacTranslateModelKind = "llm" | "nmt";
 
 export interface QvacModelSourceCopy {
   envVar: string;
@@ -12,9 +22,26 @@ export interface QvacClientErrorCopy {
   invalidJsonTemplate: string;
 }
 
+export interface QvacRuntimeConfig {
+  envVars: Record<QvacRuntimeEnvKey, string>;
+  defaults: {
+    localUrl: string;
+    remoteAsrModel: string;
+    remoteLlmModel: string;
+    asrLanguage: string;
+    ragWorkspace: string;
+    translateTargetLocale: string;
+    translateModelKind: QvacTranslateModelKind;
+  };
+  proxyBase: string;
+  probeTimeoutMs: number;
+  transcriptionFilename: string;
+}
+
 export interface QvacStory {
   id: string;
   modelSources: Record<QvacModelSourceKey, QvacModelSourceCopy>;
+  runtime: QvacRuntimeConfig;
   clientErrors: QvacClientErrorCopy;
   responsePreviewChars: number;
 }
@@ -38,6 +65,30 @@ export const DEFAULT_QVAC_STORY: QvacStory = {
       missingMessage: "LECLERC_TRANSLATE_SRC not set (translate feature).",
     },
   },
+  runtime: {
+    envVars: {
+      localUrl: "NEXT_PUBLIC_QVAC_LOCAL_URL",
+      localKey: "NEXT_PUBLIC_QVAC_LOCAL_KEY",
+      remoteAsrModel: "NEXT_PUBLIC_QVAC_ASR_MODEL",
+      remoteLlmModel: "NEXT_PUBLIC_QVAC_REMOTE_LLM",
+      asrLanguage: "NEXT_PUBLIC_QVAC_ASR_LANG",
+      ragWorkspace: "LECLERC_RAG_WORKSPACE",
+      embedSource: "LECLERC_EMBED_SRC",
+      translateModelType: "LECLERC_TRANSLATE_MODEL_TYPE",
+    },
+    defaults: {
+      localUrl: "http://localhost:11434",
+      remoteAsrModel: "whisper-base",
+      remoteLlmModel: "llama-1b",
+      asrLanguage: "es",
+      ragWorkspace: "dossier",
+      translateTargetLocale: "es",
+      translateModelKind: "nmt",
+    },
+    proxyBase: "/api/qvac",
+    probeTimeoutMs: 1_500,
+    transcriptionFilename: "registro.wav",
+  },
   clientErrors: {
     transcriptionTemplate: "transcriptions {status}: {body}",
     chatCompletionTemplate: "chat/completions {status}: {body}",
@@ -51,6 +102,56 @@ export function qvacMissingModelSourceMessage(
   story: QvacStory = DEFAULT_QVAC_STORY,
 ): string {
   return story.modelSources[source].missingMessage;
+}
+
+export function qvacRuntimeEnvVar(
+  key: QvacRuntimeEnvKey,
+  story: QvacStory = DEFAULT_QVAC_STORY,
+): string {
+  return story.runtime.envVars[key];
+}
+
+export function qvacClientLocalUrlDefault(story: QvacStory = DEFAULT_QVAC_STORY): string {
+  return story.runtime.defaults.localUrl;
+}
+
+export function qvacClientProxyBase(story: QvacStory = DEFAULT_QVAC_STORY): string {
+  return story.runtime.proxyBase;
+}
+
+export function qvacClientProbeTimeoutMs(story: QvacStory = DEFAULT_QVAC_STORY): number {
+  return story.runtime.probeTimeoutMs;
+}
+
+export function qvacRemoteAsrModelDefault(story: QvacStory = DEFAULT_QVAC_STORY): string {
+  return story.runtime.defaults.remoteAsrModel;
+}
+
+export function qvacRemoteLlmModelDefault(story: QvacStory = DEFAULT_QVAC_STORY): string {
+  return story.runtime.defaults.remoteLlmModel;
+}
+
+export function qvacAsrLanguageDefault(story: QvacStory = DEFAULT_QVAC_STORY): string {
+  return story.runtime.defaults.asrLanguage;
+}
+
+export function qvacDefaultRagWorkspace(story: QvacStory = DEFAULT_QVAC_STORY): string {
+  return story.runtime.defaults.ragWorkspace;
+}
+
+export function qvacDefaultTranslateTargetLocale(story: QvacStory = DEFAULT_QVAC_STORY): string {
+  return story.runtime.defaults.translateTargetLocale;
+}
+
+export function qvacDefaultTranscriptionFilename(story: QvacStory = DEFAULT_QVAC_STORY): string {
+  return story.runtime.transcriptionFilename;
+}
+
+export function qvacTranslateModelKind(
+  value: unknown,
+  story: QvacStory = DEFAULT_QVAC_STORY,
+): QvacTranslateModelKind {
+  return value === "llm" ? "llm" : story.runtime.defaults.translateModelKind;
 }
 
 export function qvacTranscriptionError(

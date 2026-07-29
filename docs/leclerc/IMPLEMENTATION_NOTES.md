@@ -2303,3 +2303,48 @@ tool names. `git diff --check` exited 0. `lsof` returned no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 QVAC runtime defaults story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Extended `packages/core/src/qvac-stories.ts` with QVAC runtime env-var names,
+  local/proxy defaults, probe timeout, remote model fallbacks, ASR language,
+  default upload filename, RAG workspace default, translate target locale, and
+  translate model-kind policy.
+- Rewired the browser QVAC client, server QVAC loader, intel assembly ASR
+  language, and document translate route to use the shared QVAC story instead
+  of app-local runtime literals.
+- Updated the bucket-analysis artifact with B1/B8/B11 evidence.
+
+### Verification
+
+```bash
+rg -n 'NEXT_PUBLIC_QVAC_LOCAL_URL|NEXT_PUBLIC_QVAC_LOCAL_KEY|NEXT_PUBLIC_QVAC_ASR_MODEL|NEXT_PUBLIC_QVAC_REMOTE_LLM|NEXT_PUBLIC_QVAC_ASR_LANG|LECLERC_RAG_WORKSPACE|LECLERC_EMBED_SRC|LECLERC_TRANSLATE_MODEL_TYPE|http://localhost:11434|/api/qvac|whisper-base|llama-1b|registro\.wav|probeTimeoutMs: 1_500|ragWorkspace: "dossier"|translateTargetLocale: "es"|translateModelKind: "nmt"|\? "llm" : "nmt"' apps/app/src packages/core/src -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_QVAC_STORY, qvacAsrLanguageDefault, qvacClientLocalUrlDefault, qvacClientProbeTimeoutMs, qvacClientProxyBase, qvacDefaultRagWorkspace, qvacDefaultTranscriptionFilename, qvacDefaultTranslateTargetLocale, qvacRemoteAsrModelDefault, qvacRemoteLlmModelDefault, qvacRuntimeEnvVar, qvacTranslateModelKind } from "./packages/core/src/index.ts"; const values={story:DEFAULT_QVAC_STORY.id,localEnv:qvacRuntimeEnvVar("localUrl"),local:qvacClientLocalUrlDefault(),key:qvacRuntimeEnvVar("localKey"),proxy:qvacClientProxyBase(),timeout:qvacClientProbeTimeoutMs(),asrEnv:qvacRuntimeEnvVar("remoteAsrModel"),asr:qvacRemoteAsrModelDefault(),llm:qvacRemoteLlmModelDefault(),langEnv:qvacRuntimeEnvVar("asrLanguage"),lang:qvacAsrLanguageDefault(),workspaceEnv:qvacRuntimeEnvVar("ragWorkspace"),workspace:qvacDefaultRagWorkspace(),embedEnv:qvacRuntimeEnvVar("embedSource"),translateEnv:qvacRuntimeEnvVar("translateModelType"),target:qvacDefaultTranslateTargetLocale(),file:qvacDefaultTranscriptionFilename(),llmKind:qvacTranslateModelKind("llm"),fallbackKind:qvacTranslateModelKind("x")}; console.log(JSON.stringify(values)); if (values.story!=="offline-qvac-runtime" || values.localEnv!=="NEXT_PUBLIC_QVAC_LOCAL_URL" || values.local!=="http://localhost:11434" || values.key!=="NEXT_PUBLIC_QVAC_LOCAL_KEY" || values.proxy!=="/api/qvac" || values.timeout!==1500 || values.asrEnv!=="NEXT_PUBLIC_QVAC_ASR_MODEL" || values.asr!=="whisper-base" || values.llm!=="llama-1b" || values.langEnv!=="NEXT_PUBLIC_QVAC_ASR_LANG" || values.lang!=="es" || values.workspaceEnv!=="LECLERC_RAG_WORKSPACE" || values.workspace!=="dossier" || values.embedEnv!=="LECLERC_EMBED_SRC" || values.translateEnv!=="LECLERC_TRANSLATE_MODEL_TYPE" || values.target!=="es" || values.file!=="registro.wav" || values.llmKind!=="llm" || values.fallbackKind!=="nmt") process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The focused scan now
+returns QVAC runtime env-var names, endpoint/model/workspace/language defaults,
+upload filename, proxy base, probe timeout, and translate model-kind fallback
+only in `packages/core/src/qvac-stories.ts`. The QVAC story smoke returned the
+shared story ID and every configured runtime default/helper. `git diff --check`
+exited 0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

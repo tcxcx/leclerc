@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { ocrImage, translateText } from "@repo/qvacs";
 import { loadOcr, loadTranslate } from "@/lib/qvac/server";
+import {
+  qvacDefaultTranslateTargetLocale,
+  qvacRuntimeEnvVar,
+  qvacTranslateModelKind,
+} from "@leclerc/core/qvac-stories";
 import { apiError, apiErrorBody, apiErrorFromUnknown, type LeclercApiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
@@ -29,9 +34,9 @@ export async function POST(req: Request) {
     if (shouldTranslate && ocr.text.trim()) {
       const translateModel = await loadTranslate();
       translatedText = await translateText(translateModel, ocr.text, {
-        to: to || "es",
+        to: to || qvacDefaultTranslateTargetLocale(),
         from: from || undefined,
-        modelType: process.env.LECLERC_TRANSLATE_MODEL_TYPE === "llm" ? "llm" : "nmt",
+        modelType: qvacTranslateModelKind(process.env[qvacRuntimeEnvVar("translateModelType")]),
       });
     }
 

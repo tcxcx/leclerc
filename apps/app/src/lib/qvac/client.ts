@@ -1,8 +1,15 @@
 "use client";
 
 import {
+  qvacClientLocalUrlDefault,
+  qvacClientProbeTimeoutMs,
+  qvacClientProxyBase,
   qvacChatCompletionError,
+  qvacDefaultTranscriptionFilename,
   qvacInvalidJsonMessage,
+  qvacRemoteAsrModelDefault,
+  qvacRemoteLlmModelDefault,
+  qvacRuntimeEnvVar,
   qvacTranscriptionError,
 } from "@leclerc/core/qvac-stories";
 
@@ -11,10 +18,10 @@ import {
  * endpoint — NOT @qvac/sdk (which needs the native bare runtime and can't run
  * on Vercel). Resolution prioritizes the operator's own device:
  *
- *   1. Local `qvac serve` (NEXT_PUBLIC_QVAC_LOCAL_URL, default localhost:11434)
+ *   1. Local `qvac serve` (story-configured local endpoint)
  *      — true offline-first, runs on the field device. http://localhost is a
  *      "potentially trustworthy" origin so HTTPS pages may call it (Chrome).
- *   2. Fallback to `/api/qvac` — a same-origin Vercel proxy that forwards to the
+ *   2. Fallback to the story-configured same-origin proxy that forwards to the
  *      configured upstream (ngrok tunnel to a Mac, else Railway). Never fails.
  *
  * Detection is capability-based: a real local QVAC serve exposes a Whisper
@@ -24,15 +31,17 @@ import {
  */
 
 const LOCAL_URL =
-  process.env.NEXT_PUBLIC_QVAC_LOCAL_URL?.replace(/\/$/, "") ?? "http://localhost:11434";
-const LOCAL_KEY = process.env.NEXT_PUBLIC_QVAC_LOCAL_KEY;
-const PROXY_BASE = "/api/qvac";
-const PROBE_TIMEOUT_MS = 1500;
+  process.env[qvacRuntimeEnvVar("localUrl")]?.replace(/\/$/, "") ?? qvacClientLocalUrlDefault();
+const LOCAL_KEY = process.env[qvacRuntimeEnvVar("localKey")];
+const PROXY_BASE = qvacClientProxyBase();
+const PROBE_TIMEOUT_MS = qvacClientProbeTimeoutMs();
 
 // Fallback model ids for the proxy upstream (we control it, so the aliases are
 // known). On a shared CPU box use the lighter LLM.
-const REMOTE_ASR_MODEL = process.env.NEXT_PUBLIC_QVAC_ASR_MODEL ?? "whisper-base";
-const REMOTE_LLM_MODEL = process.env.NEXT_PUBLIC_QVAC_REMOTE_LLM ?? "llama-1b";
+const REMOTE_ASR_MODEL =
+  process.env[qvacRuntimeEnvVar("remoteAsrModel")] ?? qvacRemoteAsrModelDefault();
+const REMOTE_LLM_MODEL =
+  process.env[qvacRuntimeEnvVar("remoteLlmModel")] ?? qvacRemoteLlmModelDefault();
 
 const isWhisper = (id: string) => /whisper/i.test(id);
 
@@ -133,7 +142,7 @@ export async function transcribe(
 ): Promise<string> {
   const t = target ?? (await resolveTarget());
   const form = new FormData();
-  form.append("file", blob, opts.filename ?? "registro.wav");
+  form.append("file", blob, opts.filename ?? qvacDefaultTranscriptionFilename());
   form.append("model", opts.model);
   if (opts.language) form.append("language", opts.language);
 

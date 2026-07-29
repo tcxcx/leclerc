@@ -24,7 +24,12 @@ import {
   modelCacheKeyForLevel,
   type LlmLevel,
 } from "@leclerc/core/model-level-stories";
-import { qvacMissingModelSourceMessage } from "@leclerc/core/qvac-stories";
+import {
+  qvacDefaultRagWorkspace,
+  qvacMissingModelSourceMessage,
+  qvacRuntimeEnvVar,
+  qvacTranslateModelKind,
+} from "@leclerc/core/qvac-stories";
 
 type ModelType =
   | "llamacpp-completion"
@@ -46,7 +51,8 @@ function load(modelSrc: unknown, modelType: ModelType, opts: LoadOpts = {}): Pro
   } as unknown as Parameters<typeof loadModel>[0]) as Promise<string>;
 }
 
-export const RAG_WORKSPACE = process.env.LECLERC_RAG_WORKSPACE ?? "dossier";
+export const RAG_WORKSPACE =
+  process.env[qvacRuntimeEnvVar("ragWorkspace")] ?? qvacDefaultRagWorkspace();
 
 /**
  * Reasoning LLM. Loaded with tools enabled so the analyst desk can use native
@@ -76,8 +82,7 @@ export function loadWhisper(): Promise<string> {
 
 /** Embedding model for RAG (bundled EmbeddingGemma-300M by default). */
 export function loadEmbed(): Promise<string> {
-  // Override with a registry:// or file src via LECLERC_EMBED_SRC if desired.
-  const src = process.env.LECLERC_EMBED_SRC;
+  const src = process.env[qvacRuntimeEnvVar("embedSource")];
   return getModel("embed", () => load(src ?? EMBEDDINGGEMMA_300M_Q8_0, "llamacpp-embedding"));
 }
 
@@ -92,7 +97,7 @@ export function loadOcr(): Promise<string> {
 export function loadTranslate(): Promise<string> {
   const src = process.env.LECLERC_TRANSLATE_SRC;
   if (!src) throw new Error(qvacMissingModelSourceMessage("translate"));
-  const kind = process.env.LECLERC_TRANSLATE_MODEL_TYPE === "llm" ? "llm" : "nmt";
+  const kind = qvacTranslateModelKind(process.env[qvacRuntimeEnvVar("translateModelType")]);
   const type = kind === "llm" ? "llamacpp-completion" : "nmtcpp-translation";
   return getModel(`translate-${kind}`, () => load(src, type));
 }
