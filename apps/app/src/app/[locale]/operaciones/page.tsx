@@ -1,10 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useI18n } from "@/locales/client";
+import { useCurrentLocale, useI18n } from "@/locales/client";
 import { GlassIcon } from "@/components/glass-icon";
 import { OperationsGlobe } from "@/components/operations-globe";
 import { missionFunding } from "@/lib/api-client";
+import {
+  browserOpsNotificationPermission,
+  requestBrowserOpsNotifications,
+  showOpsBrowserNotification,
+  type BrowserOpsNotificationPermission,
+} from "@/lib/ops/browser-notifications";
 import {
   assignOpsMission,
   inviteOpsAlias,
@@ -24,12 +30,16 @@ import {
 
 export default function OperationsPage() {
   const t = useI18n();
+  const locale = useCurrentLocale() as "es" | "en";
   const tt = t as unknown as (key: string) => string;
   const [state, setState] = useState<OpsConsoleState | null>(null);
   const [selectedMissionId, setSelectedMissionId] = useState("");
   const [selectedAliasId, setSelectedAliasId] = useState("");
   const [inviteAlias, setInviteAlias] = useState("");
   const [busy, setBusy] = useState(false);
+  const [browserBusy, setBrowserBusy] = useState(false);
+  const [browserPermission, setBrowserPermission] =
+    useState<BrowserOpsNotificationPermission>("unsupported");
   const [status, setStatus] = useState<string | null>(null);
 
   const applyOpsState = useCallback((next: OpsConsoleState) => {
@@ -42,28 +52,60 @@ export default function OperationsPage() {
     );
   }, []);
 
+  const publishBrowserNotifications = useCallback(
+    async (notifications: OpsNotification[]) => {
+      if (notifications.length === 0) return;
+      const permission = browserOpsNotificationPermission();
+      setBrowserPermission(permission);
+      if (permission !== "granted") return;
+
+      try {
+        const translate = t as unknown as (key: string) => string;
+        for (const notification of notifications) {
+          await showOpsBrowserNotification({
+            notification,
+            title: translate(notification.titleKey),
+            body: translate(notification.bodyKey),
+            locale,
+          });
+        }
+      } catch {
+        setStatus(t("opsConsole.notifications.browserFailed"));
+      }
+    },
+    [locale, t],
+  );
+
   const refreshFundingNotifications = useCallback(
     async (baseState: OpsConsoleState, announce = true) => {
       try {
         const res = await missionFunding.events();
         const notifications = res.events.map((event) => opsNotificationFromMissionFunding(event, baseState));
         const next = await mergeOpsConsoleNotifications(notifications);
+        void publishBrowserNotifications(newOpsNotifications(baseState, next));
         applyOpsState(next);
         if (announce) setStatus(t("opsConsole.notifications.synced"));
       } catch (error) {
         if (announce) setStatus(error instanceof Error ? error.message : t("opsConsole.notifications.loadFailed"));
       }
     },
-    [applyOpsState, t],
+    [applyOpsState, publishBrowserNotifications, t],
   );
 
   useEffect(() => {
+    let mounted = true;
+    queueMicrotask(() => {
+      if (mounted) setBrowserPermission(browserOpsNotificationPermission());
+    });
     loadOpsConsole()
       .then((next) => {
         applyOpsState(next);
         return refreshFundingNotifications(next, false);
       })
       .catch((error) => setStatus(error instanceof Error ? error.message : t("opsConsole.loadFailed")));
+    return () => {
+      mounted = false;
+    };
   }, [applyOpsState, refreshFundingNotifications, t]);
 
   const counts = useMemo(() => (state ? opsConsoleCounts(state) : null), [state]);
@@ -72,10 +114,11 @@ export default function OperationsPage() {
   const workspaceLabel = state?.workspaceNameKey ? tt(state.workspaceNameKey) : state?.workspaceName;
 
   async function assignSelected() {
-    if (!selectedMission || !selectedAlias) return;
+    if (!state || !selectedMission || !selectedAlias) return;
     setBusy(true);
     try {
       const next = await assignOpsMission(selectedMission.id, selectedAlias.id);
+      void publishBrowserNotifications(newOpsNotifications(state, next));
       applyOpsState(next);
       setStatus(t("opsConsole.assigned"));
     } catch (error) {
@@ -86,10 +129,11 @@ export default function OperationsPage() {
   }
 
   async function inviteSelected() {
-    if (!selectedMission || !inviteAlias.trim()) return;
+    if (!state || !selectedMission || !inviteAlias.trim()) return;
     setBusy(true);
     try {
       const next = await inviteOpsAlias(selectedMission.id, inviteAlias);
+      void publishBrowserNotifications(newOpsNotifications(state, next));
       applyOpsState(next);
       setInviteAlias("");
       setStatus(t("opsConsole.invited"));
@@ -108,6 +152,19 @@ export default function OperationsPage() {
       setStatus(t("opsConsole.resetDone"));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function enableBrowserNotifications() {
+    setBrowserBusy(true);
+    try {
+      const permission = await requestBrowserOpsNotifications();
+      setBrowserPermission(permission);
+      if (permission === "granted") setStatus(t("opsConsole.notifications.browserReady"));
+      else if (permission === "denied") setStatus(t("opsConsole.notifications.browserDenied"));
+      else setStatus(t("opsConsole.notifications.browserUnsupported"));
+    } finally {
+      setBrowserBusy(false);
     }
   }
 
@@ -273,6 +330,11 @@ export default function OperationsPage() {
             missions={state.missions}
             aliases={state.aliases}
             busy={busy}
+            browserBusy={browserBusy}
+            browserPermission={browserPermission}
+            onEnableBrowserNotifications={() => {
+              void enableBrowserNotifications();
+            }}
             onRefresh={() => {
               void refreshFundingNotifications(state);
             }}
@@ -411,6 +473,9 @@ function NotificationFeed({
   missions,
   aliases,
   busy,
+  browserBusy,
+  browserPermission,
+  onEnableBrowserNotifications,
   onRefresh,
   t,
 }: {
@@ -418,9 +483,33 @@ function NotificationFeed({
   missions: MissionBounty[];
   aliases: OperativeAlias[];
   busy: boolean;
+  browserBusy: boolean;
+  browserPermission: BrowserOpsNotificationPermission;
+  onEnableBrowserNotifications: () => void;
   onRefresh: () => void;
   t: ReturnType<typeof useI18n>;
 }) {
+  const browserLabel =
+    browserPermission === "granted"
+      ? t("opsConsole.notifications.browserReady")
+      : browserPermission === "denied"
+        ? t("opsConsole.notifications.browserDenied")
+        : browserPermission === "unsupported"
+          ? t("opsConsole.notifications.browserUnsupported")
+          : t("opsConsole.notifications.browserEnable");
+  const browserIcon =
+    browserPermission === "granted"
+      ? "notifications_active"
+      : browserPermission === "denied" || browserPermission === "unsupported"
+        ? "notifications_off"
+        : "notifications";
+  const browserDisabled =
+    busy ||
+    browserBusy ||
+    browserPermission === "granted" ||
+    browserPermission === "denied" ||
+    browserPermission === "unsupported";
+
   return (
     <section className="space-y-3 rounded-lg border border-outline-variant bg-surface-container-low/90 p-4">
       <div className="flex items-center justify-between gap-3">
@@ -428,18 +517,32 @@ function NotificationFeed({
           <h2 className="font-headline-sm">{t("opsConsole.notifications.title")}</h2>
           <p className="text-body-md text-on-surface-variant">{t("opsConsole.notifications.body")}</p>
         </div>
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={busy}
-          className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant disabled:opacity-50"
-          aria-label={t("opsConsole.notifications.refresh")}
-          title={t("opsConsole.notifications.refresh")}
-        >
-          <span className="material-symbols-outlined text-[18px]" aria-hidden>
-            sync
-          </span>
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={onEnableBrowserNotifications}
+            disabled={browserDisabled}
+            className="inline-flex size-10 items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant disabled:opacity-50"
+            aria-label={browserLabel}
+            title={browserLabel}
+          >
+            <span className="material-symbols-outlined text-[18px]" aria-hidden>
+              {browserIcon}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={busy}
+            className="inline-flex size-10 items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant disabled:opacity-50"
+            aria-label={t("opsConsole.notifications.refresh")}
+            title={t("opsConsole.notifications.refresh")}
+          >
+            <span className="material-symbols-outlined text-[18px]" aria-hidden>
+              sync
+            </span>
+          </button>
+        </div>
       </div>
       {notifications.length === 0 ? (
         <p className="text-body-md text-on-surface-variant">{t("opsConsole.notifications.empty")}</p>
@@ -458,6 +561,11 @@ function NotificationFeed({
       )}
     </section>
   );
+}
+
+function newOpsNotifications(before: OpsConsoleState, after: OpsConsoleState): OpsNotification[] {
+  const existing = new Set(before.notifications.map((notification) => notification.id));
+  return after.notifications.filter((notification) => !existing.has(notification.id));
 }
 
 function NotificationRow({

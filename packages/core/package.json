@@ -21,6 +21,7 @@
     "./ops-console": "./src/ops-console.ts",
     "./ops-stories": "./src/ops-stories.ts",
     "./p2p": "./src/p2p.ts",
+    "./pwa-notification-stories": "./src/pwa-notification-stories.ts",
     "./qvac-stories": "./src/qvac-stories.ts",
     "./rag": "./src/rag.ts",
     "./rag-stories": "./src/rag-stories.ts",

@@ -255,6 +255,11 @@
       "empty": "No operations notifications yet.",
       "synced": "Notifications synced.",
       "loadFailed": "Funding notifications unavailable.",
+      "browserEnable": "Enable browser alerts",
+      "browserReady": "Browser alerts enabled",
+      "browserDenied": "Browser alerts blocked",
+      "browserUnsupported": "Browser alerts unavailable",
+      "browserFailed": "Browser alert failed.",
       "assignment": {
         "title": "Bounty assigned",
         "body": "The assignment was recorded in the local operations workspace."

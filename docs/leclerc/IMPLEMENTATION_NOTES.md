@@ -1843,3 +1843,55 @@ returned no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 PWA browser notifications
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/pwa-notification-stories.ts` as the shared PWA
+  notification story contract for service-worker path/copy and browser
+  notification icon, badge, tag, URL, and renotify settings.
+- Added `apps/app/src/lib/ops/browser-notifications.ts` to request browser
+  notification permission explicitly and publish `OpsNotification` events via
+  `navigator.serviceWorker.ready.showNotification()`.
+- Rewired the operations notification feed with an icon-only browser-alert
+  opt-in control. Once permission is granted, new assignment, invite, and
+  funding notifications are also emitted as PWA browser notifications.
+- Rewired `ServiceWorkerRegister` to use the story-owned service-worker path and
+  failure message, and added service-worker `notificationclick` handling to
+  focus/open the operations URL stored in notification data.
+- Added EN/ES browser-alert notification copy and updated the bucket-analysis
+  artifact with HP1/B8/B10/B11 evidence.
+
+### Verification
+
+```bash
+rg -n "Service worker registration failed|Enable browser alerts|Activar alertas|pwa-ops-notification-wire|notifications_active|showNotification|notificationclick" apps/app/src apps/app/messages packages/core/src apps/app/public/sw.js -g '*.ts' -g '*.tsx' -g '*.json' -g '*.js'
+bun -e 'import { DEFAULT_PWA_NOTIFICATION_STORY, opsBrowserNotificationOptions, pwaServiceWorkerPath, pwaServiceWorkerRegistrationFailedMessage } from "./packages/core/src/index.ts"; const opts=opsBrowserNotificationOptions({notificationId:"n1",locale:"en"}); console.log(JSON.stringify({story:DEFAULT_PWA_NOTIFICATION_STORY.id,path:pwaServiceWorkerPath(),fail:pwaServiceWorkerRegistrationFailedMessage(),opts})); if (pwaServiceWorkerPath()!=="/sw.js" || !opts.tag.includes("n1") || opts.url!=="/en/operaciones" || !pwaServiceWorkerRegistrationFailedMessage().includes("Service worker")) process.exit(1);'
+bun -e 'import { browserOpsNotificationPermission } from "./apps/app/src/lib/ops/browser-notifications.ts"; const permission=browserOpsNotificationPermission(); console.log(JSON.stringify({permission})); if (permission!=="unsupported") process.exit(1);'
+node --check apps/app/public/sw.js
+bun -e 'import en from "./apps/app/messages/en.json"; import es from "./apps/app/messages/es.json"; const get=(obj,key)=>key.split(".").reduce((acc,part)=>acc?.[part],obj); const keys=["opsConsole.notifications.browserEnable","opsConsole.notifications.browserReady","opsConsole.notifications.browserDenied","opsConsole.notifications.browserUnsupported","opsConsole.notifications.browserFailed"]; const missing=keys.filter((key)=>typeof get(en,key)!=="string"||typeof get(es,key)!=="string"); console.log(JSON.stringify({keys,missing})); if (missing.length) process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. Focused smokes confirmed
+the PWA notification story ID, service-worker path, click URL options, Node-safe
+browser-helper fallback, service-worker syntax, and EN/ES browser-alert keys.
+`git diff --check` exited 0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

@@ -255,6 +255,11 @@
       "empty": "Aún no hay notificaciones operativas.",
       "synced": "Notificaciones sincronizadas.",
       "loadFailed": "Notificaciones de fondeo no disponibles.",
+      "browserEnable": "Activar alertas del navegador",
+      "browserReady": "Alertas del navegador activadas",
+      "browserDenied": "Alertas del navegador bloqueadas",
+      "browserUnsupported": "Alertas del navegador no disponibles",
+      "browserFailed": "Falló la alerta del navegador.",
       "assignment": {
         "title": "Recompensa asignada",
         "body": "La asignación quedó registrada en el workspace operativo local."

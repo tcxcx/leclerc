@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import {
+  pwaServiceWorkerPath,
+  pwaServiceWorkerRegistrationFailedMessage,
+} from "@leclerc/core/pwa-notification-stories";
 
 /** Registers the service worker once the app shell has mounted. */
 export function ServiceWorkerRegister() {
@@ -8,8 +12,8 @@ export function ServiceWorkerRegister() {
     if (process.env.NODE_ENV !== "production") return;
     if (!("serviceWorker" in navigator)) return;
 
-    navigator.serviceWorker.register("/sw.js").catch((err) => {
-      console.error("Service worker registration failed", err);
+    navigator.serviceWorker.register(pwaServiceWorkerPath()).catch((err) => {
+      console.error(pwaServiceWorkerRegistrationFailedMessage(), err);
     });
   }, []);
 

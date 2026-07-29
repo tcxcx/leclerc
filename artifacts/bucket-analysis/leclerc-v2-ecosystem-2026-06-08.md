@@ -19,7 +19,7 @@ yellow/Ignyte accent.
 
 | # | Bucket | Score | Evidence added in this pass |
 |---|---|---:|---|
-| HP1 | PWA judged surface | 86% | `/operaciones` route now gives the PWA the mission assigner, agent control center, story-backed defaults, notification feed, and Link-page notification sync. |
+| HP1 | PWA judged surface | 87% | `/operaciones` route now gives the PWA the mission assigner, agent control center, story-backed defaults, notification feed, Link-page notification sync, and explicit browser-alert opt-in. |
 | B1 | QVAC-only inference + RAG | 88% | RAG, chat, document, capture, and QVAC proxy failures return stable API codes; grounded RAG answer prompts/fallbacks plus QVAC model-source/client error copy now come from shared stories; OCR/translate/MedPsy still env-gated. |
 | B2 | Voice-first Cleo loop | 76% | Voice-state labels and recorder/start fallback errors now resolve through EN/ES messages; real browser mic permission proof still missing. |
 | B3 | Capture, encrypted dossier, wipe | 89% | Finance and intel demo seeds plus intel extraction prompt/defaults now come from dedicated story fixtures/contracts instead of app-local copy. |
@@ -27,10 +27,10 @@ yellow/Ignyte accent.
 | B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
 | B6 | P2P delegation + dead-drop | 83% | Ops console links missions to dead-drop intent; Link funding/drop notification payloads persist into the ops notification feed; station delegate smoke prompt and transfer confirmation/funding errors are story-owned; two-peer delegation proof still missing. |
 | B7 | WDK wallet + network-token selector | 87% | Rain card and mission-funding configs now derive from shared catalogs; wallet/card/station failures, native selector state, wallet-agent tool copy, and transfer/wallet network-token errors use stable story contracts. |
-| B8 | Monorepo ecosystem: PWA + desktop + mobile | 87% | Shared ops-console, ops-network, mission-story, wallet selector, transfer-story, API-error-story, finance-story, assistant-story/persona, analyst-story, wallet-tool-story, network-token-story, QVAC-story, RAG-story, intel-story, station-story, and brand-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, metadata, native model identity, and SPY presets. Native adapters still missing. |
+| B8 | Monorepo ecosystem: PWA + desktop + mobile | 88% | Shared ops-console, ops-network, mission-story, wallet selector, transfer-story, API-error-story, PWA-notification-story, finance-story, assistant-story/persona, analyst-story, wallet-tool-story, network-token-story, QVAC-story, RAG-story, intel-story, station-story, and brand-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, metadata, native model identity, and SPY presets. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 91% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents; PWA metadata, manifest, landing brand heading, report author/eyebrow, and native shell brand identity now share the same brand contract. Native design mirror still missing. |
-| B10 | EN/ES localization | 99% | Operations story labels, notification copy, error/status states, Link protocol event/status labels, console assistant copy/persona prompt, finance roast/context copy, voice/settings/SPY fallback copy, analyst/capture/dossier fallback copy, and analyst report/runtime copy are localized in EN/ES. |
-| B11 | Repro, artifacts, compliance gates | 99% | Updated status notes now track field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, Link/voice/settings/SPY i18n key coverage, RAG/intel/station/QVAC/network-token/transfer/API-error story prompt verification, PWA brand metadata, native brand identity, assistant persona prompt, and finance story verification. |
+| B10 | EN/ES localization | 99% | Operations story labels, browser-alert notification copy, error/status states, Link protocol event/status labels, console assistant copy/persona prompt, finance roast/context copy, voice/settings/SPY fallback copy, analyst/capture/dossier fallback copy, and analyst report/runtime copy are localized in EN/ES. |
+| B11 | Repro, artifacts, compliance gates | 99% | Updated status notes now track field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, browser-alert verification, Link/voice/settings/SPY i18n key coverage, RAG/intel/station/QVAC/network-token/transfer/API-error/PWA-notification story prompt verification, PWA brand metadata, native brand identity, assistant persona prompt, and finance story verification. |
 
 ## New 100% criteria for B8: monorepo ecosystem
 
@@ -50,6 +50,13 @@ yellow/Ignyte accent.
   `apps/app/src/app/[locale]/operaciones/page.tsx`.
 - ✓ PWA route renders a local notification feed and can merge
   `/api/mission-funding` events:
+  `apps/app/src/app/[locale]/operaciones/page.tsx`.
+- ✓ PWA notification feed can explicitly request browser-alert permission and
+  publish new operations notifications through the registered service worker:
+  `packages/core/src/pwa-notification-stories.ts`,
+  `apps/app/src/lib/ops/browser-notifications.ts`,
+  `apps/app/src/app/sw-register.tsx`,
+  `apps/app/public/sw.js`, and
   `apps/app/src/app/[locale]/operaciones/page.tsx`.
 - ✓ Link route mission funding and notification dead-drop payloads persist into
   the same operations notification feed:
