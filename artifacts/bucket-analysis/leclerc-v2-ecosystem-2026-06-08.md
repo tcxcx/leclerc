@@ -27,10 +27,10 @@ yellow/Ignyte accent.
 | B5 | Document OCR + translate | 65% | Unchanged; live model sources still missing. |
 | B6 | P2P delegation + dead-drop | 82% | Ops console links missions to dead-drop intent; Link funding/drop notification payloads persist into the ops notification feed; station delegate smoke prompt is story-owned; two-peer delegation proof still missing. |
 | B7 | WDK wallet + network-token selector | 86% | Rain card and mission-funding configs now derive from shared catalogs; wallet/card/station failures, native selector state, and wallet-agent tool copy use stable network-token/story contracts. |
-| B8 | Monorepo ecosystem: PWA + desktop + mobile | 81% | Shared ops-console, ops-network, mission-story, wallet selector, assistant-story, analyst-story, wallet-tool-story, RAG-story, intel-story, station-story, and brand-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, metadata, native model identity, and SPY presets. Native adapters still missing. |
+| B8 | Monorepo ecosystem: PWA + desktop + mobile | 82% | Shared ops-console, ops-network, mission-story, wallet selector, assistant-story/persona, analyst-story, wallet-tool-story, RAG-story, intel-story, station-story, and brand-story contracts feed PWA, desktop/mobile scaffolds, cards, transfers, dossier routing, notifications, metadata, native model identity, and SPY presets. Native adapters still missing. |
 | B9 | Cleo visual identity/design system | 91% | Operations room uses stronger yellow/Ignyte bounty CTAs and state accents; PWA metadata, manifest, landing brand heading, report author/eyebrow, and native shell brand identity now share the same brand contract. Native design mirror still missing. |
-| B10 | EN/ES localization | 99% | Operations story labels, notification copy, error/status states, Link protocol event/status labels, console assistant copy, voice/settings/SPY fallback copy, analyst/capture/dossier fallback copy, and analyst report/runtime copy are localized in EN/ES. |
-| B11 | Repro, artifacts, compliance gates | 97% | Updated status notes now track field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, Link/voice/settings/SPY i18n key coverage, RAG/intel/station story prompt verification, PWA brand metadata, and native brand identity verification. |
+| B10 | EN/ES localization | 99% | Operations story labels, notification copy, error/status states, Link protocol event/status labels, console assistant copy/persona prompt, voice/settings/SPY fallback copy, analyst/capture/dossier fallback copy, and analyst report/runtime copy are localized in EN/ES. |
+| B11 | Repro, artifacts, compliance gates | 98% | Updated status notes now track field-demo fixture extraction, structured-error smoke coverage, story-owned descriptors, notification-store bridge verification, Link/voice/settings/SPY i18n key coverage, RAG/intel/station story prompt verification, PWA brand metadata, native brand identity, and assistant persona prompt verification. |
 
 ## New 100% criteria for B8: monorepo ecosystem
 
@@ -93,6 +93,10 @@ yellow/Ignyte accent.
   shared assistant story contract plus EN/ES message keys:
   `packages/core/src/assistant-stories.ts` and
   `apps/app/src/app/[locale]/page.tsx`.
+- ✓ Chat persona base prompts plus spoken/text formatting instructions use the
+  shared assistant story contract while `persona()` remains the public helper:
+  `packages/core/src/assistant-stories.ts` and
+  `packages/core/src/agents.ts`.
 - ✓ Analyst progress, RAG fallback, capture fallback, and vault fallback copy use
   the shared analyst story contract plus EN/ES message keys:
   `packages/core/src/analyst-stories.ts`,

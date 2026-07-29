@@ -1560,3 +1560,46 @@ diff --check` exited 0. `lsof` returned no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 assistant persona story wiring
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Extended `packages/core/src/assistant-stories.ts` with the localized LeClerc
+  persona base prompts, spoken-output formatting rules, text-output formatting
+  rules, and prompt suffix.
+- Rewired `packages/core/src/agents.ts` so `persona()` delegates to
+  `assistantPersonaPrompt()` instead of owning prompt text directly.
+- Updated the bucket-analysis artifact to record assistant persona prompt
+  wiring as B8/B10/B11 evidence.
+
+### Verification
+
+```bash
+rg -n "Eres LeClerc:|You are LeClerc:|NUNCA uses markdown|NEVER use markdown|Keep formatting minimal|Manten el formato" packages/core/src/agents.ts packages/core/src/assistant-stories.ts
+bun -e 'import { assistantPersonaPrompt, persona, DEFAULT_ASSISTANT_STORY } from "./packages/core/src/index.ts"; const esVoice=persona("es",{spoken:true}); const enText=persona("en",{spoken:false}); const direct=assistantPersonaPrompt("en",{spoken:false}); console.log(JSON.stringify({story:DEFAULT_ASSISTANT_STORY.id, esVoice:esVoice.includes("NUNCA uses markdown"), enText:enText.includes("Keep formatting minimal"), directMatches:direct===enText, suffix:enText.endsWith("/no_think")})); if (!esVoice.includes("Eres LeClerc") || !enText.includes("You are LeClerc") || direct!==enText || !enText.endsWith("/no_think")) process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The exact prompt scan now
+returns the persona text only in `packages/core/src/assistant-stories.ts`, not
+`packages/core/src/agents.ts`. The persona smoke confirmed `persona()` and
+`assistantPersonaPrompt()` match for text mode, preserve spoken/text formatting
+markers, and keep the `/no_think` suffix. `git diff --check` exited 0. `lsof`
+returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
