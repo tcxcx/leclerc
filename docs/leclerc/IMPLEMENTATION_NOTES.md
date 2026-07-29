@@ -1797,3 +1797,49 @@ rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 API-error story markers
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/api-error-stories.ts` as the shared API-error story
+  contract for remaining app fallback marker strings.
+- Rewired `apps/app/src/lib/api-errors.ts` so generic API-code marker matching
+  uses `apiErrorMarkers()` alongside the existing network-token and transfer
+  story markers.
+- Added `@leclerc/core/api-error-stories` to package exports and updated the
+  bucket-analysis artifact with B8/B11 evidence.
+
+### Verification
+
+```bash
+rg -n "unknown action|drop passphrase required|drop not joined|unknown card|must be configured for live rain card funding|spark_network must be testnet|startqvacprovider returned no publickey|no records|unsupported format|missing brief or records|missing image|empty source|qvac_base_url not configured|all qvac upstreams failed" apps/app/src/lib/api-errors.ts packages/core/src/api-error-stories.ts -g '*.ts'
+bun -e 'import { DEFAULT_API_ERROR_STORY, apiErrorMarkers } from "./packages/core/src/index.ts"; const markers=apiErrorMarkers(); console.log(JSON.stringify({story:DEFAULT_API_ERROR_STORY.id, markerCount:Object.keys(markers).length, station:markers.stationKeyMissing, qvac:markers.qvacUpstreamFailed})); if (DEFAULT_API_ERROR_STORY.id!=="stable-api-error-codes" || markers.qvacUpstreamFailed !== "all qvac upstreams failed" || markers.stationKeyMissing !== "startqvacprovider returned no publickey") process.exit(1);'
+bun -e 'import { apiErrorFromUnknown } from "./apps/app/src/lib/api-errors.ts"; const cases=[["unknown action","unknown_action"],["missing image","document_image_required"],["qvac_base_url not configured","qvac_upstream_unconfigured"],["all qvac upstreams failed","qvac_upstream_failed"],["startqvacprovider returned no publickey","station_key_missing"]]; const out=cases.map(([message])=>apiErrorFromUnknown(new Error(message),"chat_failed").code); console.log(JSON.stringify({out})); if (out.join(",")!==cases.map(([,code])=>code).join(",")) process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The exact API-marker scan
+now returns those fallback matcher strings only in
+`packages/core/src/api-error-stories.ts`, not in `apps/app/src/lib/api-errors.ts`.
+The API-error story smoke returned the shared story ID with 15 markers, and the
+mapper smoke resolved the expected API codes for unknown action, document image,
+QVAC upstream, and station-key failures. `git diff --check` exited 0. `lsof`
+returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

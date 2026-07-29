@@ -1,3 +1,4 @@
+import { apiErrorMarkers } from "@leclerc/core/api-error-stories";
 import { networkTokenErrorMarkers } from "@leclerc/transfer-core";
 import { transferErrorMarkers } from "@leclerc/transfers/transfer-stories";
 
@@ -84,14 +85,15 @@ export function apiErrorFromUnknown(error: unknown, fallbackCode: ApiErrorCode):
 
 function codeForMessage(message: string): ApiErrorCode | null {
   const normalized = message.toLowerCase();
+  const appMarkers = apiErrorMarkers();
   const transferMarkers = networkTokenErrorMarkers();
   const confirmationMarkers = transferErrorMarkers();
-  if (normalized.includes("unknown action")) return "unknown_action";
-  if (normalized.includes("drop passphrase required")) return "drop_passphrase_required";
-  if (normalized.includes("drop not joined")) return "drop_not_joined";
+  if (normalized.includes(appMarkers.unknownAction)) return "unknown_action";
+  if (normalized.includes(appMarkers.dropPassphraseRequired)) return "drop_passphrase_required";
+  if (normalized.includes(appMarkers.dropNotJoined)) return "drop_not_joined";
   if (normalized.includes(confirmationMarkers.walletSeedRequired)) return "wallet_seed_required";
   if (normalized.includes(confirmationMarkers.unknownMission)) return "unknown_mission";
-  if (normalized.includes("unknown card")) return "unknown_card";
+  if (normalized.includes(appMarkers.unknownCard)) return "unknown_card";
   if (normalized.includes(confirmationMarkers.confirmIdRequired)) return "confirm_id_required";
   if (normalized.includes(confirmationMarkers.confirmationNotMissionFunding)) return "confirmation_not_mission_funding";
   if (normalized.includes(confirmationMarkers.confirmationNotRainCardFunding)) return "confirmation_not_rain_card";
@@ -100,7 +102,7 @@ function codeForMessage(message: string): ApiErrorCode | null {
   if (normalized.includes(confirmationMarkers.transferConfirmationIntegrityFailed)) {
     return "transfer_confirmation_integrity_failed";
   }
-  if (normalized.includes("must be configured for live rain card funding")) return "rain_card_deposit_unconfigured";
+  if (normalized.includes(appMarkers.rainCardDepositUnconfigured)) return "rain_card_deposit_unconfigured";
   if (
     normalized.includes(transferMarkers.chainReadOnlyForWallet) ||
     normalized.includes(transferMarkers.chainReadOnlyForTransfers)
@@ -109,15 +111,15 @@ function codeForMessage(message: string): ApiErrorCode | null {
   if (normalized.includes(transferMarkers.assetNotEnabledForEvmTestnet)) return "asset_not_enabled";
   if (normalized.includes(transferMarkers.assetNotConfiguredOnChain)) return "asset_not_configured";
   if (normalized.includes(transferMarkers.evmWritableChainRequired)) return "evm_chain_mismatch";
-  if (normalized.includes("spark_network must be testnet")) return "spark_network_mismatch";
-  if (normalized.includes("startqvacprovider returned no publickey")) return "station_key_missing";
-  if (normalized.includes("no records")) return "brief_records_required";
-  if (normalized.includes("unsupported format")) return "brief_export_unsupported_format";
-  if (normalized.includes("missing brief or records")) return "brief_export_payload_required";
-  if (normalized.includes("missing image")) return "document_image_required";
-  if (normalized.includes("empty source")) return "capture_source_required";
-  if (normalized.includes("qvac_base_url not configured")) return "qvac_upstream_unconfigured";
-  if (normalized.includes("all qvac upstreams failed")) return "qvac_upstream_failed";
+  if (normalized.includes(appMarkers.sparkNetworkMismatch)) return "spark_network_mismatch";
+  if (normalized.includes(appMarkers.stationKeyMissing)) return "station_key_missing";
+  if (normalized.includes(appMarkers.briefRecordsRequired)) return "brief_records_required";
+  if (normalized.includes(appMarkers.briefExportUnsupportedFormat)) return "brief_export_unsupported_format";
+  if (normalized.includes(appMarkers.briefExportPayloadRequired)) return "brief_export_payload_required";
+  if (normalized.includes(appMarkers.documentImageRequired)) return "document_image_required";
+  if (normalized.includes(appMarkers.captureSourceRequired)) return "capture_source_required";
+  if (normalized.includes(appMarkers.qvacUpstreamUnconfigured)) return "qvac_upstream_unconfigured";
+  if (normalized.includes(appMarkers.qvacUpstreamFailed)) return "qvac_upstream_failed";
   return null;
 }
 
