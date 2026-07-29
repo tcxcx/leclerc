@@ -2397,3 +2397,52 @@ icons. `git diff --check` exited 0. `lsof` returned no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 SPY gadget story shelf
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Added `packages/core/src/spy-gadget-stories.ts` as the shared SPY console
+  gadget story for gadget IDs, Material Symbols icons, i18n label keys, field
+  descriptors, select options, default input values, mission unlocks, and
+  mission prefills.
+- Rewired `apps/app/src/components/spy-console.tsx` to consume
+  `spyGadgetStories()`, `spyMissionStories()`, and `spyDefaultGadgetValues()`
+  from `@leclerc/core` instead of the app-local `lib/spy/catalog.ts`.
+- Deleted the app-local SPY catalog file so the PWA and future native surfaces
+  share one gadget shelf contract.
+- Added `@leclerc/core/spy-gadget-stories` to package exports and updated the
+  bucket-analysis artifact with B8 evidence.
+
+### Verification
+
+```bash
+rg -n '@/lib/spy/catalog|export const GADGETS|type GadgetId|spy\.gadgets\.transcribe|account_balance_wallet|auto_stories|satellite_alt|Unknown SPY gadget' apps/app/src packages/core/src -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_SPY_GADGET_STORY, isSpyGadgetId, spyDefaultGadgetValues, spyGadgetStories, spyMissionStories } from "./packages/core/src/index.ts"; const gadgets=spyGadgetStories(); const missions=spyMissionStories(); const defaults=spyDefaultGadgetValues(gadgets); const values={story:DEFAULT_SPY_GADGET_STORY.id,gadgets:gadgets.map((g)=>g.id),missions:missions.map((m)=>`${m.id}:${m.gadgetIds.join("+")}`),defaults:Object.keys(defaults).sort(),transcribeIcon:gadgets.find((g)=>g.id==="transcribe")?.icon,stationIcon:gadgets.find((g)=>g.id==="station")?.icon,valid:isSpyGadgetId("wallet"),invalid:isSpyGadgetId("swap")}; console.log(JSON.stringify(values)); if (values.story!=="spy-console-gadget-shelf" || values.gadgets.join(",")!=="transcribe,extract,chat,ragAsk,ragSearch,brief,geo,reasoning,wallet,station" || values.transcribeIcon!=="graphic_eq" || values.stationIcon!=="hub" || !values.missions.some((item)=>item.startsWith("raven:ragAsk+ragSearch+brief+wallet")) || !values.defaults.includes("station") || !values.valid || values.invalid) process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The SPY gadget story
+smoke returned the shared story ID, the ten gadget IDs, mission-gated gadget
+sets, default input keys, transcribe/station icons, and valid/invalid gadget
+ID checks. The focused scan now returns SPY gadget metadata in
+`packages/core/src/spy-gadget-stories.ts`; remaining icon hits are unrelated
+navigation, landing, wallet, ops, or card surfaces. `git diff --check` exited
+0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.

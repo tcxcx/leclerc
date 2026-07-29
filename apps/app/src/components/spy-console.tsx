@@ -3,15 +3,22 @@
 import { useMemo, useState, type JSX } from "react";
 import { useI18n } from "@/locales/client";
 import { captureExtract, chat, ragAskScoped, ragSearch, runBrief, station, wallet } from "@/lib/api-client";
-import { GADGETS, MISSIONS, type Gadget, type GadgetId, type MissionId } from "@/lib/spy/catalog";
+import {
+  spyDefaultGadgetValues,
+  spyGadgetStories,
+  spyMissionStories,
+  type SpyGadget as Gadget,
+  type SpyGadgetId as GadgetId,
+  type SpyMissionId as MissionId,
+} from "@leclerc/core";
 import { GlassIcon } from "./glass-icon";
 
 type Values = Partial<Record<GadgetId, Record<string, string>>>;
 type MissionState = Partial<Record<MissionId, "accepted" | "denied">>;
 
-const DEFAULT_VALUES: Values = Object.fromEntries(
-  GADGETS.map((gadget) => [gadget.id, Object.fromEntries(gadget.fields.map((field) => [field.name, ""]))]),
-) as Values;
+const GADGETS = spyGadgetStories();
+const MISSIONS = spyMissionStories();
+const DEFAULT_VALUES: Values = spyDefaultGadgetValues(GADGETS);
 
 export function SpyConsole({ locale, onClose }: { locale: "es" | "en"; onClose: () => void }): JSX.Element {
   const t = useI18n();

@@ -33,6 +33,7 @@
     "./rag-stories": "./src/rag-stories.ts",
     "./rain-cards": "./src/rain-cards.ts",
     "./rpc": "./src/rpc.ts",
+    "./spy-gadget-stories": "./src/spy-gadget-stories.ts",
     "./station-stories": "./src/station-stories.ts",
     "./surfaces": "./src/surfaces.ts",
     "./tool-router": "./src/tool-router.ts",
