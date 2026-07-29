@@ -1,6 +1,7 @@
 import type { Locale } from "./intel";
 
 export type AssistantActionId = "card" | "ask" | "send" | "stash" | "receive";
+export type AssistantSideActionId = Exclude<AssistantActionId, "ask">;
 
 export interface LocalizedFallback {
   es: string;
@@ -17,6 +18,7 @@ export interface AssistantStarterChipStory {
 export interface AssistantActionStory {
   id: AssistantActionId;
   labelKey: string;
+  icon: string;
   fallbackLabel: LocalizedFallback;
 }
 
@@ -139,26 +141,31 @@ export const DEFAULT_ASSISTANT_STORY: AssistantStory = {
     card: {
       id: "card",
       labelKey: "console.actions.card",
+      icon: "credit_card",
       fallbackLabel: { es: "Tarjeta", en: "Card" },
     },
     ask: {
       id: "ask",
       labelKey: "console.actions.ask",
+      icon: "mic",
       fallbackLabel: { es: "Preguntar", en: "Ask" },
     },
     send: {
       id: "send",
       labelKey: "console.actions.send",
+      icon: "north_east",
       fallbackLabel: { es: "Enviar", en: "Send" },
     },
     stash: {
       id: "stash",
       labelKey: "console.actions.stash",
+      icon: "savings",
       fallbackLabel: { es: "Guardar", en: "Stash" },
     },
     receive: {
       id: "receive",
       labelKey: "console.actions.receive",
+      icon: "south_west",
       fallbackLabel: { es: "Recibir", en: "Receive" },
     },
   },
@@ -206,6 +213,24 @@ export function assistantActionLabels(
     send: story.actions.send.fallbackLabel[locale],
     stash: story.actions.stash.fallbackLabel[locale],
     receive: story.actions.receive.fallbackLabel[locale],
+  };
+}
+
+export function assistantActionIcon(
+  id: AssistantActionId,
+  story: AssistantStory = DEFAULT_ASSISTANT_STORY,
+): string {
+  return story.actions[id].icon;
+}
+
+export function assistantSideActionIcons(
+  story: AssistantStory = DEFAULT_ASSISTANT_STORY,
+): Record<AssistantSideActionId, string> {
+  return {
+    card: assistantActionIcon("card", story),
+    send: assistantActionIcon("send", story),
+    stash: assistantActionIcon("stash", story),
+    receive: assistantActionIcon("receive", story),
   };
 }
 

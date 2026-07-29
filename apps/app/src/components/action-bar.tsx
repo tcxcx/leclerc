@@ -1,17 +1,13 @@
 "use client";
 
 import type { JSX } from "react";
+import { assistantSideActionIcons, type AssistantSideActionId } from "@leclerc/core";
 import { GlassIcon } from "./glass-icon";
 import { VoiceButton, type VoiceState } from "./voice-button";
 
-export type BarAction = "card" | "send" | "stash" | "receive";
+export type BarAction = AssistantSideActionId;
 
-const ICON: Record<BarAction, string> = {
-  card: "credit_card",
-  send: "north_east",
-  stash: "savings",
-  receive: "south_west",
-};
+const ACTION_ICONS = assistantSideActionIcons();
 
 /**
  * Cleo-style fixed bottom bar. Two side actions flank a raised central voice
@@ -30,7 +26,7 @@ export function ActionBar(props: {
     <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md bg-transparent">
       <div className="grid grid-cols-[1fr_6.5rem_1fr] items-end gap-2 px-3 pt-5 pb-[max(0.65rem,env(safe-area-inset-bottom))]">
         <SideAction
-          icon={ICON.card}
+          icon={ACTION_ICONS.card}
           label={labels.card}
           active
           onClick={() => onAction("card")}
@@ -43,7 +39,7 @@ export function ActionBar(props: {
             aria-label={labels.send}
             className="absolute -left-3 top-7 z-10 rounded-full active:active-tap"
           >
-            <GlassIcon icon={ICON.send} label={labels.send} size="sm" />
+            <GlassIcon icon={ACTION_ICONS.send} label={labels.send} size="sm" />
           </button>
           <div className="-mt-5">
             <VoiceButton state={voiceState} onClick={onAsk} size={70} ariaLabels={voiceLabels} />
@@ -54,13 +50,13 @@ export function ActionBar(props: {
             aria-label={labels.receive}
             className="absolute -right-3 top-7 z-10 rounded-full active:active-tap"
           >
-            <GlassIcon icon={ICON.receive} label={labels.receive} size="sm" />
+            <GlassIcon icon={ACTION_ICONS.receive} label={labels.receive} size="sm" />
           </button>
           <span className="font-label-md text-on-surface">{labels.ask}</span>
         </div>
 
         <SideAction
-          icon={ICON.stash}
+          icon={ACTION_ICONS.stash}
           label={labels.stash}
           onClick={() => onAction("stash")}
         />

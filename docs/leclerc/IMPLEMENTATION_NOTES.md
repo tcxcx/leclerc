@@ -2540,3 +2540,48 @@ consumers. `git diff --check` exited 0. `lsof` returned no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 assistant action icon story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Extended `packages/core/src/assistant-stories.ts` so every Cleo assistant
+  action owns its Material Symbols icon alongside label keys and localized
+  fallback labels.
+- Added `AssistantSideActionId`, `assistantActionIcon()`, and
+  `assistantSideActionIcons()` for the action bar.
+- Rewired `apps/app/src/components/action-bar.tsx` so card/send/stash/receive
+  icons come from the shared assistant story instead of a component-local map.
+- Updated the bucket-analysis artifact with B8 assistant-action icon evidence.
+
+### Verification
+
+```bash
+rg -n 'const ICON|AssistantSideActionId|assistantSideActionIcons|assistantActionIcon|north_east|south_west|savings|credit_card|icon: "mic"' apps/app/src/components/action-bar.tsx packages/core/src/assistant-stories.ts packages/core/src/navigation-stories.ts -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_ASSISTANT_STORY, assistantActionIcon, assistantSideActionIcons } from "./packages/core/src/index.ts"; const side=assistantSideActionIcons(); const values={story:DEFAULT_ASSISTANT_STORY.id,ask:assistantActionIcon("ask"),side}; console.log(JSON.stringify(values)); if (values.story!=="cleo-field-console" || values.ask!=="mic" || side.card!=="credit_card" || side.send!=="north_east" || side.stash!=="savings" || side.receive!=="south_west") process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The assistant action
+story smoke returned the shared story ID, ask icon, and card/send/stash/receive
+side-action icon map. The focused scan now returns action icon values in
+`packages/core/src/assistant-stories.ts`; the remaining `credit_card` and
+`mic` hits are unrelated navigation-story values. `git diff --check` exited 0.
+`lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
