@@ -18,6 +18,14 @@ export interface AnalystReportLabels {
   toolLog: string;
 }
 
+export type AnalystReportExportFormat = "pdf" | "docx";
+
+export interface AnalystReportFilenameStory {
+  prefix: string;
+  fallbackSlug: string;
+  maxSlugLength: number;
+}
+
 export interface AnalystRuntimeCopy {
   ragDefaultQuery: string;
   defaultFocus: string;
@@ -55,6 +63,7 @@ export interface AnalystStory {
   id: string;
   progressSteps: AnalystProgressStep[];
   reportLabels: Record<Locale, AnalystReportLabels>;
+  reportFilename: AnalystReportFilenameStory;
   runtimeCopy: Record<Locale, AnalystRuntimeCopy>;
   toolDescriptions: Record<AnalystToolName, string>;
   errors: {
@@ -114,6 +123,11 @@ export const DEFAULT_ANALYST_STORY: AnalystStory = {
       recommendations: "Recomendaciones",
       toolLog: "Registro de agentes/herramientas",
     },
+  },
+  reportFilename: {
+    prefix: "leclerc-brief",
+    fallbackSlug: "intel",
+    maxSlugLength: 48,
   },
   runtimeCopy: {
     en: {
@@ -194,6 +208,28 @@ export function analystReportLabels(
   story: AnalystStory = DEFAULT_ANALYST_STORY,
 ): AnalystReportLabels {
   return story.reportLabels[locale];
+}
+
+export function analystReportSlug(
+  title: string,
+  story: AnalystStory = DEFAULT_ANALYST_STORY,
+): string {
+  return title
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, story.reportFilename.maxSlugLength)
+    .toLowerCase();
+}
+
+export function analystReportFilename(
+  title: string,
+  format: AnalystReportExportFormat,
+  story: AnalystStory = DEFAULT_ANALYST_STORY,
+): string {
+  const slug = analystReportSlug(title, story) || story.reportFilename.fallbackSlug;
+  return `${story.reportFilename.prefix}-${slug}.${format}`;
 }
 
 export function analystRuntimeCopy(

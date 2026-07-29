@@ -19,7 +19,7 @@ import {
 } from "docx";
 import type { IntelBrief } from "@/lib/agents/orchestrator";
 import type { IntelRecord } from "@/lib/intel/schema";
-import { analystReportLabels, brandReportMetadata } from "@leclerc/core";
+import { analystReportFilename, analystReportLabels, brandReportMetadata } from "@leclerc/core";
 
 export type BriefExportFormat = "pdf" | "docx";
 
@@ -38,14 +38,7 @@ export async function renderBriefExport(
 }
 
 export function briefFilename(brief: IntelBrief, format: BriefExportFormat): string {
-  const slug = brief.titulo
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/gi, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 48)
-    .toLowerCase();
-  return `leclerc-brief-${slug || "intel"}.${format}`;
+  return analystReportFilename(brief.titulo, format);
 }
 
 export function briefMime(format: BriefExportFormat): string {

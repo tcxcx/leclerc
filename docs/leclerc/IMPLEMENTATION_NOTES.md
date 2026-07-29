@@ -2217,3 +2217,45 @@ returned no rows on `:7001`.
 - Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
   permission proof, native install artifacts, and demo video artifact remain
   outstanding.
+
+## STATUS 2026-07-29 analyst report filename story
+
+Branch: `feat/leclerc-scaffold`
+
+### What changed
+
+- Extended `packages/core/src/analyst-stories.ts` with report filename rules:
+  prefix, fallback slug, max slug length, slug helper, and filename helper.
+- Rewired `apps/app/src/lib/reports/export.tsx` so PDF/DOCX attachment names use
+  the shared analyst story instead of app-local slugging and filename literals.
+- Updated the bucket-analysis artifact with B4/B8/B11 evidence.
+
+### Verification
+
+```bash
+rg -n 'leclerc-brief-|slug \|\| "intel"|slice\(0, 48\)|fallbackSlug: "intel"|maxSlugLength: 48|prefix: "leclerc-brief"' apps/app/src packages/core/src -g '*.ts' -g '*.tsx'
+bun -e 'import { DEFAULT_ANALYST_STORY, analystReportFilename, analystReportSlug } from "./packages/core/src/index.ts"; const values={story:DEFAULT_ANALYST_STORY.id,prefix:DEFAULT_ANALYST_STORY.reportFilename.prefix,fallback:DEFAULT_ANALYST_STORY.reportFilename.fallbackSlug,max:DEFAULT_ANALYST_STORY.reportFilename.maxSlugLength,slug:analystReportSlug("Informe médico: Río & Norte / 2026"),fallbackName:analystReportFilename("!!!", "pdf"),docx:analystReportFilename("Informe médico: Río & Norte / 2026", "docx")}; console.log(JSON.stringify(values)); if (values.story!=="field-analyst-desk" || values.prefix!=="leclerc-brief" || values.fallback!=="intel" || values.max!==48 || values.slug!=="informe-medico-rio-norte-2026" || values.fallbackName!=="leclerc-brief-intel.pdf" || values.docx!=="leclerc-brief-informe-medico-rio-norte-2026.docx") process.exit(1);'
+bun --filter @leclerc/core typecheck
+bun --filter @leclerc/transfers typecheck
+bun --filter @leclerc/desktop typecheck
+bun --filter @leclerc/mobile typecheck
+cd apps/app && bunx tsc --noEmit --pretty false
+cd ../..
+bun --filter app lint
+NODE_OPTIONS=--max-old-space-size=8192 bun --filter app build
+git diff --check
+lsof -nP -iTCP:7001 -sTCP:LISTEN
+```
+
+Results: all typecheck/lint/build commands exited 0. The focused scan now
+returns the report filename prefix, fallback slug, and slug length only in
+`packages/core/src/analyst-stories.ts`. The filename story smoke returned the
+shared analyst story ID, configured prefix/fallback/length, normalized accented
+title slug, fallback PDF filename, and DOCX filename. `git diff --check` exited
+0. `lsof` returned no rows on `:7001`.
+
+### Residual blockers
+
+- Native runtime/rendering, native worklet adapter, two-peer P2P proof, real mic
+  permission proof, native install artifacts, and demo video artifact remain
+  outstanding.
